@@ -1,0 +1,25 @@
+{
+    "name": "jupiter",
+    "version": "1.0.0",
+    "description": "Frontend helpers.",
+    "author": "Univers/Twined",
+    "license": "CC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://twined@github.com/twined/jupiter.git"
+    },
+    "bugs": {
+        "url": "https://github.com/twined/jupiter/issues"
+    },
+    "main": "src/index.js",
+    "homepage": "https://github.com/twined/jupiter#readme",
+    "devDependencies": {
+        "@babel/cli": "^7.2.3",
+        "@babel/core": "^7.2.2",
+        "@babel/preset-env": "^7.2.3",
+        "babel-loader": "^8.0.5",
+        "eslint": "^4.19.1",
+        "eslint-loader": "^2.0.0",
+        "eslint-plugin-import": "^2.13.0"
+    }
+}
