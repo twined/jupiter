@@ -9,7 +9,6 @@
  *
  */
 
-import imagesLoaded from 'imagesloaded'
 import { TweenLite, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 // eslint-disable-next-line no-unused-vars
