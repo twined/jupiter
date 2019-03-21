@@ -34,8 +34,8 @@ const DEFAULT_EVENTS = {
       {
         yPercent: '0',
         ease: Sine.easeOut,
-        force3D: true,
-        overwrite: 'all'
+        overwrite: 'all',
+        autoRound: true
       }
     )
   },
@@ -48,8 +48,8 @@ const DEFAULT_EVENTS = {
       {
         yPercent: '-100',
         ease: Sine.easeIn,
-        force3D: true,
         overwrite: 'all',
+        autoRound: true,
         onComplete: () => {
           h._hiding = false
         }
@@ -121,11 +121,11 @@ export default class FixedHeader {
     this._bottom = false
     this._small = false
     this._altBg = false
-    this._hasScrolled = false
     this._hiding = false // if we're in the process of hiding the bar
     this.lastKnownScrollY = 0
     this.currentScrollY = 0
     this.mobileMenuOpen = false
+    this.timer = null
 
     this.initialize()
   }
@@ -141,22 +141,21 @@ export default class FixedHeader {
       this.opts.offsetBg = elm.offsetTop - this.el.offsetHeight
     }
 
+    window.addEventListener('scroll', this.requestTick.bind(this), false)
     this.redraw(true)
-    this.loop()
-
     this._bindMobileMenuListeners()
   }
 
-  loop () {
-    const _chkUpdate = () => {
-      if (!this._hasScrolled) {
-        window.requestAnimationFrame(() => { this.redraw(false) })
-      }
-      this._hasScrolled = true
-      window.requestAnimationFrame(_chkUpdate)
+  requestTick () {
+    if (!this.ticking) {
+      requestAnimationFrame(this.update.bind(this))
     }
+    this.ticking = true
+  }
 
-    _chkUpdate()
+  update () {
+    this.ticking = false
+    this.redraw(false)
   }
 
   checkSize (force) {
@@ -284,7 +283,6 @@ export default class FixedHeader {
     this.checkPin(force, toleranceExceeded)
 
     this.lastKnownScrollY = this.currentScrollY
-    this._hasScrolled = false
   }
 
   notTop () {
