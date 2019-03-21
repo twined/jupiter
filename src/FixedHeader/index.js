@@ -34,7 +34,6 @@ const DEFAULT_EVENTS = {
       {
         yPercent: '0',
         ease: Sine.easeOut,
-        overwrite: 'all',
         autoRound: true
       }
     )
@@ -48,7 +47,6 @@ const DEFAULT_EVENTS = {
       {
         yPercent: '-100',
         ease: Sine.easeIn,
-        overwrite: 'all',
         autoRound: true,
         onComplete: () => {
           h._hiding = false
