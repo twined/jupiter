@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = {
 
     timeline
       .to(m.logo, 0.2, { opacity: 0, ease: Power3.easeOut })
-      .set(m.nav, { x: '100%', opacity: 1 })
+      .set(m.nav, { x: '100%', opacity: 1, height: window.innerHeight })
       .set(m.lis, { opacity: 0 })
       .to(m.nav, 0.35, { x: '0%', ease: Sine.easeIn })
       .set(m.logoPath, { fill: m.opts.logoColor })
@@ -29,6 +29,7 @@ const DEFAULT_OPTIONS = {
       .to(m.logo, 0.2, { opacity: 0, ease: Power3.easeOut })
       .set(m.logoPath, { clearProps: 'fill' })
       .to(m.nav, 0.35, { x: '100%', ease: Sine.easeIn })
+      .set(m.nav, { clearProps: 'height' })
       .call(() => {
         m._emitMobileMenuClosedEvent()
       })
