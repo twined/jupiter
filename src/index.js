@@ -12,14 +12,15 @@ import Typography from './Typography'
 
 import { TweenLite, TimelineLite, Power3, Sine } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
+import SR from 'scrollreveal'
 
 export {
   Breakpoints,
   Cookies,
   Fader,
   FixedHeader,
-  HeroSlider,
   Lazyload,
+  HeroSlider,
   Lightbox,
   Links,
   MobileMenu,
@@ -31,5 +32,6 @@ export {
   TweenLite,
   TimelineLite,
   Power3,
-  Sine
+  Sine,
+  SR
 }
