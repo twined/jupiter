@@ -10,7 +10,9 @@
  */
 
 import imagesLoaded from 'imagesloaded'
-import { TweenLite, Power3, CSSPlugin } from 'gsap/all'
+import { TweenLite, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
+import _defaultsDeep from 'lodash.defaultsdeep'
+// eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
 
 const DEFAULT_OPTIONS = {
@@ -22,13 +24,15 @@ const DEFAULT_OPTIONS = {
   zIndex: {
     visible: 5,
     next: 4,
-    regular: 3,
+    regular: 3
   },
   transition: {
     /* how long the actual transition from slide to slide takes */
     duration: 0.8,
     /* the transition type. 'parallax' or 'fade' */
-    type: 'parallax'
+    type: 'parallax',
+    /* how much to scale when 'idle' */
+    scale: 1.05
   }
 }
 
@@ -40,15 +44,12 @@ export default class HeroSlider {
     }
 
     this.el = el
-
-    Object.assign(this, {
-      opts: DEFAULT_OPTIONS
-    }, opts)
-
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
 
   initialize () {
+    this._addResizeHandler()
     // style the container
     TweenLite.set(this.el, {
       position: 'absolute',
@@ -130,79 +131,71 @@ export default class HeroSlider {
    * Switches between slides
    */
   slide () {
+    const timeline = new TimelineLite()
+
     switch (this.opts.transition.type) {
       case 'fade':
-        TweenLite.set(this._currentSlide, {
-          opacity: 0,
-          zIndex: this.opts.zIndex.visible
-        })
-
-        TweenLite.set(this._nextSlide, {
-          opacity: 0
-        })
-
-        TweenLite.to(this._currentSlide, this.opts.transition.duration, {
-          opacity: 1,
-          force3D: true,
-          ease: Power3.easeInOut,
-          onComplete: () => {
+        timeline
+          .set(this._currentSlide, {
+            opacity: 0,
+            scale: 1,
+            zIndex: this.opts.zIndex.visible
+          })
+          .set(this._nextSlide, {
+            opacity: 0
+          })
+          .to(this._previousSlide, this.opts.interval, {
+            scale: this.opts.transition.scale
+          })
+          .to(this._currentSlide, this.opts.transition.duration, {
+            opacity: 1,
+            delay: this.opts.interval - this.opts.transition.duration,
+            force3D: true,
+            ease: Sine.easeInOut
+          })
+          .set(this._previousSlide, {
+            opacity: 0
+          })
+          .call(() => {
             this._nextSlide.style.zIndex = this.opts.zIndex.visible
             this._currentSlide.style.zIndex = this.opts.zIndex.regular
             this._previousSlide.style.zIndex = this.opts.zIndex.regular
-
-            TweenLite.set(this._previousSlide, {
-              opacity: 0
-            })
-
             this.next()
-          }
-        })
+          }, null, this)
+
         break
 
       case 'parallax':
-        TweenLite.set(this._currentSlide, {
-          zIndex: this.opts.zIndex.next,
-          scale: 1.0,
-          width: '100%',
-          overwrite: 'all'
-        })
+        timeline
+          .set(this._currentSlide, {
+            zIndex: this.opts.zIndex.next,
+            scale: 1.0,
+            width: '100%'
+          })
+          .fromTo(this._previousSlide, this.opts.interval, {
+            overflow: 'hidden'
+          }, {
+            scale: this.opts.transition.scale
+          })
+          .to(this._previousSlide, this.opts.transition.duration, {
+            width: 0,
+            ease: Power3.easeIn,
+            autoRound: true
+          })
+          .set(this._nextSlide, {
+            zIndex: this.opts.zIndex.next
+          })
+          .set(this._currentSlide, {
+            zIndex: this.opts.zIndex.visible,
+            width: '100%'
+          })
+          .set(this._previousSlide, {
+            zIndex: this.opts.zIndex.regular,
+            scale: 1.0,
+            width: '100%'
+          })
+          .call(this.next, null, this)
 
-        TweenLite.set(this._previousSlide, {
-          overflow: 'hidden'
-        })
-
-        TweenLite.to(this._previousSlide, this.opts.interval, {
-          scale: 1.05,
-          onComplete: () => {
-            TweenLite.to(this._previousSlide, this.opts.transition.duration, {
-              width: 0,
-              ease: Power3.easeIn,
-              autoRound: true,
-              overwrite: 'all',
-              onComplete: () => {
-                TweenLite.set(this._nextSlide, {
-                  zIndex: this.opts.zIndex.next,
-                  overwrite: 'all'
-                })
-
-                TweenLite.set(this._currentSlide, {
-                  zIndex: this.opts.zIndex.visible,
-                  width: '100%',
-                  overwrite: 'all'
-                })
-
-                TweenLite.set(this._previousSlide, {
-                  zIndex: this.opts.zIndex.regular,
-                  scale: 1.0,
-                  width: '100%',
-                  overwrite: 'all'
-                })
-
-                this.next()
-              }
-            })
-          }
-        })
         break
     }
   }

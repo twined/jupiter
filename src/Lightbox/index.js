@@ -22,7 +22,6 @@ export default class Lightbox {
   }
 
   showBox (idx) {
-    // create the wrapper
     const fader = document.querySelector('#fader')
     fader.style.display = 'block'
 
@@ -35,6 +34,8 @@ export default class Lightbox {
   }
 
   buildBox (idx) {
+    const fader = document.querySelector('#fader')
+
     const wrapper = document.createElement('div')
     const content = document.createElement('div')
     const imgWrapper = document.createElement('div')
@@ -98,7 +99,6 @@ export default class Lightbox {
         activeLink = a
       }
       a.addEventListener('click', e => {
-
         a.classList.add('active')
         activeLink.classList.remove('active')
         activeLink = a
@@ -122,7 +122,7 @@ export default class Lightbox {
 
     this.attachSwiper(content, idx)
 
-    imagesLoaded(wrapper, function (instance) {
+    imagesLoaded(wrapper, () => {
       TweenLite.to(wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
@@ -150,7 +150,7 @@ export default class Lightbox {
     })
   }
 
-  setImg(x, oldIdx) {
+  setImg (x, oldIdx) {
     let c = document.querySelector('.lightbox-content')
     let img = document.querySelector('.lightbox-image')
 
@@ -180,7 +180,7 @@ export default class Lightbox {
     })
   }
 
-  getNextIdx(idx) {
+  getNextIdx (idx) {
     if (idx === this.imgs.length - 1) {
       return 0
     } else {
@@ -188,7 +188,7 @@ export default class Lightbox {
     }
   }
 
-  getPrevIdx(idx) {
+  getPrevIdx (idx) {
     if (idx === 0) {
       return this.imgs.length - 1
     } else {
@@ -196,7 +196,7 @@ export default class Lightbox {
     }
   }
 
-  attachSwiper(el, initialIdx) {
+  attachSwiper (el, initialIdx) {
     const c = document.querySelector('.lightbox-content')
     const hammer = new Hammer.Manager(el)
     const swipe = new Hammer.Swipe()
