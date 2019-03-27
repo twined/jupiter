@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = {
 
     timeline
       .to(m.logo, 0.2, { opacity: 0, ease: Power3.easeOut })
-      .set(m.nav, { x: '100%', opacity: 1, height: window.innerHeight })
+      .set(m.nav, { x: '100%', opacity: 1, height: '100vh' })
       .set(m.lis, { opacity: 0 })
       .to(m.nav, 0.35, { x: '0%', ease: Sine.easeIn })
       .set(m.logoPath, { fill: m.opts.logoColor })
