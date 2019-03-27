@@ -11,6 +11,8 @@
 
 import { TweenLite, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import _debounce from 'lodash.debounce'
+
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
 
@@ -204,14 +206,16 @@ export default class HeroSlider {
   }
 
   /**
-   * Add a window resize handles that resizes image widths
+   * Add a debounced window resize handler that resizes slide widths
    */
   _addResizeHandler () {
-    window.addEventListener('resize', e => {
-      TweenLite.set(document.querySelectorAll('.hero-slide-img'), {
-        width: document.body.clientWidth,
-        overwrite: 'all'
-      })
+    window.addEventListener('resize', _debounce(this._resizeSlides, 150))
+  }
+
+  _resizeSlides (e) {
+    TweenLite.set(document.querySelectorAll('.hero-slide-img'), {
+      width: document.body.clientWidth,
+      overwrite: 'all'
     })
   }
 }
