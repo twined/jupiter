@@ -86,7 +86,7 @@ export default class HeroSlider {
           position: 'absolute'
         })
       } else {
-        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img with background image inside .hero-slide')
+        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE .hero-slide')
       }
     }
 
