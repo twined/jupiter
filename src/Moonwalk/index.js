@@ -74,9 +74,9 @@ export default class Moonwalk {
       Object.keys(this.opts.walks).forEach(key => {
         let searchAttr = ''
         if (key === 'default') {
-          searchAttr = '[data-moonwalk]'
+          searchAttr = '[data-moonwalk]:not(.lazyload)'
         } else {
-          searchAttr = `[data-moonwalk-${key}]`
+          searchAttr = `[data-moonwalk-${key}]:not(.lazyload)`
         }
         let walks = walkSections[i].querySelectorAll(searchAttr)
         SR.reveal(walks, this.opts.walks[key])
