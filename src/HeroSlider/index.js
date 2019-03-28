@@ -16,6 +16,15 @@ import _debounce from 'lodash.debounce'
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
 
+if ('objectFit' in document.documentElement.style === false) {
+  document.addEventListener('DOMContentLoaded', function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.hero-bg img'), function (image) {
+      (image.runtimeStyle || image.style).background = 'url("' + image.src + '") no-repeat 50%/' + (image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit'))
+      image.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'' + image.width + '\' height=\'' + image.height + '\'%3E%3C/svg%3E'
+    })
+  })
+}
+
 const DEFAULT_OPTIONS = {
   /* time between slides */
   interval: 4.2,
@@ -98,13 +107,19 @@ export default class HeroSlider {
     window.addEventListener('application:ready', () => {
       /* Wait for the first image to load, then fade in container element */
       let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
-      firstImg.onload = (e) => {
+      let fadeInContainer = () => {
         TweenLite.to(this.el, 0.250, {
           opacity: 1,
           onComplete: () => { this.next() }
         })
       }
+
+      firstImg.onload = (e) => {
+        fadeInContainer()
+      }
+
       firstImg.setAttribute('srcset', firstImg.getAttribute('srcset'))
+      firstImg.setAttribute('src', firstImg.getAttribute('src'))
     })
   }
 
@@ -185,7 +200,8 @@ export default class HeroSlider {
           .to(this._previousSlide, this.opts.transition.duration, {
             width: 0,
             ease: Power3.easeIn,
-            autoRound: true
+            autoRound: true,
+            overwrite: 'preexisting'
           })
           .set(this._nextSlide, {
             zIndex: this.opts.zIndex.next
