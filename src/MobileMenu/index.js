@@ -41,17 +41,17 @@ export default class MobileMenu {
   constructor (opts = {}) {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    this.logo = document.querySelector('.navbar-brand')
-    this.logoPath = document.querySelector(this.opts.logoPathSelector)
-    this.hamburger = document.querySelector('.hamburger')
-    this.content = document.querySelector('#navbar-content')
-    this.lis = this.content.querySelectorAll('li')
-    this.nav = document.querySelector('nav')
-    this.header = document.querySelector('header')
+    // this.logo = document.querySelector('.navbar-brand')
+    // this.logoPath = document.querySelector(this.opts.logoPathSelector)
+    // this.hamburger = document.querySelector('.hamburger')
+    // this.content = document.querySelector('#navbar-content')
+    // this.lis = this.content.querySelectorAll('li')
+    // this.nav = document.querySelector('nav')
+    // this.header = document.querySelector('header')
 
-    this.hamburger.addEventListener('click', e => {
-      this.toggleMenu()
-    })
+    // this.hamburger.addEventListener('click', e => {
+    //   this.toggleMenu()
+    // })
   }
 
   toggleMenu () {
