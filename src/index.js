@@ -3,7 +3,6 @@ import Cookies from './Cookies'
 import Fader from './Fader'
 import FixedHeader from './FixedHeader'
 import HeroSlider from './HeroSlider'
-import Lazyload from './Lazyload'
 import Lightbox from './Lightbox'
 import Links from './Links'
 import MobileMenu from './MobileMenu'
@@ -19,7 +18,6 @@ export {
   Cookies,
   Fader,
   FixedHeader,
-  Lazyload,
   HeroSlider,
   Lightbox,
   Links,
