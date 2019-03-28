@@ -104,7 +104,7 @@ export default class HeroSlider {
           onComplete: () => { this.next() }
         })
       }
-      firstImg.srcset = firstImg.srcset
+      firstImg.setAttribute('srcset', firstImg.getAttribute('srcset'))
     })
   }
 
