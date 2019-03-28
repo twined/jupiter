@@ -201,7 +201,8 @@ export default class HeroSlider {
           .to(this._previousSlide, this.opts.transition.duration, {
             width: 0,
             ease: Power3.easeIn,
-            autoRound: true
+            autoRound: true,
+            overwrite: 'preexisting'
           })
           .set(this._nextSlide, {
             zIndex: this.opts.zIndex.next
