@@ -58,7 +58,7 @@ export default class Links {
           let main = document.querySelector('main')
           fader.style.display = 'block'
           TweenLite.to(main, 0.8, {
-            yPercent: 3,
+            y: 25,
             ease: Power3.easeOut
           })
 
