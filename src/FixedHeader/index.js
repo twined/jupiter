@@ -82,7 +82,7 @@ const DEFAULT_EVENTS = {
 const DEFAULT_OPTIONS = {
   default: {
     canvas: window,
-    enter: (h) => {
+    enter: h => {
       const timeline = new TimelineLite()
       timeline
         .set(h.el, { yPercent: -100 })
@@ -259,9 +259,11 @@ export default class FixedHeader {
     }
   }
 
-  redraw (force = false) {
+  redraw (force = false, enter = true) {
     if (force && this.opts.enter) {
-      this.opts.enter(this)
+      if (enter) {
+        this.opts.enter(this)
+      }
       this.checkSize(force)
       this.checkBg(force)
       return
