@@ -1,10 +1,12 @@
 import { TimelineLite, Power3, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import _debounce from 'lodash.debounce'
 
 const DEFAULT_OPTIONS = {
   logoColor: '#000',
   logoPathSelector: 'svg path',
 
+  onResize: null,
   openTween: (m) => {
     const timeline = new TimelineLite()
     m.hamburger.classList.toggle('is-active')
@@ -59,6 +61,10 @@ export default class MobileMenu {
     this.hamburger.addEventListener('click', e => {
       this.toggleMenu()
     })
+
+    if (this.opts.onResize) {
+      window.addEventListener('resize', _debounce(() => this.opts.onResize(this), 150))
+    }
   }
 
   toggleMenu () {
