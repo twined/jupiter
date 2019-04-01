@@ -71,7 +71,7 @@ export default class HeroSlider {
       opacity: 0
     })
 
-    this.slides = this.el.querySelectorAll('.hero-slide')
+    this.slides = this.el.querySelectorAll('[data-hero-slide]')
     this.slideCount = this.slides.length - 1
     this._currentSlideIdx = this.opts.initialSlideNumber
 
@@ -97,7 +97,7 @@ export default class HeroSlider {
           position: 'absolute'
         })
       } else {
-        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE .hero-slide')
+        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE [data-hero-slide]')
       }
     }
 
