@@ -9,7 +9,7 @@ import MobileMenu from './MobileMenu'
 import Moonwalk from './Moonwalk'
 import Typography from './Typography'
 
-import { TweenLite, TimelineLite, Power3, Sine } from 'gsap/all'
+import { TweenLite, TimelineLite, CSSPlugin, Power3, Sine } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
 
 export {
@@ -29,5 +29,6 @@ export {
   TweenLite,
   TimelineLite,
   Power3,
-  Sine
+  Sine,
+  CSSPlugin
 }
