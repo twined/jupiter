@@ -104,16 +104,23 @@ export default class HeroSlider {
     this.slides[0].style.zIndex = this.opts.zIndex.visible
     this.slides[1].style.zIndex = this.opts.zIndex.next
 
+    const fadeIn = () => {
+      TweenLite.to(this.el, 0.250, {
+        opacity: 1,
+        onComplete: () => { this.next() }
+      })
+    }
+
     window.addEventListener('application:ready', () => {
       /* Wait for the first image to load, then fade in container element */
       let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
-      firstImg.onload = (e) => {
-        TweenLite.to(this.el, 0.250, {
-          opacity: 1,
-          onComplete: () => { this.next() }
-        })
+      if (firstImg.complete) {
+        fadeIn()
+      } else {
+        firstImg.onload = () => {
+          fadeIn()
+        }
       }
-      firstImg.setAttribute('srcset', firstImg.getAttribute('srcset'))
     })
   }
 
