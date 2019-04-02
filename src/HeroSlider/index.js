@@ -114,6 +114,7 @@ export default class HeroSlider {
     window.addEventListener('application:ready', () => {
       /* Wait for the first image to load, then fade in container element */
       let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
+
       if (firstImg.complete) {
         fadeIn()
       } else {
