@@ -1,6 +1,6 @@
 import imagesLoaded from 'imagesloaded'
 import Hammer from 'hammerjs'
-import { TweenLite, Sine } from 'gsap/TweenMax'
+import { TweenLite, Sine } from 'gsap/all'
 
 TweenLite.defaultEase = Sine.easeOut
 

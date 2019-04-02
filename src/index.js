@@ -9,9 +9,8 @@ import MobileMenu from './MobileMenu'
 import Moonwalk from './Moonwalk'
 import Typography from './Typography'
 
-import { TweenLite, TimelineLite, Power3, Sine } from 'gsap/all'
+import { TweenLite, TimelineLite, CSSPlugin, Power3, Sine } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
-import SR from 'scrollreveal'
 
 export {
   Breakpoints,
@@ -31,5 +30,5 @@ export {
   TimelineLite,
   Power3,
   Sine,
-  SR
+  CSSPlugin
 }

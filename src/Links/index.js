@@ -1,6 +1,6 @@
 // import Headroom from 'headroom.js'
 import { TweenLite, Power3 } from 'gsap/all'
-import scrollIntoView from 'scroll-into-view-if-needed'
+import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
@@ -20,7 +20,7 @@ export default class Links {
     let wait = false
 
     for (let link of Array.from(anchors)) {
-      link.addEventListener('click', (e) => {
+      link.addEventListener('click', e => {
         e.preventDefault()
         const href = link.getAttribute('href')
 
@@ -58,7 +58,7 @@ export default class Links {
           let main = document.querySelector('main')
           fader.style.display = 'block'
           TweenLite.to(main, 0.8, {
-            yPercent: 3,
+            y: 25,
             ease: Power3.easeOut
           })
 

@@ -71,7 +71,7 @@ export default class HeroSlider {
       opacity: 0
     })
 
-    this.slides = this.el.querySelectorAll('.hero-slide')
+    this.slides = this.el.querySelectorAll('[data-hero-slide]')
     this.slideCount = this.slides.length - 1
     this._currentSlideIdx = this.opts.initialSlideNumber
 
@@ -97,29 +97,31 @@ export default class HeroSlider {
           position: 'absolute'
         })
       } else {
-        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE .hero-slide')
+        console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE [data-hero-slide]')
       }
     }
 
     this.slides[0].style.zIndex = this.opts.zIndex.visible
     this.slides[1].style.zIndex = this.opts.zIndex.next
 
+    const fadeIn = () => {
+      TweenLite.to(this.el, 0.250, {
+        opacity: 1,
+        onComplete: () => { this.next() }
+      })
+    }
+
     window.addEventListener('application:ready', () => {
       /* Wait for the first image to load, then fade in container element */
       let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
-      let fadeInContainer = () => {
-        TweenLite.to(this.el, 0.250, {
-          opacity: 1,
-          onComplete: () => { this.next() }
-        })
-      }
 
-      firstImg.onload = (e) => {
-        fadeInContainer()
+      if (firstImg.complete) {
+        fadeIn()
+      } else {
+        firstImg.onload = () => {
+          fadeIn()
+        }
       }
-
-      firstImg.setAttribute('srcset', firstImg.getAttribute('srcset'))
-      firstImg.setAttribute('src', firstImg.getAttribute('src'))
     })
   }
 

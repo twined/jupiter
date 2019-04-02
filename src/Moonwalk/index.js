@@ -1,8 +1,10 @@
 import ScrollReveal from 'scrollreveal'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
-const SR = ScrollReveal()
 const DEFAULT_OPTIONS = {
+  /* if your app needs to do some initialization while the application:ready has been fired,
+  /* you can set this to false. You will then have to call `this.ready()` to start the reveals */
+  fireOnReady: true,
   walks: {
     default: {
       duration: 800,
@@ -12,57 +14,52 @@ const DEFAULT_OPTIONS = {
       delay: 50,
       interval: 90,
       useDelay: 'once'
-    },
-    fade: {
-      duration: 1200,
-      distance: '0px',
-      easing: 'ease',
-      viewFactor: 0.0,
-      delay: 50,
-      interval: 120,
-      useDelay: 'once'
-    },
-
-    offset: {
-      duration: 1200,
-      distance: '20px',
-      easing: 'ease',
-      viewFactor: 0.0,
-      viewOffset: { top: 0, right: 0, bottom: -400, left: 0 },
-      delay: 500,
-      useDelay: 'once'
     }
   }
 }
 
 export default class Moonwalk {
   constructor (opts = {}) {
+    this.SR = ScrollReveal()
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.parseChildren()
-    window.addEventListener('application:ready', this.ready.bind(this))
+    if (this.opts.fireOnReady) {
+      window.addEventListener('application:ready', this.ready.bind(this))
+    }
   }
 
   parseChildren () {
     Object.keys(this.opts.walks).forEach(key => {
-      let searchAttr = ''
-      let setAttr = ''
+      this.findElementsByKey(key)
+    })
+  }
 
-      if (key === 'default') {
-        searchAttr = '[data-moonwalk-children]'
-        setAttr = 'data-moonwalk'
-      } else {
-        searchAttr = `[data-moonwalk-${key}-children]`
-        setAttr = `data-moonwalk-${key}`
-      }
+  findElementsByKey (key) {
+    let searchAttr = ''
+    let attr = ''
 
-      let elements = document.querySelectorAll(searchAttr)
-      Array.prototype.forEach.call(elements, function (el, i) {
-        let children = el.children
-        Array.prototype.forEach.call(children, function (c, x) {
-          c.setAttribute(setAttr, '')
-        })
+    if (key === 'default') {
+      searchAttr = '[data-moonwalk-children]'
+      attr = 'data-moonwalk'
+    } else {
+      searchAttr = `[data-moonwalk-${key}-children]`
+      attr = `data-moonwalk-${key}`
+    }
+
+    let elements = document.querySelectorAll(searchAttr)
+    return this.setAttrs(elements, attr)
+  }
+
+  setAttrs (elements, attr) {
+    const affectedElements = []
+    Array.prototype.forEach.call(elements, function (el, i) {
+      let children = el.children
+      Array.prototype.forEach.call(children, function (c, x) {
+        c.setAttribute(attr, '')
+        affectedElements.push(c)
       })
     })
+    return affectedElements
   }
 
   ready () {
@@ -79,8 +76,17 @@ export default class Moonwalk {
           searchAttr = `[data-moonwalk-${key}]:not(.lazyload)`
         }
         let walks = walkSections[i].querySelectorAll(searchAttr)
-        SR.reveal(walks, this.opts.walks[key])
+        this.reveal(walks, this.opts.walks[key])
       })
+    }
+  }
+
+  reveal (elements, config, callback = null) {
+    if (callback) {
+      config = { ...config, beforeReveal: callback }
+    }
+    if (elements.length) {
+      this.SR.reveal(elements, config)
     }
   }
 }
