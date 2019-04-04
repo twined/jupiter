@@ -9,35 +9,38 @@ const DEFAULT_OPTIONS = {
   onResize: null,
   openTween: (m) => {
     const timeline = new TimelineLite()
+
     m.hamburger.classList.toggle('is-active')
     document.body.classList.toggle('open-menu')
 
     timeline
-      .to(m.logo, 0.2, { opacity: 0, ease: Power3.easeOut })
-      .set(m.bg, { x: '100%', opacity: 1, height: window.innerHeight })
+      .fromTo(m.bg, 0.35, { x: '0%', opacity: 0, height: window.innerHeight }, { opacity: 1, ease: Sine.easeIn })
+      .to(m.logo, 0.35, { opacity: 0, ease: Power3.easeOut }, '-=0.35')
+      .to(m.header, 0.55, { backgroundColor: 'transparent', ease: Power3.easeOut }, '-=0.35')
+      .call(() => { m.nav.style.gridTemplateRows = '100px auto auto 1fr' })
+      .set(m.nav, { height: '100vh' })
       .set(m.content, { display: 'block' })
-      .set(m.lis, { opacity: 0, xPercent: 10 })
-      .to(m.bg, 0.35, { x: '0%', ease: Sine.easeIn })
       .set(m.logoPath, { fill: m.opts.logoColor })
-      .staggerTo(m.lis, 1, { xPercent: 0, opacity: 1, ease: Power3.easeOut }, 0.05, '-=0.1')
-      .to(m.logo, 0.35, { opacity: 1, ease: Power3.easeIn }, '-=1.2')
+      .set(m.logo, { xPercent: 3 })
+      .staggerFromTo(m.lis, 1, { opacity: 0, xPercent: 10 }, { xPercent: 0, opacity: 1, ease: Power3.easeOut }, 0.05)
+      .to(m.logo, 0.55, { opacity: 1, xPercent: 0, ease: Power3.ease }, '-=1.2')
       .call(m._emitMobileMenuOpenEvent)
   },
 
   closeTween: (m) => {
     document.body.classList.toggle('open-menu')
     const timeline = new TimelineLite()
+
     timeline
       .call(() => { m.hamburger.classList.toggle('is-active') })
-      .to(m.logo, 0.2, { opacity: 0, ease: Power3.easeOut })
+      .fromTo(m.logo, 0.2, { opacity: 1, xPercent: 0 }, { opacity: 0, xPercent: 5, ease: Power3.easeOut })
       .set(m.logoPath, { clearProps: 'fill' })
-      .staggerTo(m.lis, 0.5, { opacity: 0, ease: Power3.easeOut }, 0.01, '-=0.2')
+      .staggerTo(m.lis, 0.5, { opacity: 0, xPercent: 10, ease: Power3.easeOut }, 0.04)
+      .set(m.nav, { clearProps: 'height' })
       .to(m.bg, 0.25, { x: '100%', ease: Sine.easeIn }, '-=0.3')
-
-      .call(() => {
-        m._emitMobileMenuClosedEvent()
-      })
+      .call(() => { m._emitMobileMenuClosedEvent() })
       .set(m.content, { display: 'none' })
+      .call(() => { m.nav.style.gridTemplateRows = 'auto' })
       .set(m.lis, { clearProps: 'opacity' })
       .to(m.logo, 0.35, { opacity: 1, ease: Power3.easeIn })
   }
