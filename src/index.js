@@ -2,6 +2,7 @@ import Breakpoints from './Breakpoints'
 import Cookies from './Cookies'
 import Fader from './Fader'
 import FixedHeader from './FixedHeader'
+import FooterReveal from './FooterReveal'
 import HeroSlider from './HeroSlider'
 import Lightbox from './Lightbox'
 import Links from './Links'
@@ -17,6 +18,7 @@ export {
   Cookies,
   Fader,
   FixedHeader,
+  FooterReveal,
   HeroSlider,
   Lightbox,
   Links,
