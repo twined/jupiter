@@ -76,7 +76,11 @@ const DEFAULT_EVENTS = {
   },
 
   onSmall: (h) => {},
-  onNotSmall: (h) => {}
+  onNotSmall: (h) => {},
+  onTop: (h) => {},
+  onNotTop: (h) => {},
+  onBottom: (h) => {},
+  onNotBottom: (h) => {}
 }
 
 const DEFAULT_OPTIONS = {
@@ -197,7 +201,7 @@ export default class FixedHeader {
   }
 
   checkTop (force) {
-    if (this.currentScrollY <= this.offset) {
+    if (this.currentScrollY <= this.opts.offset) {
       if (force) {
         this.top()
       } else {
@@ -266,6 +270,7 @@ export default class FixedHeader {
       }
       this.checkSize(force)
       this.checkBg(force)
+      this.checkTop(force)
       return
     }
 
@@ -289,24 +294,28 @@ export default class FixedHeader {
     this._top = false
     this.el.removeAttribute('data-header-top')
     this.el.setAttribute('data-header-not-top', '')
+    this.opts.onNotTop(this)
   }
 
   top () {
     this._top = true
     this.el.setAttribute('data-header-top', '')
     this.el.removeAttribute('data-header-not-top')
+    this.opts.onTop(this)
   }
 
   notBottom () {
     this._bottom = false
     this.el.setAttribute('data-header-not-bottom', '')
     this.el.removeAttribute('data-header-bottom')
+    this.opts.onNotBottom(this)
   }
 
   bottom () {
     this._bottom = true
     this.el.setAttribute('data-header-bottom', '')
     this.el.removeAttribute('data-header-not-bottom')
+    this.opts.onBottom(this)
   }
 
   unpin () {
