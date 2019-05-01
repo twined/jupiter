@@ -12,6 +12,7 @@ import Typography from './Typography'
 
 import { TweenLite, TimelineLite, CSSPlugin, Power3, Sine } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
+import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 
 export {
   Breakpoints,
@@ -32,5 +33,6 @@ export {
   TimelineLite,
   Power3,
   Sine,
-  CSSPlugin
+  CSSPlugin,
+  scrollIntoView
 }
