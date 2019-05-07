@@ -6,14 +6,30 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 const DEFAULT_OPTIONS = {
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
-  anchorQuery: 'a[href^="#"]'
+  anchorQuery: 'a[href^="#"]',
+  onTransition: href => {
+    const main = document.querySelector('main')
+    const fader = document.querySelector('#fader')
+
+    fader.style.display = 'block'
+    TweenLite.to(main, 0.8, {
+      y: 25,
+      ease: Power3.easeOut
+    })
+
+    TweenLite.to(fader, 0.350, {
+      opacity: 1,
+      onComplete: () => {
+        window.location = href
+      }
+    })
+  }
 }
 
 export default class Links {
   constructor (app, opts = {}) {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    const fader = document.querySelector('#fader')
     const links = document.querySelectorAll(this.opts.linkQuery)
     const anchors = document.querySelectorAll(this.opts.anchorQuery)
 
@@ -55,19 +71,7 @@ export default class Links {
 
         if (href.indexOf(document.location.hostname) > -1 || href.startsWith('/')) {
           e.preventDefault()
-          let main = document.querySelector('main')
-          fader.style.display = 'block'
-          TweenLite.to(main, 0.8, {
-            y: 25,
-            ease: Power3.easeOut
-          })
-
-          TweenLite.to(fader, 0.350, {
-            opacity: 1,
-            onComplete: () => {
-              window.location = href
-            }
-          })
+          this.opts.onTransition(href)
         }
       })
     }
