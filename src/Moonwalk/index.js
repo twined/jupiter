@@ -20,9 +20,10 @@ const DEFAULT_OPTIONS = {
 
 export default class Moonwalk {
   constructor (opts = {}) {
-    this.SR = ScrollReveal()
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.SR = ScrollReveal()
     this.parseChildren()
+
     if (this.opts.fireOnReady) {
       window.addEventListener('application:ready', this.ready.bind(this))
     }
