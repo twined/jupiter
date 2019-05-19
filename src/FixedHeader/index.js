@@ -118,6 +118,7 @@ export default class FixedHeader {
 
     this.el = el
     this.lis = this.el.querySelectorAll('li')
+    this._firstLoad = true
     this._pinned = true
     this._top = false
     this._bottom = false
@@ -265,12 +266,14 @@ export default class FixedHeader {
 
   redraw (force = false, enter = true) {
     if (force && this.opts.enter) {
-      if (enter) {
-        this.opts.enter(this)
-      }
       this.checkSize(force)
       this.checkBg(force)
       this.checkTop(force)
+
+      if (enter) {
+        this.opts.enter(this)
+      }
+
       return
     }
 
@@ -288,6 +291,8 @@ export default class FixedHeader {
     this.checkPin(force, toleranceExceeded)
 
     this.lastKnownScrollY = this.currentScrollY
+
+    this._firstLoad = false
   }
 
   notTop () {
