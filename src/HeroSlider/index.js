@@ -102,13 +102,21 @@ export default class HeroSlider {
     }
 
     this.slides[0].style.zIndex = this.opts.zIndex.visible
-    this.slides[1].style.zIndex = this.opts.zIndex.next
+    if (this.slides[1]) {
+      this.slides[1].style.zIndex = this.opts.zIndex.next
+    }
 
     const fadeIn = () => {
-      TweenLite.to(this.el, 0.250, {
-        opacity: 1,
-        onComplete: () => { this.next() }
-      })
+      if (this.slides.length > 1) {
+        TweenLite.to(this.el, 0.250, {
+          opacity: 1,
+          onComplete: () => { this.next() }
+        })
+      } else {
+        TweenLite.to(this.el, 0.250, {
+          opacity: 1
+        })
+      }
     }
 
     window.addEventListener('application:ready', () => {
