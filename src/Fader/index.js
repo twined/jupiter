@@ -2,7 +2,7 @@ import { TweenLite, Power1 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
-  fadeOutDuration: 0.850,
+  fadeOutDuration: 0.85,
   fadeOutDelay: 0.35
 }
 
