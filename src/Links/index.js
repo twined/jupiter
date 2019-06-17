@@ -17,7 +17,7 @@ const DEFAULT_OPTIONS = {
       ease: Power3.easeOut
     })
 
-    TweenLite.to(fader, 0.350, {
+    TweenLite.to(fader, 0.2, {
       opacity: 1,
       onComplete: () => {
         window.location = href
