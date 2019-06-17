@@ -2,7 +2,8 @@ import { TweenLite, Power1 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
-  fadeOutDuration: 0.850
+  fadeOutDuration: 0.850,
+  fadeOutDelay: 0.35
 }
 
 export default class Fader {
@@ -23,7 +24,7 @@ export default class Fader {
     TweenLite.to(this.el, this.opts.fadeOutDuration, {
       opacity: 0,
       ease: Power1.easeInOut,
-      delay: 0.2,
+      delay: this.opts.fadeOutDelay,
       onComplete: () => {
         this.el.style.display = 'none'
         document.body.classList.remove('unloaded')

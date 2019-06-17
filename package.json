@@ -1,9 +1,9 @@
 {
     "name": "jupiter",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "description": "Frontend helpers.",
     "author": "Univers/Twined",
-    "license": "CC",
+    "license": "UNLICENSED",
     "repository": {
         "type": "git",
         "url": "git+https://twined@github.com/twined/jupiter.git"
