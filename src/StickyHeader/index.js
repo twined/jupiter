@@ -27,9 +27,25 @@ import { TweenLite, Power3, Sine, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_EVENTS = {
-  onPin: (h) => {
+  onMainVisible: (h) => {
     TweenLite.to(
       h.el,
+      3,
+      { opacity: 1, delay: 0.5 }
+    )
+  },
+
+  onMainInvisible: (h) => {
+    TweenLite.to(
+      h.el,
+      1,
+      { opacity: 0 }
+    )
+  },
+
+  onPin: (h) => {
+    TweenLite.to(
+      h.extraEl,
       0.35,
       {
         yPercent: '0',
@@ -42,7 +58,7 @@ const DEFAULT_EVENTS = {
   onUnpin: (h) => {
     h._hiding = true
     TweenLite.to(
-      h.el,
+      h.extraEl,
       0.25,
       {
         yPercent: '-100',
@@ -53,34 +69,7 @@ const DEFAULT_EVENTS = {
         }
       }
     )
-  },
-
-  onAltBg: (h) => {
-    TweenLite.to(
-      h.el,
-      0.2,
-      {
-        backgroundColor: h.opts.altBgColor
-      }
-    )
-  },
-
-  onNotAltBg: (h) => {
-    TweenLite.to(
-      h.el,
-      0.4,
-      {
-        backgroundColor: h.opts.regBgColor
-      }
-    )
-  },
-
-  onSmall: (h) => {},
-  onNotSmall: (h) => {},
-  onTop: (h) => {},
-  onNotTop: (h) => {},
-  onBottom: (h) => {},
-  onNotBottom: (h) => {}
+  }
 }
 
 const DEFAULT_OPTIONS = {
@@ -89,9 +78,9 @@ const DEFAULT_OPTIONS = {
     enter: h => {
       const timeline = new TimelineLite()
       timeline
-        .set(h.el, { yPercent: -100 })
+        .set(h.extraEl, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
-        .to(h.el, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
+        .to(h.extraEl, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
     },
     enterDelay: 1.2,
@@ -99,13 +88,11 @@ const DEFAULT_OPTIONS = {
     offset: 0, // how far from the top before we trigger hide
     offsetSmall: 50, // how far from the top before we trigger the shrinked padding,
     offsetBg: 200, // how far down before changing backgroundcolor
-    regBgColor: 'transparent',
-    altBgColor: '#ffffff',
     ...DEFAULT_EVENTS
   }
 }
 
-export default class FixedHeader {
+export default class StickyHeader {
   constructor (el, opts = {}) {
     if (typeof el === 'string') {
       this.el = document.querySelector(el)
@@ -122,14 +109,22 @@ export default class FixedHeader {
     const section = document.body.getAttribute('data-script')
     this.opts = this._getOptionsForSection(section, opts)
 
-    this.lis = this.el.querySelectorAll('li')
+    this.extraEl = this.el.cloneNode(true)
+    this.extraEl.setAttribute('data-header-pinned', '')
+    this.extraEl.setAttribute('data-extra-nav', '')
+    this.extraEl.removeAttribute('data-nav')
+    this.small()
+    this.unpin()
 
+    document.body.appendChild(this.extraEl)
+    // this.unpin()
+
+    this.lis = this.el.querySelectorAll('li')
     this._firstLoad = true
     this._pinned = true
     this._top = false
     this._bottom = false
     this._small = false
-    this._altBg = false
     this._hiding = false // if we're in the process of hiding the bar
     this.lastKnownScrollY = 0
     this.currentScrollY = 0
@@ -150,9 +145,39 @@ export default class FixedHeader {
       this.opts.offsetBg = elm.offsetTop - this.el.offsetHeight
     }
 
-    window.addEventListener('scroll', this.requestTick.bind(this), false)
-    this.redraw(true)
+    this.setupObserver()
     this._bindMobileMenuListeners()
+  }
+
+  setupObserver () {
+    this.observer = new IntersectionObserver(entries => {
+      let [{
+        isIntersecting
+      }] = entries
+
+      if (isIntersecting) {
+        if (this._navVisible !== true) {
+          this.opts.onMainVisible(this)
+        }
+        this._navVisible = true
+      } else {
+        if (this._navVisible === true) {
+          this.opts.onMainInvisible(this)
+        }
+        this._navVisible = false
+      }
+    })
+
+    this.observer.observe(this.el)
+    window.addEventListener('scroll', this.requestTick.bind(this), false)
+  }
+
+  _hideAlt () {
+    this.unpin()
+  }
+
+  _showAlt () {
+    this.pin()
   }
 
   requestTick () {
@@ -182,26 +207,6 @@ export default class FixedHeader {
       } else {
         if (this._small) {
           this.notSmall()
-        }
-      }
-    }
-  }
-
-  checkBg (force) {
-    if (this.currentScrollY > this.opts.offsetBg) {
-      if (force) {
-        this.altBg()
-      } else {
-        if (!this._altBg && !this._hiding) {
-          this.altBg()
-        }
-      }
-    } else {
-      if (force) {
-        this.notAltBg()
-      } else {
-        if (this._altBg) {
-          this.notAltBg()
         }
       }
     }
@@ -248,41 +253,28 @@ export default class FixedHeader {
   }
 
   checkPin (force, toleranceExceeded) {
+    if (this._navVisible) {
+      if (this._pinned) {
+        this.unpin()
+        return
+      }
+    }
+
     if (this.shouldUnpin(toleranceExceeded)) {
       if (this.mobileMenuOpen) {
         return
       }
-      if (force) {
+      if (this._pinned) {
         this.unpin()
-      } else {
-        if (this._pinned) {
-          this.unpin()
-        }
       }
     } else if (this.shouldPin(toleranceExceeded)) {
-      if (force) {
+      if (!this._pinned) {
         this.pin()
-      } else {
-        if (!this._pinned) {
-          this.pin()
-        }
       }
     }
   }
 
   redraw (force = false, enter = true) {
-    if (force && this.opts.enter) {
-      this.checkSize(force)
-      this.checkBg(force)
-      this.checkTop(force)
-
-      if (enter) {
-        this.opts.enter(this)
-      }
-
-      return
-    }
-
     this.currentScrollY = this.getScrollY()
     const toleranceExceeded = this.toleranceExceeded()
 
@@ -290,14 +282,8 @@ export default class FixedHeader {
       return
     }
 
-    this.checkSize(force)
-    this.checkBg(force)
-    this.checkTop(force)
-    this.checkBot(force)
     this.checkPin(force, toleranceExceeded)
-
     this.lastKnownScrollY = this.currentScrollY
-
     this._firstLoad = false
   }
 
@@ -331,47 +317,32 @@ export default class FixedHeader {
 
   unpin () {
     this._pinned = false
-    this.el.setAttribute('data-header-unpinned', '')
-    this.el.removeAttribute('data-header-pinned')
     this.opts.onUnpin(this)
   }
 
   pin () {
     this._pinned = true
-    this.el.setAttribute('data-header-pinned', '')
-    this.el.removeAttribute('data-header-unpinned')
     this.opts.onPin(this)
   }
 
   notSmall () {
     this._small = false
-    this.el.setAttribute('data-header-big', '')
-    this.el.removeAttribute('data-header-small')
+    this.extraEl.setAttribute('data-header-big', '')
+    this.extraEl.removeAttribute('data-header-small')
     this.opts.onNotSmall(this)
   }
 
   small () {
     this._small = true
-    this.el.setAttribute('data-header-small', '')
-    this.el.removeAttribute('data-header-big')
+    this.extraEl.setAttribute('data-header-small', '')
+    this.extraEl.removeAttribute('data-header-big')
     this.opts.onSmall(this)
   }
 
-  notAltBg () {
-    this._altBg = false
-    this.el.setAttribute('data-header-reg-bg', '')
-    this.el.removeAttribute('data-header-alt-bg')
-    this.opts.onNotAltBg(this)
-  }
-
-  altBg () {
-    this._altBg = true
-    this.el.setAttribute('data-header-alt-bg', '')
-    this.el.removeAttribute('data-header-reg-bg')
-    this.opts.onAltBg(this)
-  }
-
   shouldUnpin (toleranceExceeded) {
+    if (this._navVisible) {
+      return true
+    }
     const scrollingDown = this.currentScrollY > this.lastKnownScrollY
     const pastOffset = this.currentScrollY >= this.opts.offset
 
@@ -381,7 +352,6 @@ export default class FixedHeader {
   shouldPin (toleranceExceeded) {
     const scrollingUp = this.currentScrollY < this.lastKnownScrollY
     const pastOffset = this.currentScrollY <= this.opts.offset
-
     return (scrollingUp && toleranceExceeded) || pastOffset
   }
 

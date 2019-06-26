@@ -1,17 +1,28 @@
 import imagesLoaded from 'imagesloaded'
 import Hammer from 'hammerjs'
 import { TweenLite, Sine } from 'gsap/all'
+import _defaultsDeep from 'lodash.defaultsdeep'
 
 TweenLite.defaultEase = Sine.easeOut
 
+const DEFAULT_OPTIONS = {
+  captions: false
+}
+
 export default class Lightbox {
   constructor (opts = {}) {
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
     this.lightboxes = document.querySelectorAll('[data-lightbox]')
     this.imgs = []
+    this.imgAlts = []
 
     for (let lightbox of Array.from(this.lightboxes)) {
       let href = lightbox.getAttribute('data-lightbox')
       this.imgs.push(href)
+      let imgInLightbox = lightbox.querySelector('img')
+      let alt = imgInLightbox.getAttribute('alt')
+      this.imgAlts.push(alt)
 
       lightbox.addEventListener('click', e => {
         e.preventDefault()
@@ -44,6 +55,7 @@ export default class Lightbox {
     const nextArrow = document.createElement('a')
     const prevArrow = document.createElement('a')
     const close = document.createElement('a')
+    let caption
 
     content.classList.add('lightbox-content')
     nextArrow.classList.add('lightbox-next')
@@ -85,7 +97,7 @@ export default class Lightbox {
     prevArrow.appendChild(sp1)
     prevArrow.href = '#'
 
-    img.src = this.imgs[idx]
+    // img.src = this.imgs[idx]
 
     // add dot links
     let activeLink
@@ -117,8 +129,16 @@ export default class Lightbox {
     content.appendChild(prevArrow)
     content.appendChild(dots)
 
+    if (this.opts.captions) {
+      caption = document.createElement('div')
+      caption.classList.add('lightbox-caption')
+      content.appendChild(caption)
+    }
+
     wrapper.appendChild(content)
     document.body.appendChild(wrapper)
+
+    this.setImg(idx, this.getPrevIdx(idx))
 
     this.attachSwiper(content, idx)
 
@@ -135,6 +155,10 @@ export default class Lightbox {
     close.addEventListener('click', e => {
       e.preventDefault()
       e.stopPropagation()
+
+      if (this.opts.captions) {
+        TweenLite.to(caption, 0.75, { opacity: 0 })
+      }
 
       TweenLite.to([imgWrapper, nextArrow, prevArrow, close, dots], 0.75, {
         opacity: 0,
@@ -169,13 +193,28 @@ export default class Lightbox {
     a = document.querySelector(`.lightbox-dots a[data-idx="${x}"]`)
     a.classList.add('active')
 
+    let caption = document.querySelector('.lightbox-caption')
+
+    if (caption) {
+      TweenLite.to(caption, 0.5, { opacity: 0,
+        onComplete: () => {
+          caption.innerHTML = this.imgAlts[x]
+        }
+      })
+    }
+
     TweenLite.to(img, 0.5, {
       opacity: 0,
       onComplete: () => {
         img.src = this.imgs[x]
+
         TweenLite.to(img, 0.5, {
           opacity: 1
         })
+
+        if (caption) {
+          TweenLite.to(caption, 0.5, { opacity: 1 })
+        }
       }
     })
   }

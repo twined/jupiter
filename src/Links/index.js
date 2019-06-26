@@ -7,6 +7,7 @@ const DEFAULT_OPTIONS = {
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]',
+
   onTransition: href => {
     const main = document.querySelector('main')
     const fader = document.querySelector('#fader')
@@ -51,6 +52,10 @@ export default class Links {
           e.preventDefault()
           if (dataTarget) {
             scrollIntoView(dataTarget, { block: 'start', behavior: 'smooth' })
+          }
+
+          if (app.header && dataTarget.id !== 'top') {
+            setTimeout(() => { app.header.unpin() }, 800)
           }
         }
 

@@ -48,12 +48,16 @@ const DEFAULT_OPTIONS = {
 
 export default class HeroSlider {
   constructor (el, opts = {}) {
-    if (!el) {
-      console.error('==> JUPITER/HEROSLIDER: NO ELEMENT PROVIDED TO CONSTRUCTOR')
+    if (typeof el === 'string') {
+      this.el = document.querySelector(el)
+    } else {
+      this.el = el
+    }
+
+    if (!this.el) {
       return
     }
 
-    this.el = el
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
@@ -123,11 +127,23 @@ export default class HeroSlider {
       /* Wait for the first image to load, then fade in container element */
       let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
 
-      if (firstImg.complete) {
-        fadeIn()
-      } else {
-        firstImg.onload = () => {
+      if (firstImg) {
+        if (firstImg.complete) {
           fadeIn()
+        } else {
+          firstImg.onload = () => {
+            fadeIn()
+          }
+        }
+      } else {
+        // could be a video?
+        let firstVid = this.slides[this._currentSlideIdx].querySelector('video')
+        if (firstVid.complete) {
+          fadeIn()
+        } else {
+          firstVid.onloadeddata = () => {
+            fadeIn()
+          }
         }
       }
     })

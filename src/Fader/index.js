@@ -8,13 +8,17 @@ const DEFAULT_OPTIONS = {
 
 export default class Fader {
   constructor (app, el, opts = {}) {
-    if (!el) {
-      console.error('==> JUPITER/FADER: NO ELEMENT GIVEN IN CONSTRUCTOR')
+    if (typeof el === 'string') {
+      this.el = document.querySelector(el)
+    } else {
+      this.el = el
+    }
+
+    if (!this.el) {
       return
     }
-    this.el = el
-    this.app = app
 
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
   }
 
