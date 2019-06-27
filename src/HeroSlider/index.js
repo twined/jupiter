@@ -141,7 +141,8 @@ export default class HeroSlider {
         if (firstVid.complete) {
           fadeIn()
         } else {
-          firstVid.onloadeddata = () => {
+          firstVid.oncanplay = () => {
+            firstVid.play()
             fadeIn()
           }
         }
