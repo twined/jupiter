@@ -63,3 +63,9 @@ README
   }
  }
  ```
+
+
+## CSS/JS QUIRKS
+
+  - autoplay hero video.
+    - iOS safari needs `playsinline`, `muted` and `loop` attributes
