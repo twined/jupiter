@@ -30,7 +30,6 @@ export default class HeroParallax {
         this.initialScrollY = window.scrollY
         window.addEventListener('scroll', this.onScroll.bind(this), { capture: false, passive: true })
       } else {
-        console.log('not intersecting')
         window.removeEventListener('scroll', this.onScroll.bind(this), { capture: false, passive: true })
       }
     })
