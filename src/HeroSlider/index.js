@@ -11,7 +11,6 @@
 
 import { TweenLite, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import _debounce from 'lodash.debounce'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
@@ -251,7 +250,7 @@ export default class HeroSlider {
   }
 
   /**
-   * Add a debounced window resize handler that resizes slide widths
+   * Add a window resize handler that resizes slide widths
    */
   _addResizeHandler () {
     this.observer = new IntersectionObserver(entries => {
