@@ -76,6 +76,8 @@ export default class HeroSlider {
     })
 
     this.slides = this.el.querySelectorAll('[data-hero-slide]')
+    this.images = this.el.querySelectorAll('.hero-slide-img')
+
     this.slideCount = this.slides.length - 1
     this._currentSlideIdx = this.opts.initialSlideNumber
 
@@ -252,11 +254,20 @@ export default class HeroSlider {
    * Add a debounced window resize handler that resizes slide widths
    */
   _addResizeHandler () {
-    window.addEventListener('resize', _debounce(this._resizeSlides, 150))
+    this.observer = new IntersectionObserver(entries => {
+      let [{ isIntersecting }] = entries
+      if (isIntersecting) {
+        window.addEventListener('resize', this._resizeSlides.bind(this))
+      } else {
+        window.removeEventListener('resize', this._resizeSlides.bind(this))
+      }
+    })
+
+    this.observer.observe(this.el)
   }
 
   _resizeSlides (e) {
-    TweenLite.set(document.querySelectorAll('.hero-slide-img'), {
+    TweenLite.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     })
