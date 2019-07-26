@@ -141,7 +141,7 @@ export default class StickyHeader {
 
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
-      let elm = document.querySelector(this.opts.offsetBg)
+      const elm = document.querySelector(this.opts.offsetBg)
       this.opts.offsetBg = elm.offsetTop - this.el.offsetHeight
     }
 
@@ -151,7 +151,7 @@ export default class StickyHeader {
 
   setupObserver () {
     this.observer = new IntersectionObserver(entries => {
-      let [{
+      const [{
         isIntersecting
       }] = entries
 
@@ -322,6 +322,7 @@ export default class StickyHeader {
 
   pin () {
     this._pinned = true
+    this.opts.onSmall(this)
     this.opts.onPin(this)
   }
 
@@ -420,7 +421,7 @@ export default class StickyHeader {
 
   _getOptionsForSection (section, opts) {
     // if section is not a key in opts, return default opts
-    if (!opts.hasOwnProperty('sections') || !opts.sections.hasOwnProperty(section)) {
+    if (!Object.prototype.hasOwnProperty.call(opts, 'sections') || !Object.prototype.hasOwnProperty.call(opts.sections, section)) {
       return opts.default
     }
 
