@@ -5,6 +5,8 @@ import _debounce from 'lodash.debounce'
 const DEFAULT_OPTIONS = {
   logoColor: '#000',
   logoPathSelector: 'svg path',
+  contentSelector: 'section',
+  hamburgerColor: '#000',
 
   onResize: null,
   openTween: (m) => {
@@ -53,11 +55,11 @@ export default class MobileMenu {
 
     this.bg = this.header.querySelector('.mobile-bg')
     this.logo = this.header.querySelector('figure.brand')
-    this.logoPath = this.logo.querySelector(this.opts.logoPathSelector)
+    this.logoPath = this.logo.querySelectorAll(this.opts.logoPathSelector)
     this.menuButton = this.header.querySelector('figure.menu-button')
     this.hamburger = this.menuButton.querySelector('.hamburger')
     this.hamburgerInner = this.menuButton.querySelector('.hamburger-inner')
-    this.content = this.header.querySelectorAll('section')
+    this.content = this.header.querySelectorAll(this.opts.contentSelector)
     this.lis = this.header.querySelectorAll('li')
     this.nav = this.header.querySelector('nav')
 
