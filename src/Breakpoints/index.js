@@ -1,6 +1,7 @@
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
+  runListenerOnInit: false,
   breakpoints: [
     'xs',
     'sm',
@@ -27,14 +28,14 @@ export default class Breakpoints {
   }
 
   initialize () {
-    for (let size of this.opts.breakpoints) {
-      let val = this._getVal(`--breakpoint-${size}`)
+    for (const size of this.opts.breakpoints) {
+      const val = this._getVal(`--breakpoint-${size}`)
       this.mediaQueries[size] = val
     }
-    let keys = Object.keys(this.mediaQueries)
-    for (let key of keys) {
+    const keys = Object.keys(this.mediaQueries)
+    for (const key of keys) {
       let query = ''
-      let next = keys[(keys.indexOf(key) + 1) % keys.length]
+      const next = keys[(keys.indexOf(key) + 1) % keys.length]
       if (key === 'xs' && this.mediaQueries[key] === '0') {
         query = `(min-width: 0px) and (max-width: ${parseInt(this.mediaQueries[next]) - 1}px)`
       } else {
@@ -48,10 +49,25 @@ export default class Breakpoints {
 
       this.mediaQueries[key] = window.matchMedia(query)
 
-      if (this.opts.listeners.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(this.opts.listeners, key)) {
         this.mediaQueries[key].addListener(this.opts.listeners[key])
       }
     }
+
+    if (this.opts.runListenerOnInit) {
+      const { key, mq } = this.getCurrentBreakpoint()
+      if (Object.prototype.hasOwnProperty.call(this.opts.listeners, key)) {
+        this.opts.listeners[key](mq)
+      }
+    }
+  }
+
+  getCurrentBreakpoint () {
+    const key = Object
+      .keys(this.mediaQueries)
+      .find(q => this.mediaQueries[q].matches)
+
+    return { key, mq: this.mediaQueries[key] }
   }
 
   _getVal (key) {
