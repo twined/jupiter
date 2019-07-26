@@ -30,32 +30,37 @@ const DEFAULT_OPTIONS = {
 export default class Links {
   constructor (app, opts = {}) {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.app = app
 
     const links = document.querySelectorAll(this.opts.linkQuery)
     const anchors = document.querySelectorAll(this.opts.anchorQuery)
 
-    let wait = false
+    this.bindAnchors(anchors)
+    this.bindLinks(links)
+  }
 
-    for (let link of Array.from(anchors)) {
+  bindAnchors (anchors) {
+    let wait = false
+    for (const link of Array.from(anchors)) {
       link.addEventListener('click', e => {
         e.preventDefault()
         const href = link.getAttribute('href')
 
         if (document.body.classList.contains('open-menu')) {
-          app.mobileMenu.toggleMenuClosed()
+          this.app.mobileMenu.toggleMenuClosed()
           wait = true
         }
 
         const move = () => {
-          let dataID = href
-          let dataTarget = document.querySelector(dataID)
+          const dataID = href
+          const dataTarget = document.querySelector(dataID)
           e.preventDefault()
           if (dataTarget) {
             scrollIntoView(dataTarget, { block: 'start', behavior: 'smooth' })
           }
 
-          if (app.header && dataTarget.id !== 'top') {
-            setTimeout(() => { app.header.unpin() }, 800)
+          if (this.app.header && dataTarget.id !== 'top') {
+            setTimeout(() => { this.app.header.unpin() }, 800)
           }
         }
 
@@ -66,8 +71,10 @@ export default class Links {
         }
       })
     }
+  }
 
-    for (let link of Array.from(links)) {
+  bindLinks (links) {
+    for (const link of Array.from(links)) {
       link.addEventListener('click', e => {
         const loadingContainer = document.querySelector('.loading-container')
         const href = link.getAttribute('href')
