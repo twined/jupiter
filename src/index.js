@@ -4,12 +4,14 @@ import CoverOverlay from './CoverOverlay'
 import Fader from './Fader'
 import FixedHeader from './FixedHeader'
 import FooterReveal from './FooterReveal'
-import HeroParallax from './HeroParallax'
+import Parallax from './Parallax'
 import HeroSlider from './HeroSlider'
+import Lazyload from './Lazyload'
 import Lightbox from './Lightbox'
 import Links from './Links'
 import MobileMenu from './MobileMenu'
 import Moonwalk from './Moonwalk'
+import Popup from './Popup'
 import StackedBoxes from './StackedBoxes'
 import StickyHeader from './StickyHeader'
 import Typography from './Typography'
@@ -26,12 +28,14 @@ export {
   Fader,
   FixedHeader,
   FooterReveal,
-  HeroParallax,
+  Parallax,
   HeroSlider,
+  Lazyload,
   Lightbox,
   Links,
   MobileMenu,
   Moonwalk,
+  Popup,
   StackedBoxes,
   StickyHeader,
   Typography,
