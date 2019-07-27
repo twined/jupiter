@@ -6,7 +6,25 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 TweenLite.defaultEase = Sine.easeOut
 
 const DEFAULT_OPTIONS = {
-  captions: false
+  captions: false,
+
+  onClose: (h) => {
+    if (h.opts.captions) {
+      TweenLite.to(h.caption, 0.45, { opacity: 0 })
+    }
+
+    TweenLite.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
+      opacity: 0,
+      onComplete: () => {
+        TweenLite.to(h.wrapper, 0.45, {
+          opacity: 0,
+          onComplete: () => {
+            h.wrapper.parentNode.removeChild(h.wrapper)
+          }
+        })
+      }
+    })
+  }
 }
 
 export default class Lightbox {
@@ -14,29 +32,29 @@ export default class Lightbox {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
     this.lightboxes = document.querySelectorAll('[data-lightbox]')
+    this.fader = document.querySelector('#fader')
     this.imgs = []
     this.imgAlts = []
 
-    for (let lightbox of Array.from(this.lightboxes)) {
-      let href = lightbox.getAttribute('data-lightbox')
+    for (const lightbox of Array.from(this.lightboxes)) {
+      const href = lightbox.getAttribute('data-lightbox')
       this.imgs.push(href)
-      let imgInLightbox = lightbox.querySelector('img')
-      let alt = imgInLightbox.getAttribute('alt')
+      const imgInLightbox = lightbox.querySelector('img')
+      const alt = imgInLightbox.getAttribute('alt')
       this.imgAlts.push(alt)
 
       lightbox.addEventListener('click', e => {
         e.preventDefault()
-        let idx = this.imgs.indexOf(href)
+        const idx = this.imgs.indexOf(href)
         this.showBox(idx)
       })
     }
   }
 
   showBox (idx) {
-    const fader = document.querySelector('#fader')
-    fader.style.display = 'block'
+    this.fader.style.display = 'block'
 
-    TweenLite.to(fader, 0.450, {
+    TweenLite.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
         this.buildBox(idx)
@@ -45,48 +63,45 @@ export default class Lightbox {
   }
 
   buildBox (idx) {
-    const fader = document.querySelector('#fader')
+    this.wrapper = document.createElement('div')
+    this.content = document.createElement('div')
+    this.imgWrapper = document.createElement('div')
+    this.img = document.createElement('img')
+    this.dots = document.createElement('div')
+    this.nextArrow = document.createElement('a')
+    this.prevArrow = document.createElement('a')
+    this.close = document.createElement('a')
 
-    const wrapper = document.createElement('div')
-    const content = document.createElement('div')
-    const imgWrapper = document.createElement('div')
-    const img = document.createElement('img')
-    const dots = document.createElement('div')
-    const nextArrow = document.createElement('a')
-    const prevArrow = document.createElement('a')
-    const close = document.createElement('a')
-    let caption
+    this.content.classList.add('lightbox-content')
+    this.nextArrow.classList.add('lightbox-next')
+    this.prevArrow.classList.add('lightbox-prev')
+    this.close.classList.add('lightbox-close')
+    this.dots.classList.add('lightbox-dots')
+    this.wrapper.classList.add('lightbox-backdrop')
+    this.imgWrapper.classList.add('lightbox-image-wrapper')
+    this.img.classList.add('lightbox-image', 'm-lg')
 
-    content.classList.add('lightbox-content')
-    nextArrow.classList.add('lightbox-next')
-    prevArrow.classList.add('lightbox-prev')
-    close.classList.add('lightbox-close')
-    dots.classList.add('lightbox-dots')
-    wrapper.classList.add('lightbox-backdrop')
-    imgWrapper.classList.add('lightbox-image-wrapper')
-    img.classList.add('lightbox-image', 'm-lg')
-
-    close.appendChild(document.createTextNode('×'))
-    close.href = '#'
+    this.close.appendChild(document.createTextNode('×'))
+    this.close.href = '#'
 
     let sp1 = document.createElement('span')
     sp1.classList.add('arrow-r')
     sp1.appendChild(document.createTextNode('→'))
-    nextArrow.appendChild(sp1)
-    nextArrow.href = '#'
+    this.nextArrow.appendChild(sp1)
+    this.nextArrow.href = '#'
 
-    nextArrow.addEventListener('click', e => {
+    this.nextArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      let oldIdx = idx
+      const oldIdx = idx
       idx = this.getNextIdx(oldIdx)
       this.setImg(idx, oldIdx)
     })
 
-    prevArrow.addEventListener('click', e => {
+    this.prevArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      let oldIdx = idx
+      const oldIdx = idx
       idx = this.getPrevIdx(oldIdx)
       this.setImg(idx, oldIdx)
     })
@@ -94,16 +109,14 @@ export default class Lightbox {
     sp1 = document.createElement('span')
     sp1.classList.add('arrow-l')
     sp1.appendChild(document.createTextNode('←'))
-    prevArrow.appendChild(sp1)
-    prevArrow.href = '#'
-
-    // img.src = this.imgs[idx]
+    this.prevArrow.appendChild(sp1)
+    this.prevArrow.href = '#'
 
     // add dot links
     let activeLink
 
     for (let x = 0; x < this.imgs.length; x++) {
-      let a = document.createElement('a')
+      const a = document.createElement('a')
       a.setAttribute('href', '#')
       a.setAttribute('data-idx', x)
       if (x === idx) {
@@ -119,70 +132,53 @@ export default class Lightbox {
         this.setImg(x, this.imgs, null)
       })
       a.appendChild(document.createTextNode('▪'))
-      dots.appendChild(a)
+      this.dots.appendChild(a)
     }
 
-    imgWrapper.appendChild(img)
-    imgWrapper.appendChild(close)
-    content.appendChild(imgWrapper)
-    content.appendChild(nextArrow)
-    content.appendChild(prevArrow)
-    content.appendChild(dots)
+    this.imgWrapper.appendChild(this.img)
+    this.imgWrapper.appendChild(this.close)
+    this.content.appendChild(this.imgWrapper)
+    this.content.appendChild(this.nextArrow)
+    this.content.appendChild(this.prevArrow)
+    this.content.appendChild(this.dots)
 
     if (this.opts.captions) {
-      caption = document.createElement('div')
-      caption.classList.add('lightbox-caption')
-      content.appendChild(caption)
+      this.caption = document.createElement('div')
+      this.caption.classList.add('lightbox-caption')
+      this.content.appendChild(this.caption)
     }
 
-    wrapper.appendChild(content)
-    document.body.appendChild(wrapper)
+    this.wrapper.appendChild(this.content)
+    document.body.appendChild(this.wrapper)
 
     this.setImg(idx, this.getPrevIdx(idx))
 
-    this.attachSwiper(content, idx)
+    this.attachSwiper(this.content, idx)
 
-    imagesLoaded(wrapper, () => {
-      TweenLite.to(wrapper, 0.5, {
+    imagesLoaded(this.wrapper, () => {
+      TweenLite.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
-          fader.style.display = 'none'
-          fader.style.opacity = 0
+          this.fader.style.display = 'none'
+          this.fader.style.opacity = 0
         }
       })
     })
 
-    close.addEventListener('click', e => {
+    this.close.addEventListener('click', e => {
       e.preventDefault()
       e.stopPropagation()
 
-      if (this.opts.captions) {
-        TweenLite.to(caption, 0.75, { opacity: 0 })
-      }
-
-      TweenLite.to([imgWrapper, nextArrow, prevArrow, close, dots], 0.75, {
-        opacity: 0,
-        onComplete: () => {
-          TweenLite.to(wrapper, 0.85, {
-            opacity: 0,
-            onComplete: () => {
-              wrapper.parentNode.removeChild(wrapper)
-            }
-          })
-        }
-      })
+      this.opts.onClose(this)
     })
   }
 
   setImg (x, oldIdx) {
-    let c = document.querySelector('.lightbox-content')
-    let img = document.querySelector('.lightbox-image')
-
     if (oldIdx === null) {
-      oldIdx = c.getAttribute('data-current-id')
+      oldIdx = this.content.getAttribute('data-current-id')
     }
 
-    c.setAttribute('data-current-idx', x)
+    this.content.setAttribute('data-current-idx', x)
 
     let a = document.querySelector(`.lightbox-dots a.active`)
 
@@ -193,27 +189,25 @@ export default class Lightbox {
     a = document.querySelector(`.lightbox-dots a[data-idx="${x}"]`)
     a.classList.add('active')
 
-    let caption = document.querySelector('.lightbox-caption')
-
-    if (caption) {
-      TweenLite.to(caption, 0.5, { opacity: 0,
+    if (this.caption) {
+      TweenLite.to(this.caption, 0.5, { opacity: 0,
         onComplete: () => {
-          caption.innerHTML = this.imgAlts[x]
+          this.caption.innerHTML = this.imgAlts[x]
         }
       })
     }
 
-    TweenLite.to(img, 0.5, {
+    TweenLite.to(this.img, 0.5, {
       opacity: 0,
       onComplete: () => {
-        img.src = this.imgs[x]
+        this.img.src = this.imgs[x]
 
-        TweenLite.to(img, 0.5, {
+        TweenLite.to(this.img, 0.5, {
           opacity: 1
         })
 
-        if (caption) {
-          TweenLite.to(caption, 0.5, { opacity: 1 })
+        if (this.caption) {
+          TweenLite.to(this.caption, 0.5, { opacity: 1 })
         }
       }
     })
@@ -236,23 +230,22 @@ export default class Lightbox {
   }
 
   attachSwiper (el, initialIdx) {
-    const c = document.querySelector('.lightbox-content')
     const hammer = new Hammer.Manager(el)
     const swipe = new Hammer.Swipe()
 
-    c.setAttribute('data-current-idx', initialIdx)
+    this.content.setAttribute('data-current-idx', initialIdx)
 
     hammer.add(swipe)
 
     hammer.on('swipeleft', () => {
-      let oldIdx = parseInt(c.getAttribute('data-current-idx'))
-      let idx = this.getNextIdx(oldIdx)
+      const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
+      const idx = this.getNextIdx(oldIdx)
       this.setImg(idx, oldIdx)
     })
 
     hammer.on('swiperight', () => {
-      let oldIdx = parseInt(c.getAttribute('data-current-idx'))
-      let idx = this.getPrevIdx(oldIdx)
+      const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
+      const idx = this.getPrevIdx(oldIdx)
       this.setImg(idx, oldIdx)
     })
   }
