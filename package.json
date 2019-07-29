@@ -24,8 +24,8 @@
         "eslint-plugin-standard": "^4.0.0"
     },
     "dependencies": {
+        "@egjs/hammerjs": "^2.0.15",
         "gsap": "^2.1.3",
-        "hammerjs": "^2.0.8",
         "imagesloaded": "^4.1.4",
         "lodash.debounce": "^4.0.8",
         "lodash.defaultsdeep": "^4.6.1",
