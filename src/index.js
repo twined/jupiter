@@ -19,7 +19,7 @@ import Typography from './Typography'
 import { TweenMax, TweenLite, TimelineLite, CSSPlugin, Power3, Sine, Linear } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
-import Hammer from 'hammerjs'
+import Hammer from '@egjs/hammerjs'
 
 export {
   Breakpoints,

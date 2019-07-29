@@ -1,5 +1,5 @@
 import imagesLoaded from 'imagesloaded'
-import Hammer from 'hammerjs'
+import { Manager, Swipe } from '@egjs/hammerjs'
 import { TweenLite, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
@@ -230,20 +230,20 @@ export default class Lightbox {
   }
 
   attachSwiper (el, initialIdx) {
-    const hammer = new Hammer.Manager(el)
-    const swipe = new Hammer.Swipe()
+    const hammerManager = new Manager(el)
+    const swipeHandler = new Swipe()
 
     this.content.setAttribute('data-current-idx', initialIdx)
 
-    hammer.add(swipe)
+    hammerManager.add(swipeHandler)
 
-    hammer.on('swipeleft', () => {
+    hammerManager.on('swipeleft', () => {
       const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
       const idx = this.getNextIdx(oldIdx)
       this.setImg(idx, oldIdx)
     })
 
-    hammer.on('swiperight', () => {
+    hammerManager.on('swiperight', () => {
       const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
       const idx = this.getPrevIdx(oldIdx)
       this.setImg(idx, oldIdx)
