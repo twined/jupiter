@@ -1,6 +1,6 @@
 {
     "name": "jupiter",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "Frontend helpers.",
     "author": "Univers/Twined",
     "license": "UNLICENSED",
@@ -12,8 +12,10 @@
         "url": "https://github.com/twined/jupiter/issues"
     },
     "main": "src/index.js",
+    "module": "src/index.js",
     "homepage": "https://github.com/twined/jupiter#readme",
     "sideEffects": false,
+    "build": "babel src --out-dir lib --copy-files",
     "devDependencies": {
         "eslint": "^6.1.0",
         "eslint-config-standard": "^13.0.1",
