@@ -80,7 +80,7 @@ export default class Links {
         const href = link.getAttribute('href')
         loadingContainer.style.display = 'none'
 
-        if (e.shiftKey || e.metaKey || e.ctrlKey || e.isDefaultPrevented()) {
+        if (e.shiftKey || e.metaKey || e.ctrlKey) {
           return
         }
 
