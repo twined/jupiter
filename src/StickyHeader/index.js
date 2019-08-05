@@ -45,7 +45,7 @@ const DEFAULT_EVENTS = {
 
   onPin: (h) => {
     TweenLite.to(
-      h.extraEl,
+      h.auxEl,
       0.35,
       {
         yPercent: '0',
@@ -58,7 +58,7 @@ const DEFAULT_EVENTS = {
   onUnpin: (h) => {
     h._hiding = true
     TweenLite.to(
-      h.extraEl,
+      h.auxEl,
       0.25,
       {
         yPercent: '-100',
@@ -78,9 +78,9 @@ const DEFAULT_OPTIONS = {
     enter: h => {
       const timeline = new TimelineLite()
       timeline
-        .set(h.extraEl, { yPercent: -100 })
+        .set(h.auxEl, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
-        .to(h.extraEl, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
+        .to(h.auxEl, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
     },
     enterDelay: 1.2,
@@ -109,14 +109,14 @@ export default class StickyHeader {
     const section = document.body.getAttribute('data-script')
     this.opts = this._getOptionsForSection(section, opts)
 
-    this.extraEl = this.el.cloneNode(true)
-    this.extraEl.setAttribute('data-header-pinned', '')
-    this.extraEl.setAttribute('data-extra-nav', '')
-    this.extraEl.removeAttribute('data-nav')
+    this.auxEl = this.el.cloneNode(true)
+    this.auxEl.setAttribute('data-header-pinned', '')
+    this.auxEl.setAttribute('data-auxiliary-nav', '')
+    this.auxEl.removeAttribute('data-nav')
     this.small()
     this.unpin()
 
-    document.body.appendChild(this.extraEl)
+    document.body.appendChild(this.auxEl)
     // this.unpin()
 
     this.lis = this.el.querySelectorAll('li')
@@ -328,15 +328,15 @@ export default class StickyHeader {
 
   notSmall () {
     this._small = false
-    this.extraEl.setAttribute('data-header-big', '')
-    this.extraEl.removeAttribute('data-header-small')
+    this.auxEl.setAttribute('data-header-big', '')
+    this.auxEl.removeAttribute('data-header-small')
     this.opts.onNotSmall(this)
   }
 
   small () {
     this._small = true
-    this.extraEl.setAttribute('data-header-small', '')
-    this.extraEl.removeAttribute('data-header-big')
+    this.auxEl.setAttribute('data-header-small', '')
+    this.auxEl.removeAttribute('data-header-big')
     this.opts.onSmall(this)
   }
 
