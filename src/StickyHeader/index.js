@@ -113,11 +113,11 @@ export default class StickyHeader {
     this.auxEl.setAttribute('data-header-pinned', '')
     this.auxEl.setAttribute('data-auxiliary-nav', '')
     this.auxEl.removeAttribute('data-nav')
-    this.small()
-    this.unpin()
 
     document.body.appendChild(this.auxEl)
-    // this.unpin()
+
+    this.small()
+    this.unpin()
 
     this.lis = this.el.querySelectorAll('li')
     this._firstLoad = true
