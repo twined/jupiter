@@ -41,10 +41,10 @@ export default class Links {
 
   bindAnchors (anchors) {
     let wait = false
-    for (const link of Array.from(anchors)) {
-      link.addEventListener('click', e => {
+    for (const anchor of Array.from(anchors)) {
+      anchor.addEventListener('click', e => {
         e.preventDefault()
-        const href = link.getAttribute('href')
+        const href = anchor.getAttribute('href')
 
         if (document.body.classList.contains('open-menu')) {
           this.app.mobileMenu.toggleMenuClosed()
@@ -78,8 +78,11 @@ export default class Links {
       link.addEventListener('click', e => {
         const loadingContainer = document.querySelector('.loading-container')
         const href = link.getAttribute('href')
-
         loadingContainer.style.display = 'none'
+
+        if (e.shiftKey || e.metaKey || e.ctrlKey || e.isDefaultPrevented()) {
+          return
+        }
 
         if (href.indexOf(document.location.hostname) > -1 || href.startsWith('/')) {
           e.preventDefault()
