@@ -16,7 +16,7 @@ import StackedBoxes from './StackedBoxes'
 import StickyHeader from './StickyHeader'
 import Typography from './Typography'
 
-import { TweenMax, TweenLite, TimelineLite, CSSPlugin, Power3, Sine, Linear } from 'gsap/all'
+import { TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import Hammer from '@egjs/hammerjs'
@@ -42,7 +42,6 @@ export {
 
   // Export some of the libs we use, that can also be used in the main frontend.
   imagesLoaded,
-  TweenLite,
   TweenMax,
   TimelineLite,
   Power3,

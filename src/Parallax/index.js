@@ -59,7 +59,7 @@ export default class Parallax {
     // Has a wrapper and it exists
     if (this.opts.wrapper) {
       if (!this.opts.wrapper.nodeType) {
-        let wrapper = document.querySelector(this.opts.wrapper)
+        const wrapper = document.querySelector(this.opts.wrapper)
 
         if (wrapper) {
           this.opts.wrapper = wrapper
@@ -128,11 +128,11 @@ export default class Parallax {
   }
 
   createBlock (el) {
-    let dataPercentage = el.getAttribute('data-rellax-percentage')
-    let dataSpeed = el.getAttribute('data-rellax-speed')
-    let dataZindex = el.getAttribute('data-rellax-zindex') || 0
-    let dataMin = el.getAttribute('data-rellax-min')
-    let dataMax = el.getAttribute('data-rellax-max')
+    const dataPercentage = el.getAttribute('data-rellax-percentage')
+    const dataSpeed = el.getAttribute('data-rellax-speed')
+    const dataZindex = el.getAttribute('data-rellax-zindex') || 0
+    const dataMin = el.getAttribute('data-rellax-min')
+    const dataMax = el.getAttribute('data-rellax-max')
 
     // initializing at scrollY = 0 (top of browser), scrollX = 0 (left of browser)
     // ensures elements are positioned based on HTML layout.
@@ -207,13 +207,13 @@ export default class Parallax {
   // side effect method is not ideal, but okay for now
   // returns true if the scroll changed, false if nothing happened
   setPosition () {
-    let oldY = this.posY
+    const oldY = this.posY
 
     this.posY = this.opts.wrapper ? this.opts.wrapper.scrollTop : (document.documentElement || document.body.parentNode || document.body).scrollTop || window.pageYOffset
     this.posX = this.opts.wrapper ? this.opts.wrapper.scrollLeft : (document.documentElement || document.body.parentNode || document.body).scrollLeft || window.pageXOffset
     // If option relativeToWrapper is true, use relative wrapper value instead.
     if (this.opts.relativeToWrapper) {
-      let scrollPosY = (document.documentElement || document.body.parentNode || document.body).scrollTop || window.pageYOffset
+      const scrollPosY = (document.documentElement || document.body.parentNode || document.body).scrollTop || window.pageYOffset
       this.posY = scrollPosY - this.opts.wrapper.offsetTop
     }
 
@@ -230,9 +230,9 @@ export default class Parallax {
   // based on scrollPosition and speed
   // Allow for decimal pixel values
   updatePosition (percentageX, percentageY, speed) {
-    let result = {}
-    let valueX = (speed * (100 * (1 - percentageX)))
-    let valueY = (speed * (100 * (1 - percentageY)))
+    const result = {}
+    const valueX = (speed * (100 * (1 - percentageX)))
+    const valueY = (speed * (100 * (1 - percentageY)))
 
     result.x = this.opts.round ? Math.round(valueX) : Math.round(valueX * 100) / 100
     result.y = this.opts.round ? Math.round(valueY) : Math.round(valueY * 100) / 100
@@ -262,7 +262,6 @@ export default class Parallax {
       // Subtracting initialize value, so element stays in same spot as HTML
       positions = this.updatePosition(percentageX, percentageY, this.blocks[i].speed)// - this.blocks[i].baseX;
       var positionY = positions.y - this.blocks[i].baseY
-      var positionX = positions.x - this.blocks[i].baseX
 
       // The next two "if" blocks go like this:
       // Check if a limit is defined (first "min", then "max");

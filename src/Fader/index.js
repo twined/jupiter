@@ -1,4 +1,4 @@
-import { TweenLite, Power1 } from 'gsap/all'
+import { TweenMax, Power1 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
@@ -25,7 +25,7 @@ export default class Fader {
   out (callback = () => {}) {
     // fire ready event before fade
     this.app._emitReadyEvent()
-    TweenLite.to(this.el, this.opts.fadeOutDuration, {
+    TweenMax.to(this.el, this.opts.fadeOutDuration, {
       opacity: 0,
       ease: Power1.easeInOut,
       delay: this.opts.fadeOutDelay,

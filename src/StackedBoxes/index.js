@@ -15,30 +15,30 @@ export default class StackedBoxes {
 
     const boxes = document.querySelectorAll('[data-boxes-stacked]')
 
-    let observer = new IntersectionObserver(entries => {
-      let [{ isIntersecting, target }] = entries
+    const observer = new IntersectionObserver(entries => {
+      const [{ isIntersecting, target }] = entries
       if (isIntersecting) {
         this.adjustBox(target)
       }
     })
 
-    for (let box of Array.from(boxes)) {
+    for (const box of Array.from(boxes)) {
       observer.observe(box)
     }
   }
 
   adjustBox (box) {
-    let sizeTarget = box.querySelector('[data-boxes-stacked-size-target]')
-    let sizeSrc = box.querySelector('[data-boxes-stacked-size-src]')
+    const sizeTarget = box.querySelector('[data-boxes-stacked-size-target]')
+    const sizeSrc = box.querySelector('[data-boxes-stacked-size-src]')
 
     if (sizeTarget) {
       this.size(sizeTarget, sizeSrc)
     }
 
-    let pull = box.querySelector('[data-boxes-stacked-pull]')
+    const pull = box.querySelector('[data-boxes-stacked-pull]')
 
     if (pull) {
-      let pullAmount = pull.getAttribute('data-boxes-stacked-pull')
+      const pullAmount = pull.getAttribute('data-boxes-stacked-pull')
       console.log(pullAmount)
       let pullPx
 

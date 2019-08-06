@@ -1,6 +1,6 @@
 export default class Typography {
   constructor (parent, settings = {}) {
-    let self = this
+    const self = this
 
     // Set some settings, by merging defaults and passed settings
     self.settings = Object.assign({
@@ -25,7 +25,7 @@ export default class Typography {
    * @return void
    */
   apply () {
-    let self = this
+    const self = this
 
     self.elems.map(elem => {
       // Bail out if the ignore class is present on this element
@@ -82,7 +82,7 @@ export default class Typography {
    * @return void
    */
   reset () {
-    let self = this
+    const self = this
 
     self.elems.map(elem => {
       // Run the ignore checker nd bail if required
@@ -101,7 +101,7 @@ export default class Typography {
    * @returns boolean
    */
   shouldElementBeIgnored (elem) {
-    let self = this
+    const self = this
 
     // Check if the element already contains 1 or more &nbsp; characters and the
     // ignore setting is true. If so: bail.

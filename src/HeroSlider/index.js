@@ -1,7 +1,7 @@
 /**
  *
  * HERO SLIDER
- * ===========
+ * ============
  *
  * ## Example
  *
@@ -9,7 +9,7 @@
  *
  */
 
-import { TweenLite, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
+import { TweenMax, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 // eslint-disable-next-line no-unused-vars
@@ -64,7 +64,7 @@ export default class HeroSlider {
   initialize () {
     this._addResizeHandler()
     // style the container
-    TweenLite.set(this.el, {
+    TweenMax.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -81,8 +81,8 @@ export default class HeroSlider {
     this._currentSlideIdx = this.opts.initialSlideNumber
 
     // style the slides
-    for (let s of Array.from(this.slides)) {
-      TweenLite.set(s, {
+    for (const s of Array.from(this.slides)) {
+      TweenMax.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
         top: 0,
@@ -91,10 +91,10 @@ export default class HeroSlider {
         height: '100%'
       })
 
-      let img = s.querySelector('.hero-slide-img')
+      const img = s.querySelector('.hero-slide-img')
 
       if (img) {
-        TweenLite.set(img, {
+        TweenMax.set(img, {
           width: document.body.clientWidth,
           height: '100%',
           top: 0,
@@ -113,12 +113,12 @@ export default class HeroSlider {
 
     const fadeIn = () => {
       if (this.slides.length > 1) {
-        TweenLite.to(this.el, 0.250, {
+        TweenMax.to(this.el, 0.250, {
           opacity: 1,
           onComplete: () => { this.next() }
         })
       } else {
-        TweenLite.to(this.el, 0.250, {
+        TweenMax.to(this.el, 0.250, {
           opacity: 1
         })
       }
@@ -126,7 +126,7 @@ export default class HeroSlider {
 
     window.addEventListener('application:ready', () => {
       /* Wait for the first image to load, then fade in container element */
-      let firstImg = this.slides[this._currentSlideIdx].querySelector('img')
+      const firstImg = this.slides[this._currentSlideIdx].querySelector('img')
 
       if (firstImg) {
         if (firstImg.complete) {
@@ -138,7 +138,7 @@ export default class HeroSlider {
         }
       } else {
         // could be a video?
-        let firstVid = this.slides[this._currentSlideIdx].querySelector('video')
+        const firstVid = this.slides[this._currentSlideIdx].querySelector('video')
         if (firstVid.complete) {
           fadeIn()
         } else {
@@ -254,7 +254,7 @@ export default class HeroSlider {
    */
   _addResizeHandler () {
     this.observer = new IntersectionObserver(entries => {
-      let [{ isIntersecting }] = entries
+      const [{ isIntersecting }] = entries
       if (isIntersecting) {
         window.addEventListener('resize', this._resizeSlides.bind(this))
       } else {
@@ -266,7 +266,7 @@ export default class HeroSlider {
   }
 
   _resizeSlides (e) {
-    TweenLite.to(this.images, 0.150, {
+    TweenMax.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     })

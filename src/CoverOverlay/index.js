@@ -1,5 +1,5 @@
 // import Headroom from 'headroom.js'
-import { TimelineLite, Sine, Power3 } from 'gsap/all'
+import { TimelineLite, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {}
@@ -11,12 +11,12 @@ export default class CoverOverlay {
   }
 
   initialize () {
-    let coveredModules = document.querySelectorAll('[data-cover-overlay]')
+    const coveredModules = document.querySelectorAll('[data-cover-overlay]')
 
-    for (let v of coveredModules) {
-      let overlay = v.querySelector('.img-wrapper')
-      let btn = v.querySelector('[data-cover-overlay-button]')
-      let iframe = v.querySelector('iframe')
+    for (const v of coveredModules) {
+      const overlay = v.querySelector('.img-wrapper')
+      const btn = v.querySelector('[data-cover-overlay-button]')
+      const iframe = v.querySelector('iframe')
       let player
 
       iframe.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture')

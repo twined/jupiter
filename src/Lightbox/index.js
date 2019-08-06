@@ -1,22 +1,22 @@
 import imagesLoaded from 'imagesloaded'
 import { Manager, Swipe } from '@egjs/hammerjs'
-import { TweenLite, Sine } from 'gsap/all'
+import { TweenMax, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
-TweenLite.defaultEase = Sine.easeOut
+TweenMax.defaultEase = Sine.easeOut
 
 const DEFAULT_OPTIONS = {
   captions: false,
 
   onClose: (h) => {
     if (h.opts.captions) {
-      TweenLite.to(h.caption, 0.45, { opacity: 0 })
+      TweenMax.to(h.caption, 0.45, { opacity: 0 })
     }
 
-    TweenLite.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
+    TweenMax.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.to(h.wrapper, 0.45, {
+        TweenMax.to(h.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
             h.wrapper.parentNode.removeChild(h.wrapper)
@@ -54,7 +54,7 @@ export default class Lightbox {
   showBox (idx) {
     this.fader.style.display = 'block'
 
-    TweenLite.to(this.fader, 0.450, {
+    TweenMax.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
         this.buildBox(idx)
@@ -156,7 +156,7 @@ export default class Lightbox {
     this.attachSwiper(this.content, idx)
 
     imagesLoaded(this.wrapper, () => {
-      TweenLite.to(this.wrapper, 0.5, {
+      TweenMax.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
           this.fader.style.display = 'none'
@@ -190,24 +190,24 @@ export default class Lightbox {
     a.classList.add('active')
 
     if (this.caption) {
-      TweenLite.to(this.caption, 0.5, { opacity: 0,
+      TweenMax.to(this.caption, 0.5, { opacity: 0,
         onComplete: () => {
           this.caption.innerHTML = this.imgAlts[x]
         }
       })
     }
 
-    TweenLite.to(this.img, 0.5, {
+    TweenMax.to(this.img, 0.5, {
       opacity: 0,
       onComplete: () => {
         this.img.src = this.imgs[x]
 
-        TweenLite.to(this.img, 0.5, {
+        TweenMax.to(this.img, 0.5, {
           opacity: 1
         })
 
         if (this.caption) {
-          TweenLite.to(this.caption, 0.5, { opacity: 1 })
+          TweenMax.to(this.caption, 0.5, { opacity: 1 })
         }
       }
     })

@@ -47,14 +47,14 @@ export default class Moonwalk {
       attr = `data-moonwalk-${key}`
     }
 
-    let elements = document.querySelectorAll(searchAttr)
+    const elements = document.querySelectorAll(searchAttr)
     return this.setAttrs(elements, attr)
   }
 
   setAttrs (elements, attr) {
     const affectedElements = []
     Array.prototype.forEach.call(elements, function (el, i) {
-      let children = el.children
+      const children = el.children
       Array.prototype.forEach.call(children, function (c, x) {
         c.setAttribute(attr, '')
         affectedElements.push(c)
@@ -76,7 +76,7 @@ export default class Moonwalk {
         } else {
           searchAttr = `[data-moonwalk-${key}]:not(.lazyload)`
         }
-        let walks = walkSections[i].querySelectorAll(searchAttr)
+        const walks = walkSections[i].querySelectorAll(searchAttr)
         this.reveal(walks, this.opts.walks[key])
       })
     }

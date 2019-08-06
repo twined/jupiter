@@ -23,12 +23,12 @@
  *
  */
 
-import { TweenLite, Power3, Sine, TimelineLite } from 'gsap/all'
+import { TweenMax, Power3, Sine, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_EVENTS = {
   onPin: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       0.35,
       {
@@ -41,7 +41,7 @@ const DEFAULT_EVENTS = {
 
   onUnpin: (h) => {
     h._hiding = true
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       0.25,
       {
@@ -56,7 +56,7 @@ const DEFAULT_EVENTS = {
   },
 
   onAltBg: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       0.2,
       {
@@ -66,7 +66,7 @@ const DEFAULT_EVENTS = {
   },
 
   onNotAltBg: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       0.4,
       {
@@ -146,7 +146,7 @@ export default class FixedHeader {
 
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
-      let elm = document.querySelector(this.opts.offsetBg)
+      const elm = document.querySelector(this.opts.offsetBg)
       this.opts.offsetBg = elm.offsetTop - this.el.offsetHeight
     }
 
@@ -450,7 +450,7 @@ export default class FixedHeader {
 
   _getOptionsForSection (section, opts) {
     // if section is not a key in opts, return default opts
-    if (!opts.hasOwnProperty('sections') || !opts.sections.hasOwnProperty(section)) {
+    if (!Object.prototype.hasOwnProperty.call(opts, 'sections') || !Object.prototype.hasOwnProperty.call(opts, section)) {
       return opts.default
     }
 

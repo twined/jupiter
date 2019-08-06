@@ -23,12 +23,12 @@
  *
  */
 
-import { TweenLite, Power3, Sine, TimelineLite } from 'gsap/all'
+import { TweenMax, Power3, Sine, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_EVENTS = {
   onMainVisible: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       3,
       { opacity: 1, delay: 0.5 }
@@ -36,7 +36,7 @@ const DEFAULT_EVENTS = {
   },
 
   onMainInvisible: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.el,
       1,
       { opacity: 0 }
@@ -44,7 +44,7 @@ const DEFAULT_EVENTS = {
   },
 
   onPin: (h) => {
-    TweenLite.to(
+    TweenMax.to(
       h.auxEl,
       0.35,
       {
@@ -57,7 +57,7 @@ const DEFAULT_EVENTS = {
 
   onUnpin: (h) => {
     h._hiding = true
-    TweenLite.to(
+    TweenMax.to(
       h.auxEl,
       0.25,
       {
