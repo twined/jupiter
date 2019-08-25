@@ -1,75 +1,100 @@
+import _defaultsDeep from 'lodash.defaultsdeep'
+
+const DEFAULT_OPTIONS = {
+  useNativeLazyloadIfAvailable: true,
+  mode: 'default',
+}
+
 export default class Lazyload {
-  constructor () {
+  constructor (opts = {}) {
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
 
   initialize () {
     // if we have native lazyload, use it.
-    if ('loading' in HTMLImageElement.prototype) {
+    if ('loading' in HTMLImageElement.prototype && this.opts.useNativeLazyloadIfAvailable) {
       const lazyImages = document.querySelectorAll('[data-ll-image]')
       lazyImages.forEach(img => {
-        img.src = img.dataset.src
+        img.setAttribute('loading', 'lazy')
+        this.swapImage(img)
+      })
+
+      const lazyPictures = document.querySelectorAll('[data-ll-srcset]')
+      lazyPictures.forEach(picture => {
+        picture.querySelectorAll('img').forEach(img => {
+          img.setAttribute('loading', 'lazy')
+        })
+        this.swapPicture(picture)
       })
     } else {
-      this.imgObserver = new IntersectionObserver(this.imgLazyLoad)
+      this.imgObserver = new IntersectionObserver(this.lazyloadImages.bind(this))
       this.lazyImages = document.querySelectorAll('[data-ll-image]')
       this.lazyImages.forEach(img => {
+        img.setAttribute('data-ll-blurred', '')
         this.imgObserver.observe(img)
       })
 
-      this.pictureObserver = new IntersectionObserver(this.picLazyLoad)
+      this.pictureObserver = new IntersectionObserver(this.lazyloadPictures.bind(this))
       this.lazyPictures = document.querySelectorAll('[data-ll-srcset]')
-      this.lazyPictures.forEach(img => {
-        this.pictureObserver.observe(img)
+      this.lazyPictures.forEach(picture => {
+        picture.querySelectorAll('img').forEach(img => { img.setAttribute('data-ll-blurred', '') })
+        this.pictureObserver.observe(picture)
       })
     }
   }
 
-  imgLazyLoad (elements) {
+  lazyloadImages (elements) {
     elements.forEach(item => {
       if (item.intersectionRatio > 0) {
         const image = item.target
-        image.src = image.dataset.src
-
-        // stop observing this element. Our work here is done!
-        this.unobserve(image)
-      };
+        this.swapImage(image)
+        this.imgObserver.unobserve(image)
+      }
     })
   }
 
-  picLazyLoad (elements) {
+  lazyloadPictures (elements) {
     elements.forEach(item => {
       if (item.intersectionRatio > 0) {
         const picture = item.target
-
-        // gather all the source elements in picture
-        const sources = picture.querySelectorAll('source')
-
-        for (let s = 0; s < sources.length; s++) {
-          const source = sources[s]
-
-          if (source.hasAttribute('srcset')) {
-            source.setAttribute('srcset', source.dataset.srcset)
-          }
-        }
-
-        const img = picture.querySelector('img')
-
-        img.addEventListener('load', image => {
-          img.removeAttribute('data-ll-placeholder')
-        }, false)
-
-        if (img.hasAttribute('src')) {
-          img.setAttribute('src', img.dataset.src)
-        }
-
-        // safari sometimes caches, so force load
-        if (img.complete) {
-          img.removeAttribute('data-ll-placeholder')
-        }
-
-        this.unobserve(picture)
+        this.swapPicture(picture)
+        this.pictureObserver.unobserve(picture)
       }
     })
+  }
+
+  static swapImage (image) {
+    image.src = image.dataset.src
+  }
+
+  static swapPicture (picture) {
+    // gather all the source elements in picture
+    const sources = picture.querySelectorAll('source')
+
+    for (let s = 0; s < sources.length; s += 1) {
+      const source = sources[s]
+
+      if (source.hasAttribute('srcset')) {
+        source.setAttribute('srcset', source.dataset.srcset)
+      }
+    }
+
+    const img = picture.querySelector('img')
+
+    img.addEventListener('load', () => {
+      img.removeAttribute('data-ll-placeholder')
+      img.removeAttribute('data-ll-blurred')
+    }, false)
+
+    if (img.hasAttribute('src')) {
+      img.setAttribute('src', img.dataset.src)
+    }
+
+    // safari sometimes caches, so force load
+    if (img.complete) {
+      img.removeAttribute('data-ll-placeholder')
+      img.removeAttribute('data-ll-blurred')
+    }
   }
 }
