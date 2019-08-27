@@ -23,11 +23,13 @@
  *
  */
 
-import { TweenMax, Power3, Sine, TimelineLite } from 'gsap/all'
+import {
+  TweenMax, Power3, Sine, TimelineLite
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_EVENTS = {
-  onPin: (h) => {
+  onPin: h => {
     TweenMax.to(
       h.el,
       0.35,
@@ -35,11 +37,11 @@ const DEFAULT_EVENTS = {
         yPercent: '0',
         ease: Sine.easeOut,
         autoRound: true
-      }
+      },
     )
   },
 
-  onUnpin: (h) => {
+  onUnpin: h => {
     h._hiding = true
     TweenMax.to(
       h.el,
@@ -51,36 +53,42 @@ const DEFAULT_EVENTS = {
         onComplete: () => {
           h._hiding = false
         }
-      }
+      },
     )
   },
 
-  onAltBg: (h) => {
+  onAltBg: h => {
     TweenMax.to(
       h.el,
       0.2,
       {
         backgroundColor: h.opts.altBgColor
-      }
+      },
     )
   },
 
-  onNotAltBg: (h) => {
+  onNotAltBg: h => {
     TweenMax.to(
       h.el,
       0.4,
       {
         backgroundColor: h.opts.regBgColor
-      }
+      },
     )
   },
 
-  onSmall: (h) => {},
-  onNotSmall: (h) => {},
-  onTop: (h) => {},
-  onNotTop: (h) => {},
-  onBottom: (h) => {},
-  onNotBottom: (h) => {}
+  // eslint-disable-next-line no-unused-vars
+  onSmall: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onNotSmall: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onTop: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onNotTop: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onBottom: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onNotBottom: h => {}
 }
 
 const DEFAULT_OPTIONS = {
@@ -91,7 +99,9 @@ const DEFAULT_OPTIONS = {
       timeline
         .set(h.el, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
-        .to(h.el, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
+        .to(h.el, 1, {
+          yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true
+        })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
     },
     enterDelay: 1.2,
@@ -171,19 +181,13 @@ export default class FixedHeader {
     if (this.currentScrollY > this.opts.offsetSmall) {
       if (force) {
         this.small()
-      } else {
-        if (!this._small) {
-          this.small()
-        }
+      } else if (!this._small) {
+        this.small()
       }
-    } else {
-      if (force) {
-        this.notSmall()
-      } else {
-        if (this._small) {
-          this.notSmall()
-        }
-      }
+    } else if (force) {
+      this.notSmall()
+    } else if (this._small) {
+      this.notSmall()
     }
   }
 
@@ -191,19 +195,13 @@ export default class FixedHeader {
     if (this.currentScrollY > this.opts.offsetBg) {
       if (force) {
         this.altBg()
-      } else {
-        if (!this._altBg && !this._hiding) {
-          this.altBg()
-        }
+      } else if (!this._altBg && !this._hiding) {
+        this.altBg()
       }
-    } else {
-      if (force) {
-        this.notAltBg()
-      } else {
-        if (this._altBg) {
-          this.notAltBg()
-        }
-      }
+    } else if (force) {
+      this.notAltBg()
+    } else if (this._altBg) {
+      this.notAltBg()
     }
   }
 
@@ -211,19 +209,13 @@ export default class FixedHeader {
     if (this.currentScrollY <= this.opts.offset) {
       if (force) {
         this.top()
-      } else {
-        if (!this._top) {
-          this.top()
-        }
+      } else if (!this._top) {
+        this.top()
       }
-    } else {
-      if (force) {
-        this.notTop()
-      } else {
-        if (this._top) {
-          this.notTop()
-        }
-      }
+    } else if (force) {
+      this.notTop()
+    } else if (this._top) {
+      this.notTop()
     }
   }
 
@@ -231,19 +223,13 @@ export default class FixedHeader {
     if (this.currentScrollY + this.getViewportHeight() >= this.getScrollerHeight()) {
       if (force) {
         this.bottom()
-      } else {
-        if (!this._bottom) {
-          this.bottom()
-        }
+      } else if (!this._bottom) {
+        this.bottom()
       }
-    } else {
-      if (force) {
-        this.notBottom()
-      } else {
-        if (this._bottom) {
-          this.notBottom()
-        }
-      }
+    } else if (force) {
+      this.notBottom()
+    } else if (this._bottom) {
+      this.notBottom()
     }
   }
 
@@ -254,18 +240,14 @@ export default class FixedHeader {
       }
       if (force) {
         this.unpin()
-      } else {
-        if (this._pinned) {
-          this.unpin()
-        }
+      } else if (this._pinned) {
+        this.unpin()
       }
     } else if (this.shouldPin(toleranceExceeded)) {
       if (force) {
         this.pin()
-      } else {
-        if (!this._pinned) {
-          this.pin()
-        }
+      } else if (!this._pinned) {
+        this.pin()
       }
     }
   }
@@ -387,7 +369,9 @@ export default class FixedHeader {
 
   isOutOfBounds () {
     const pastTop = this.currentScrollY < 0
-    const pastBottom = this.currentScrollY + this.getScrollerPhysicalHeight() > this.getScrollerHeight()
+    const pastBottom = this.currentScrollY
+      + this.getScrollerPhysicalHeight()
+      > this.getScrollerHeight()
 
     return pastTop || pastBottom
   }
@@ -405,43 +389,45 @@ export default class FixedHeader {
   }
 
   getDocumentHeight () {
-    const body = document.body
-    const documentElement = document.documentElement
+    const { body } = document
+    const { documentElement } = document
 
     return Math.max(
       body.scrollHeight, documentElement.scrollHeight,
       body.offsetHeight, documentElement.offsetHeight,
-      body.clientHeight, documentElement.clientHeight
+      body.clientHeight, documentElement.clientHeight,
     )
   }
 
   getViewportHeight () {
-    return window.innerHeight ||
-      document.documentElement.clientHeight ||
-      document.body.clientHeight
+    return window.innerHeight
+      || document.documentElement.clientHeight
+      || document.body.clientHeight
   }
 
   getElementHeight (el) {
     return Math.max(
       el.scrollHeight,
       el.offsetHeight,
-      el.clientHeight
+      el.clientHeight,
     )
   }
 
   getElementPhysicalHeight (el) {
     return Math.max(
       el.offsetHeight,
-      el.clientHeight
+      el.clientHeight,
     )
   }
 
   getScrollY () {
-    return (this.opts.canvas.pageYOffset !== undefined)
-      ? this.opts.canvas.pageYOffset
-      : (this.opts.canvas.scrollTop !== undefined)
-        ? this.opts.canvas.scrollTop
-        : (document.documentElement || document.body.parentNode || document.body).scrollTop
+    if (this.opts.canvas.pageYOffset !== undefined) {
+      return this.opts.canvas.pageYOffset
+    }
+    if (this.opts.canvas.scrollTop !== undefined) {
+      return this.opts.canvas.scrollTop
+    }
+    return (document.documentElement || document.body.parentNode || document.body).scrollTop
   }
 
   toleranceExceeded () {

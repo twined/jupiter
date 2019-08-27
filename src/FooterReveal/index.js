@@ -23,8 +23,8 @@ export default class FooterReveal {
     TweenMax.set(main, { marginBottom: footerHeight })
     if (this.opts.shadow) {
       const shadowStyle = `0 50px 50px -20px ${this.opts.shadowColor}`
-      main.style['mozBoxShadow'] = shadowStyle
-      main.style['webkitBoxShadow'] = shadowStyle
+      main.style.mozBoxShadow = shadowStyle
+      main.style.webkitBoxShadow = shadowStyle
       main.style.boxShadow = shadowStyle
     }
   }

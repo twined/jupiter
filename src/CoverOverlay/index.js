@@ -13,7 +13,7 @@ export default class CoverOverlay {
   initialize () {
     const coveredModules = document.querySelectorAll('[data-cover-overlay]')
 
-    for (const v of coveredModules) {
+    Array.from(coveredModules).forEach(v => {
       const overlay = v.querySelector('.img-wrapper')
       const btn = v.querySelector('[data-cover-overlay-button]')
       const iframe = v.querySelector('iframe')
@@ -29,7 +29,7 @@ export default class CoverOverlay {
         }
       }
 
-      btn.addEventListener('click', e => {
+      btn.addEventListener('click', () => {
         const timeline = new TimelineLite()
 
         timeline
@@ -43,6 +43,6 @@ export default class CoverOverlay {
             }
           })
       })
-    }
+    })
   }
 }

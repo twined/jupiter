@@ -1,3 +1,10 @@
+import {
+  TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear
+} from 'gsap/all'
+import imagesLoaded from 'imagesloaded'
+import scrollIntoView from 'smooth-scroll-into-view-if-needed'
+import Hammer from '@egjs/hammerjs'
+
 import Breakpoints from './Breakpoints'
 import Cookies from './Cookies'
 import CoverOverlay from './CoverOverlay'
@@ -15,11 +22,6 @@ import Popup from './Popup'
 import StackedBoxes from './StackedBoxes'
 import StickyHeader from './StickyHeader'
 import Typography from './Typography'
-
-import { TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear } from 'gsap/all'
-import imagesLoaded from 'imagesloaded'
-import scrollIntoView from 'smooth-scroll-into-view-if-needed'
-import Hammer from '@egjs/hammerjs'
 
 export {
   Breakpoints,

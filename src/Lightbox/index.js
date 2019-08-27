@@ -8,7 +8,7 @@ TweenMax.defaultEase = Sine.easeOut
 const DEFAULT_OPTIONS = {
   captions: false,
 
-  onClose: (h) => {
+  onClose: h => {
     if (h.opts.captions) {
       TweenMax.to(h.caption, 0.45, { opacity: 0 })
     }
@@ -36,11 +36,11 @@ export default class Lightbox {
     this.imgs = []
     this.imgAlts = []
 
-    for (const lightbox of Array.from(this.lightboxes)) {
+    this.lightboxes.forEach(lightbox => {
       const href = lightbox.getAttribute('data-lightbox')
-      this.imgs.push(href)
       const imgInLightbox = lightbox.querySelector('img')
       const alt = imgInLightbox.getAttribute('alt')
+      this.imgs.push(href)
       this.imgAlts.push(alt)
 
       lightbox.addEventListener('click', e => {
@@ -48,7 +48,7 @@ export default class Lightbox {
         const idx = this.imgs.indexOf(href)
         this.showBox(idx)
       })
-    }
+    })
   }
 
   showBox (idx) {
@@ -63,6 +63,8 @@ export default class Lightbox {
   }
 
   buildBox (idx) {
+    let bIdx = idx
+
     this.wrapper = document.createElement('div')
     this.content = document.createElement('div')
     this.imgWrapper = document.createElement('div')
@@ -93,17 +95,17 @@ export default class Lightbox {
     this.nextArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      const oldIdx = idx
-      idx = this.getNextIdx(oldIdx)
-      this.setImg(idx, oldIdx)
+      const oldIdx = bIdx
+      bIdx = this.getNextIdx(oldIdx)
+      this.setImg(bIdx, oldIdx)
     })
 
     this.prevArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      const oldIdx = idx
-      idx = this.getPrevIdx(oldIdx)
-      this.setImg(idx, oldIdx)
+      const oldIdx = bIdx
+      bIdx = this.getPrevIdx(oldIdx)
+      this.setImg(bIdx, oldIdx)
     })
 
     sp1 = document.createElement('span')
@@ -115,14 +117,16 @@ export default class Lightbox {
     // add dot links
     let activeLink
 
-    for (let x = 0; x < this.imgs.length; x++) {
+    this.imgs.forEach((img, x) => {
       const a = document.createElement('a')
       a.setAttribute('href', '#')
       a.setAttribute('data-idx', x)
-      if (x === idx) {
+
+      if (x === bIdx) {
         a.classList.add('active')
         activeLink = a
       }
+
       a.addEventListener('click', e => {
         a.classList.add('active')
         activeLink.classList.remove('active')
@@ -131,9 +135,10 @@ export default class Lightbox {
         e.preventDefault()
         this.setImg(x, this.imgs, null)
       })
+
       a.appendChild(document.createTextNode('▪'))
       this.dots.appendChild(a)
-    }
+    })
 
     this.imgWrapper.appendChild(this.img)
     this.imgWrapper.appendChild(this.close)
@@ -152,7 +157,6 @@ export default class Lightbox {
     document.body.appendChild(this.wrapper)
 
     this.setImg(idx, this.getPrevIdx(idx))
-
     this.attachSwiper(this.content, idx)
 
     imagesLoaded(this.wrapper, () => {
@@ -174,13 +178,14 @@ export default class Lightbox {
   }
 
   setImg (x, oldIdx) {
-    if (oldIdx === null) {
-      oldIdx = this.content.getAttribute('data-current-id')
+    let oIdx = oldIdx
+    if (oIdx === null) {
+      oIdx = this.content.getAttribute('data-current-id')
     }
 
     this.content.setAttribute('data-current-idx', x)
 
-    let a = document.querySelector(`.lightbox-dots a.active`)
+    let a = document.querySelector('.lightbox-dots a.active')
 
     if (a) {
       a.classList.remove('active')
@@ -190,7 +195,8 @@ export default class Lightbox {
     a.classList.add('active')
 
     if (this.caption) {
-      TweenMax.to(this.caption, 0.5, { opacity: 0,
+      TweenMax.to(this.caption, 0.5, {
+        opacity: 0,
         onComplete: () => {
           this.caption.innerHTML = this.imgAlts[x]
         }
@@ -216,17 +222,15 @@ export default class Lightbox {
   getNextIdx (idx) {
     if (idx === this.imgs.length - 1) {
       return 0
-    } else {
-      return idx + 1
     }
+    return idx + 1
   }
 
   getPrevIdx (idx) {
     if (idx === 0) {
       return this.imgs.length - 1
-    } else {
-      return idx - 1
     }
+    return idx - 1
   }
 
   attachSwiper (el, initialIdx) {

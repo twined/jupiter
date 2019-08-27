@@ -3,12 +3,13 @@ export default class Typography {
     const self = this
 
     // Set some settings, by merging defaults and passed settings
-    self.settings = Object.assign({
+    self.settings = {
       minWords: 4,
       selector: 'h1,h2,h3,p',
       ignoreClass: 'no-typo-fix',
-      ignoreExistingSpaceChars: false
-    }, settings)
+      ignoreExistingSpaceChars: false,
+      ...settings
+    }
 
     // Either load from root or the passed parent element
     if (typeof (parent) === 'undefined') {
@@ -39,14 +40,14 @@ export default class Typography {
       }
 
       // The result string will be tacked on to this
-      var result = ''
+      let result = ''
 
       // Split words/tags into array
       let textItems = elem.innerHTML.trim().replace(/&nbsp;/g, ' ').split(/ (?=[^>]*(?:<|$))/)
 
       // Check if the text warrants this module
       if (textItems.length < self.settings.minWords) {
-        return
+        return false
       }
 
       // Run orphans filter
@@ -60,6 +61,8 @@ export default class Typography {
 
       // Set the content of the element with our shiny string
       elem.innerHTML = result
+
+      return true
     })
   }
 
@@ -69,10 +72,10 @@ export default class Typography {
    */
   preventOrphans (textItems) {
     // Find the second to last work
-    var targetWord = textItems[(textItems.length - 2)]
+    const targetWord = textItems[(textItems.length - 2)]
 
     // Stick a no break space to the end of the word and replace the instance in the array
-    textItems[(textItems.length - 2)] = targetWord + '&nbsp;'
+    textItems[(textItems.length - 2)] = `${targetWord}&nbsp;`
 
     return textItems
   }
@@ -91,6 +94,7 @@ export default class Typography {
       }
 
       elem.innerHTML = elem.innerHTML.replace(/&nbsp;/g, ' ')
+      return true
     })
   }
 

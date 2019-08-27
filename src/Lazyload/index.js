@@ -2,7 +2,7 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
   useNativeLazyloadIfAvailable: true,
-  mode: 'default',
+  mode: 'default'
 }
 
 export default class Lazyload {
@@ -64,11 +64,11 @@ export default class Lazyload {
     })
   }
 
-  static swapImage (image) {
+  swapImage (image) {
     image.src = image.dataset.src
   }
 
-  static swapPicture (picture) {
+  swapPicture (picture) {
     // gather all the source elements in picture
     const sources = picture.querySelectorAll('source')
 

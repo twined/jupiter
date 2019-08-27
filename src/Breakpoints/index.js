@@ -10,13 +10,13 @@ const DEFAULT_OPTIONS = {
   ],
 
   listeners: {
-    xs: (mq) => {
-      // if (mq.matches) {
-      //   console.log('XS NOW!')
-      // } else {
-      //   console.log('NOT XS')
-      // }
-    }
+    // xs: (mq) => {
+    //   if (mq.matches) {
+    //     console.log('XS NOW!')
+    //   } else {
+    //     console.log('NOT XS')
+    //   }
+    // }
   }
 }
 
@@ -28,23 +28,19 @@ export default class Breakpoints {
   }
 
   initialize () {
-    for (const size of this.opts.breakpoints) {
-      const val = this._getVal(`--breakpoint-${size}`)
-      this.mediaQueries[size] = val
-    }
+    this.opts.breakpoints.forEach(size => { this.mediaQueries[size] = this._getVal(`--breakpoint-${size}`) })
+
     const keys = Object.keys(this.mediaQueries)
-    for (const key of keys) {
+    keys.forEach(key => {
       let query = ''
       const next = keys[(keys.indexOf(key) + 1) % keys.length]
-      if (key === 'xs' && this.mediaQueries[key] === '0') {
+      if (key === this.opts.breakpoints[0] && this.mediaQueries[key] === '0') {
         query = `(min-width: 0px) and (max-width: ${parseInt(this.mediaQueries[next]) - 1}px)`
+      } else if (next === this.opts.breakpoints[0]) {
+        // max size
+        query = `(min-width: ${this.mediaQueries[key]})`
       } else {
-        if (next === 'xs') {
-          // max size
-          query = `(min-width: ${this.mediaQueries[key]})`
-        } else {
-          query = `(min-width: ${this.mediaQueries[key]}) and (max-width: ${parseInt(this.mediaQueries[next]) - 1}px)`
-        }
+        query = `(min-width: ${this.mediaQueries[key]}) and (max-width: ${parseInt(this.mediaQueries[next]) - 1}px)`
       }
 
       this.mediaQueries[key] = window.matchMedia(query)
@@ -52,7 +48,7 @@ export default class Breakpoints {
       if (Object.prototype.hasOwnProperty.call(this.opts.listeners, key)) {
         this.mediaQueries[key].addListener(this.opts.listeners[key])
       }
-    }
+    })
 
     if (this.opts.runListenerOnInit) {
       const { key, mq } = this.getCurrentBreakpoint()

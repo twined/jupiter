@@ -2,7 +2,7 @@ import { TimelineLite, Power3 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
-  onAccept: (c) => {
+  onAccept: c => {
     const timeline = new TimelineLite()
     c.setCookie('cookielaw_accepted', 1)
 
@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = {
       .set(c.cc, { display: 'none' })
   },
 
-  showCC: (c) => {
+  showCC: c => {
     const timeline = new TimelineLite()
 
     timeline
@@ -21,21 +21,21 @@ const DEFAULT_OPTIONS = {
         0.5,
         { y: '100%', display: 'block' },
         { y: '0%', delay: '0.5', ease: Power3.easeOut },
-        '0'
+        '0',
       )
       .fromTo(
         c.text,
         0.7,
         { opacity: 0 },
         { opacity: 1, ease: Power3.easeOut },
-        '-=0.35'
+        '-=0.35',
       )
       .fromTo(
         c.btns,
         0.7,
         { opacity: 0 },
         { opacity: 1, ease: Power3.easeOut },
-        '-=0.35'
+        '-=0.35',
       )
   }
 }
@@ -64,43 +64,47 @@ export default class Cookies {
     if (!sKey) {
       return null
     }
-    return decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent(sKey).replace(/[-.+*]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || null
+    return decodeURIComponent(document.cookie.replace(new RegExp(`(?:(?:^|.*;)\\s*${encodeURIComponent(sKey).replace(/[-.+*]/g, '\\$&')}\\s*\\=\\s*([^;]*).*$)|^.*$`), '$1')) || null
   }
 
   setCookie (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
     if (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey)) { return false }
-    var sExpires = ''
+    let sExpires = ''
     if (vEnd) {
       switch (vEnd.constructor) {
         case Number:
-          sExpires = vEnd === Infinity ? '; expires=Fri, 31 Dec 9999 23:59:59 GMT' : '; max-age=' + vEnd
+          sExpires = vEnd === Infinity ? '; expires=Fri, 31 Dec 9999 23:59:59 GMT' : `; max-age=${vEnd}`
           break
         case String:
-          sExpires = '; expires=' + vEnd
+          sExpires = `; expires=${vEnd}`
           break
         case Date:
-          sExpires = '; expires=' + vEnd.toUTCString()
+          sExpires = `; expires=${vEnd.toUTCString()}`
+          break
+        default:
           break
       }
     }
-    document.cookie = encodeURIComponent(sKey) + '=' + encodeURIComponent(sValue) + sExpires + (sDomain ? '; domain=' + sDomain : '') + (sPath ? '; path=' + sPath : '') + (bSecure ? '; secure' : '')
+    document.cookie = `${encodeURIComponent(sKey)}=${encodeURIComponent(sValue)}${sExpires}${sDomain ? `; domain=${sDomain}` : ''}${sPath ? `; path=${sPath}` : ''}${bSecure ? '; secure' : ''}`
     return true
   }
 
   removeCookie (sKey, sPath, sDomain) {
     if (!this.hasCookie(sKey)) { return false }
-    document.cookie = encodeURIComponent(sKey) + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT' + (sDomain ? '; domain=' + sDomain : '') + (sPath ? '; path=' + sPath : '')
+    document.cookie = `${encodeURIComponent(sKey)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT${sDomain ? `; domain=${sDomain}` : ''}${sPath ? `; path=${sPath}` : ''}`
     return true
   }
 
   hasCookie (sKey) {
     if (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey)) { return false }
-    return (new RegExp('(?:^|;\\s*)' + encodeURIComponent(sKey).replace(/[-.+*]/g, '\\$&') + '\\s*\\=')).test(document.cookie)
+    return (new RegExp(`(?:^|;\\s*)${encodeURIComponent(sKey).replace(/[-.+*]/g, '\\$&')}\\s*\\=`)).test(document.cookie)
   }
 
   keys () {
-    var aKeys = document.cookie.replace(/((?:^|\s*;)[^=]+)(?=;|$)|^\s*|\s*(?:=[^;]*)?(?:\1|$)/g, '').split(/\s*(?:=[^;]*)?;\s*/)
-    for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]) }
+    const aKeys = document.cookie.replace(/((?:^|\s*;)[^=]+)(?=;|$)|^\s*|\s*(?:=[^;]*)?(?:\1|$)/g, '').split(/\s*(?:=[^;]*)?;\s*/)
+    for (let nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx += 1) {
+      aKeys[nIdx] = decodeURIComponent(aKeys[nIdx])
+    }
     return aKeys
   }
 }

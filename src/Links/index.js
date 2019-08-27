@@ -1,4 +1,3 @@
-// import Headroom from 'headroom.js'
 import { TweenMax, Power3 } from 'gsap/all'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import _defaultsDeep from 'lodash.defaultsdeep'
@@ -41,7 +40,7 @@ export default class Links {
 
   bindAnchors (anchors) {
     let wait = false
-    for (const anchor of Array.from(anchors)) {
+    Array.from(anchors).forEach(anchor => {
       anchor.addEventListener('click', e => {
         e.preventDefault()
         const href = anchor.getAttribute('href')
@@ -70,11 +69,11 @@ export default class Links {
           move()
         }
       })
-    }
+    })
   }
 
   bindLinks (links) {
-    for (const link of Array.from(links)) {
+    Array.from(links).forEach(link => {
       link.addEventListener('click', e => {
         const loadingContainer = document.querySelector('.loading-container')
         const href = link.getAttribute('href')
@@ -89,6 +88,6 @@ export default class Links {
           this.opts.onTransition(href)
         }
       })
-    }
+    })
   }
 }

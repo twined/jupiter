@@ -32,7 +32,7 @@ export default class Moonwalk {
   parseChildren () {
     Object.keys(this.opts.walks).forEach(key => {
       this.findElementsByKey(key)
-    })
+    }, this)
   }
 
   findElementsByKey (key) {
@@ -53,9 +53,11 @@ export default class Moonwalk {
 
   setAttrs (elements, attr) {
     const affectedElements = []
-    Array.prototype.forEach.call(elements, function (el, i) {
-      const children = el.children
-      Array.prototype.forEach.call(children, function (c, x) {
+
+    Array.prototype.forEach.call(elements, el => {
+      const { children } = el
+
+      Array.prototype.forEach.call(children, c => {
         c.setAttribute(attr, '')
         affectedElements.push(c)
       })
@@ -67,7 +69,7 @@ export default class Moonwalk {
     const walkSections = document.querySelectorAll('[data-moonwalk-section]')
 
     // loop through walk sections
-    for (let i = 0; i < walkSections.length; i++) {
+    for (let i = 0; i < walkSections.length; i += 1) {
       // process walksection
       Object.keys(this.opts.walks).forEach(key => {
         let searchAttr = ''
@@ -78,16 +80,19 @@ export default class Moonwalk {
         }
         const walks = walkSections[i].querySelectorAll(searchAttr)
         this.reveal(walks, this.opts.walks[key])
-      })
+      }, this)
     }
   }
 
   reveal (elements, config, callback = null) {
+    let modifiedConfig = config
+
     if (callback) {
-      config = { ...config, beforeReveal: callback }
+      modifiedConfig = { ...config, beforeReveal: callback }
     }
+
     if (elements.length) {
-      this.SR.reveal(elements, config)
+      this.SR.reveal(elements, modifiedConfig)
     }
   }
 }

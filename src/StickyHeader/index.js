@@ -23,27 +23,29 @@
  *
  */
 
-import { TweenMax, Power3, Sine, TimelineLite } from 'gsap/all'
+import {
+  TweenMax, Power3, Sine, TimelineLite
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_EVENTS = {
-  onMainVisible: (h) => {
+  onMainVisible: h => {
     TweenMax.to(
       h.el,
       3,
-      { opacity: 1, delay: 0.5 }
+      { opacity: 1, delay: 0.5 },
     )
   },
 
-  onMainInvisible: (h) => {
+  onMainInvisible: h => {
     TweenMax.to(
       h.el,
       1,
-      { opacity: 0 }
+      { opacity: 0 },
     )
   },
 
-  onPin: (h) => {
+  onPin: h => {
     TweenMax.to(
       h.auxEl,
       0.35,
@@ -51,11 +53,11 @@ const DEFAULT_EVENTS = {
         yPercent: '0',
         ease: Sine.easeOut,
         autoRound: true
-      }
+      },
     )
   },
 
-  onUnpin: (h) => {
+  onUnpin: h => {
     h._hiding = true
     TweenMax.to(
       h.auxEl,
@@ -67,7 +69,7 @@ const DEFAULT_EVENTS = {
         onComplete: () => {
           h._hiding = false
         }
-      }
+      },
     )
   }
 }
@@ -80,7 +82,9 @@ const DEFAULT_OPTIONS = {
       timeline
         .set(h.auxEl, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
-        .to(h.auxEl, 1, { yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true })
+        .to(h.auxEl, 1, {
+          yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true
+        })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
     },
     enterDelay: 1.2,
@@ -196,19 +200,13 @@ export default class StickyHeader {
     if (this.currentScrollY > this.opts.offsetSmall) {
       if (force) {
         this.small()
-      } else {
-        if (!this._small) {
-          this.small()
-        }
+      } else if (!this._small) {
+        this.small()
       }
-    } else {
-      if (force) {
-        this.notSmall()
-      } else {
-        if (this._small) {
-          this.notSmall()
-        }
-      }
+    } else if (force) {
+      this.notSmall()
+    } else if (this._small) {
+      this.notSmall()
     }
   }
 
@@ -216,19 +214,13 @@ export default class StickyHeader {
     if (this.currentScrollY <= this.opts.offset) {
       if (force) {
         this.top()
-      } else {
-        if (!this._top) {
-          this.top()
-        }
+      } else if (!this._top) {
+        this.top()
       }
-    } else {
-      if (force) {
-        this.notTop()
-      } else {
-        if (this._top) {
-          this.notTop()
-        }
-      }
+    } else if (force) {
+      this.notTop()
+    } else if (this._top) {
+      this.notTop()
     }
   }
 
@@ -236,19 +228,13 @@ export default class StickyHeader {
     if (this.currentScrollY + this.getViewportHeight() >= this.getScrollerHeight()) {
       if (force) {
         this.bottom()
-      } else {
-        if (!this._bottom) {
-          this.bottom()
-        }
+      } else if (!this._bottom) {
+        this.bottom()
       }
-    } else {
-      if (force) {
-        this.notBottom()
-      } else {
-        if (this._bottom) {
-          this.notBottom()
-        }
-      }
+    } else if (force) {
+      this.notBottom()
+    } else if (this._bottom) {
+      this.notBottom()
     }
   }
 
@@ -274,7 +260,7 @@ export default class StickyHeader {
     }
   }
 
-  redraw (force = false, enter = true) {
+  redraw (force = false) {
     this.currentScrollY = this.getScrollY()
     const toleranceExceeded = this.toleranceExceeded()
 
@@ -358,7 +344,9 @@ export default class StickyHeader {
 
   isOutOfBounds () {
     const pastTop = this.currentScrollY < 0
-    const pastBottom = this.currentScrollY + this.getScrollerPhysicalHeight() > this.getScrollerHeight()
+    const pastBottom = this.currentScrollY
+      + this.getScrollerPhysicalHeight()
+      > this.getScrollerHeight()
 
     return pastTop || pastBottom
   }
@@ -376,43 +364,45 @@ export default class StickyHeader {
   }
 
   getDocumentHeight () {
-    const body = document.body
-    const documentElement = document.documentElement
+    const { body } = document
+    const { documentElement } = document
 
     return Math.max(
       body.scrollHeight, documentElement.scrollHeight,
       body.offsetHeight, documentElement.offsetHeight,
-      body.clientHeight, documentElement.clientHeight
+      body.clientHeight, documentElement.clientHeight,
     )
   }
 
   getViewportHeight () {
-    return window.innerHeight ||
-      document.documentElement.clientHeight ||
-      document.body.clientHeight
+    return window.innerHeight
+      || document.documentElement.clientHeight
+      || document.body.clientHeight
   }
 
   getElementHeight (el) {
     return Math.max(
       el.scrollHeight,
       el.offsetHeight,
-      el.clientHeight
+      el.clientHeight,
     )
   }
 
   getElementPhysicalHeight (el) {
     return Math.max(
       el.offsetHeight,
-      el.clientHeight
+      el.clientHeight,
     )
   }
 
   getScrollY () {
-    return (this.opts.canvas.pageYOffset !== undefined)
-      ? this.opts.canvas.pageYOffset
-      : (this.opts.canvas.scrollTop !== undefined)
-        ? this.opts.canvas.scrollTop
-        : (document.documentElement || document.body.parentNode || document.body).scrollTop
+    if (this.opts.canvas.pageYOffset !== undefined) {
+      return this.opts.canvas.pageYOffset
+    }
+    if (this.opts.canvas.scrollTop !== undefined) {
+      return this.opts.canvas.scrollTop
+    }
+    return (document.documentElement || document.body.parentNode || document.body).scrollTop
   }
 
   toleranceExceeded () {

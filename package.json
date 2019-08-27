@@ -1,6 +1,6 @@
 {
     "name": "jupiter",
-    "version": "2.2.1",
+    "version": "2.2.3",
     "description": "Frontend helpers.",
     "author": "Univers/Twined",
     "license": "UNLICENSED",
@@ -12,16 +12,16 @@
         "url": "https://github.com/twined/jupiter/issues"
     },
     "main": "src/index.js",
+    "module": "src/index.js",
     "homepage": "https://github.com/twined/jupiter#readme",
     "sideEffects": false,
     "devDependencies": {
-        "eslint": "^6.1.0",
-        "eslint-config-standard": "^13.0.1",
-        "eslint-loader": "^2.2.1",
+        "eslint": "^6.2.2",
+        "eslint-config-airbnb-base": "^14.0.0",
+        "eslint-loader": "^3.0.0",
         "eslint-plugin-import": "^2.18.2",
         "eslint-plugin-node": "^9.1.0",
-        "eslint-plugin-promise": "^4.2.1",
-        "eslint-plugin-standard": "^4.0.0"
+        "eslint-plugin-promise": "^4.2.1"
     },
     "dependencies": {
         "@egjs/hammerjs": "^2.0.15",

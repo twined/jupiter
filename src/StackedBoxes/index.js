@@ -22,9 +22,9 @@ export default class StackedBoxes {
       }
     })
 
-    for (const box of Array.from(boxes)) {
+    Array.from(boxes).forEach(box => {
       observer.observe(box)
-    }
+    })
   }
 
   adjustBox (box) {
@@ -48,14 +48,16 @@ export default class StackedBoxes {
           break
 
         case '2/3':
-          pullPx = pull.clientHeight / 3 * 2
+          pullPx = (pull.clientHeight / 3) * 2
           break
 
         case '1/2':
           pullPx = pull.clientHeight / 2
           break
+
+        default:
+          console.error('==> JUPITER/STACKEDBOXES: `data-boxes-stacked-pull` has wrong value')
       }
-      console.log(pullPx)
       this.pull(pull, pullPx)
     }
   }

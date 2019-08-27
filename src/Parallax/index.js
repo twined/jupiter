@@ -7,7 +7,7 @@ const DEFAULT_OPTIONS = {
   wrapper: null,
   relativeToWrapper: false,
   round: true,
-  callback: function () { }
+  callback () { }
 }
 
 export default class Parallax {
@@ -27,18 +27,18 @@ export default class Parallax {
     this.supportsPassive = true
 
     // check which transform property to use
-    this.transformProp = window.transformProp || (function () {
-      var testEl = document.createElement('div')
+    this.transformProp = window.transformProp || (() => {
+      const testEl = document.createElement('div')
       if (testEl.style.transform === null) {
-        var vendors = ['Webkit', 'Moz', 'ms']
-        for (var vendor in vendors) {
-          if (testEl.style[vendors[vendor] + 'Transform'] !== undefined) {
-            return vendors[vendor] + 'Transform'
+        const vendors = ['Webkit', 'Moz', 'ms']
+        for (let i = 0; i < vendors.length; i += 1) {
+          if (testEl.style[`${vendors[i]}Transform`] !== undefined) {
+            return `${vendors[i]}Transform`
           }
         }
       }
       return 'transform'
-    })()
+    })
 
     // By default, rellax class
     if (!el) {
@@ -52,7 +52,7 @@ export default class Parallax {
     if (this.elements.length > 0) {
       this.elems = this.elements
     } else {
-      console.warn("PARALLAX: The elements you're trying to select don't exist.")
+      console.warn('PARALLAX: The elements you\'re trying to select don\'t exist.')
       return
     }
 
@@ -64,7 +64,7 @@ export default class Parallax {
         if (wrapper) {
           this.opts.wrapper = wrapper
         } else {
-          console.warn("PARALLAX: The wrapper you're trying to use doesn't exist.")
+          console.warn('PARALLAX: The wrapper you\'re trying to use doesn\'t exist.')
           return
         }
       }
@@ -97,14 +97,14 @@ export default class Parallax {
 
   // Get and cache initial position of all elements
   cacheBlocks () {
-    for (var i = 0; i < this.elems.length; i++) {
-      var block = this.createBlock(this.elems[i])
+    for (let i = 0; i < this.elems.length; i += 1) {
+      const block = this.createBlock(this.elems[i])
       this.blocks.push(block)
     }
   }
 
   init () {
-    for (let i = 0; i < this.blocks.length; i++) {
+    for (let i = 0; i < this.blocks.length; i += 1) {
       this.elems[i].style.cssText = this.blocks[i].style
     }
 
@@ -138,52 +138,62 @@ export default class Parallax {
     // ensures elements are positioned based on HTML layout.
     //
     // If the element has the percentage attribute, the posY and posX needs to be
-    // the current scroll position's value, so that the elements are still positioned based on HTML layout
-    let wrapperPosY = this.opts.wrapper ? this.opts.wrapper.scrollTop : (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop)
-    // If the option relativeToWrapper is true, use the wrappers offset to top, subtracted from the current page scroll.
+    // the current scroll position's value, so that the elements are still
+    // positioned based on HTML layout
+    let wrapperPosY = this.opts.wrapper
+      ? this.opts.wrapper.scrollTop
+      : (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop)
+    // If the option relativeToWrapper is true, use the wrappers offset to top,
+    // subtracted from the current page scroll.
     if (this.opts.relativeToWrapper) {
-      var scrollPosY = (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop)
+      const scrollPosY = (
+        window.pageYOffset
+        || document.documentElement.scrollTop
+        || document.body.scrollTop
+      )
       wrapperPosY = scrollPosY - this.opts.wrapper.offsetTop
     }
-    var posY = (dataPercentage || this.opts.center ? wrapperPosY : 0)
-    var posX = 0
+    const posY = (dataPercentage || this.opts.center ? wrapperPosY : 0)
+    const posX = 0
 
-    var blockTop = posY + el.getBoundingClientRect().top
-    var blockHeight = el.clientHeight || el.offsetHeight || el.scrollHeight
+    const blockTop = posY + el.getBoundingClientRect().top
+    const blockHeight = el.clientHeight || el.offsetHeight || el.scrollHeight
 
-    var blockLeft = posX + el.getBoundingClientRect().left
-    var blockWidth = el.clientWidth || el.offsetWidth || el.scrollWidth
+    const blockLeft = posX + el.getBoundingClientRect().left
+    const blockWidth = el.clientWidth || el.offsetWidth || el.scrollWidth
 
     // apparently parallax equation everyone uses
-    var percentageY = dataPercentage || (posY - blockTop + this.screenY) / (blockHeight + this.screenY)
-    var percentageX = dataPercentage || (posX - blockLeft + this.screenX) / (blockWidth + this.screenX)
+    let percentageY = dataPercentage
+      || (posY - blockTop + this.screenY) / (blockHeight + this.screenY)
+    let percentageX = dataPercentage
+      || (posX - blockLeft + this.screenX) / (blockWidth + this.screenX)
     if (this.opts.center) { percentageX = 0.5; percentageY = 0.5 }
 
     // Optional individual block speed as data attr, otherwise global speed
-    var speed = dataSpeed || this.opts.speed
+    const speed = dataSpeed || this.opts.speed
 
-    var bases = this.updatePosition(percentageX, percentageY, speed)
+    const bases = this.updatePosition(percentageX, percentageY, speed)
 
     // ~~Store non-translate3d transforms~~
     // Store inline styles and extract transforms
-    var style = el.style.cssText
-    var transform = ''
+    const style = el.style.cssText
+    let transform = ''
 
     // Check if there's an inline styled transform
-    var searchResult = /transform\s*:/i.exec(style)
+    const searchResult = /transform\s*:/i.exec(style)
     if (searchResult) {
       // Get the index of the transform
-      var index = searchResult.index
+      const { index } = searchResult
 
       // Trim the style to the transform point and get the following semi-colon index
-      var trimmedStyle = style.slice(index)
-      var delimiter = trimmedStyle.indexOf(';')
+      const trimmedStyle = style.slice(index)
+      const delimiter = trimmedStyle.indexOf(';')
 
       // Remove "transform" string and save the attribute
       if (delimiter) {
-        transform = ' ' + trimmedStyle.slice(11, delimiter).replace(/\s/g, '')
+        transform = ` ${trimmedStyle.slice(11, delimiter).replace(/\s/g, '')}`
       } else {
-        transform = ' ' + trimmedStyle.slice(11).replace(/\s/g, '')
+        transform = ` ${trimmedStyle.slice(11).replace(/\s/g, '')}`
       }
     }
 
@@ -194,14 +204,14 @@ export default class Parallax {
       left: blockLeft,
       height: blockHeight,
       width: blockWidth,
-      speed: speed,
-      style: style,
-      transform: transform,
+      speed,
+      style,
+      transform,
       zindex: dataZindex,
       min: dataMin,
       max: dataMax
     }
-  };
+  }
 
   // set scroll position (posY, posX)
   // side effect method is not ideal, but okay for now
@@ -209,11 +219,19 @@ export default class Parallax {
   setPosition () {
     const oldY = this.posY
 
-    this.posY = this.opts.wrapper ? this.opts.wrapper.scrollTop : (document.documentElement || document.body.parentNode || document.body).scrollTop || window.pageYOffset
-    this.posX = this.opts.wrapper ? this.opts.wrapper.scrollLeft : (document.documentElement || document.body.parentNode || document.body).scrollLeft || window.pageXOffset
+    this.posY = this.opts.wrapper
+      ? this.opts.wrapper.scrollTop
+      : (document.documentElement || document.body.parentNode || document.body).scrollTop
+        || window.pageYOffset
+    this.posX = this.opts.wrapper
+      ? this.opts.wrapper.scrollLeft
+      : (document.documentElement || document.body.parentNode || document.body).scrollLeft
+        || window.pageXOffset
     // If option relativeToWrapper is true, use relative wrapper value instead.
     if (this.opts.relativeToWrapper) {
-      const scrollPosY = (document.documentElement || document.body.parentNode || document.body).scrollTop || window.pageYOffset
+      const scrollPosY = (document.documentElement
+        || document.body.parentNode
+        || document.body).scrollTop || window.pageYOffset
       this.posY = scrollPosY - this.opts.wrapper.offsetTop
     }
 
@@ -254,14 +272,18 @@ export default class Parallax {
 
   // Transform3d on parallax element
   animate () {
-    var positions
-    for (var i = 0; i < this.elems.length; i++) {
-      var percentageY = ((this.posY - this.blocks[i].top + this.screenY) / (this.blocks[i].height + this.screenY))
-      var percentageX = ((this.posX - this.blocks[i].left + this.screenX) / (this.blocks[i].width + this.screenX))
+    let positions
+    for (let i = 0; i < this.elems.length; i += 1) {
+      const percentageY = (
+        (this.posY - this.blocks[i].top + this.screenY)
+        / (this.blocks[i].height + this.screenY))
+      const percentageX = (
+        (this.posX - this.blocks[i].left + this.screenX)
+        / (this.blocks[i].width + this.screenX))
 
       // Subtracting initialize value, so element stays in same spot as HTML
-      positions = this.updatePosition(percentageX, percentageY, this.blocks[i].speed)// - this.blocks[i].baseX;
-      var positionY = positions.y - this.blocks[i].baseY
+      positions = this.updatePosition(percentageX, percentageY, this.blocks[i].speed)
+      let positionY = positions.y - this.blocks[i].baseY
 
       // The next two "if" blocks go like this:
       // Check if a limit is defined (first "min", then "max");
@@ -280,18 +302,18 @@ export default class Parallax {
         positionY = positionY >= this.blocks[i].max ? this.blocks[i].max : positionY
       }
 
-      var zindex = this.blocks[i].zindex
+      const { zindex } = this.blocks[i]
 
       // Move that element
       // (Set the new translation and append initial inline transforms.)
-      var translate = 'translate3d(' + '0px,' + positionY + 'px,' + zindex + 'px) ' + this.blocks[i].transform
+      const translate = `${'translate3d(0px,'}${positionY}px,${zindex}px) ${this.blocks[i].transform}`
       this.elems[i].style[this.transformProp] = translate
     }
     this.opts.callback(positions)
   }
 
   destroy () {
-    for (var i = 0; i < this.elems.length; i++) {
+    for (let i = 0; i < this.elems.length; i += 1) {
       this.elems[i].style.cssText = this.blocks[i].style
     }
 

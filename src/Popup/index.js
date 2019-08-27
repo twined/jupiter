@@ -6,17 +6,30 @@ const DEFAULT_OPTIONS = {
 
   tweenIn: (el, popup) => {
     TweenMax.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor })
-    TweenMax.to(popup.backdrop, 0.3, { opacity: 1,
+    TweenMax.to(popup.backdrop, 0.3, {
+      opacity: 1,
       onComplete: () => {
-        TweenMax.fromTo(el, 0.3, { yPercent: -50, x: -5, xPercent: -50, opacity: 0, display: 'block' }, { yPercent: -50, xPercent: -50, x: 0, opacity: 1 })
+        TweenMax.fromTo(el, 0.3, {
+          yPercent: -50,
+          x: -5,
+          xPercent: -50,
+          opacity: 0,
+          display: 'block'
+        }, {
+          yPercent: -50,
+          xPercent: -50,
+          x: 0,
+          opacity: 1
+        })
       }
     })
   },
 
-  tweenOut: (popup) => {
+  tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]')
     TweenMax.to(popups, 0.3, { opacity: 0, display: 'none' })
-    TweenMax.to(popup.backdrop, 0.3, { opacity: 0,
+    TweenMax.to(popup.backdrop, 0.3, {
+      opacity: 0,
       onComplete: () => {
         TweenMax.set(popup.backdrop, { display: 'none' })
       }
@@ -34,10 +47,12 @@ export default class Popup {
     const backdrop = document.createElement('div')
     backdrop.setAttribute('data-popup-backdrop', '')
     TweenMax.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 })
+
     backdrop.addEventListener('click', e => {
       e.stopPropagation()
       this.close()
     })
+
     document.body.append(backdrop)
     this.backdrop = backdrop
   }

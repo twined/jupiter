@@ -9,17 +9,19 @@
  *
  */
 
-import { TweenMax, Sine, Power3, CSSPlugin, TimelineLite } from 'gsap/all'
+import {
+  TweenMax, Sine, Power3, CSSPlugin, TimelineLite
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
 
 if ('objectFit' in document.documentElement.style === false) {
-  document.addEventListener('DOMContentLoaded', function () {
-    Array.prototype.forEach.call(document.querySelectorAll('.hero-bg img'), function (image) {
-      (image.runtimeStyle || image.style).background = 'url("' + image.src + '") no-repeat 50%/' + (image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit'))
-      image.src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'' + image.width + '\' height=\'' + image.height + '\'%3E%3C/svg%3E'
+  document.addEventListener('DOMContentLoaded', () => {
+    Array.prototype.forEach.call(document.querySelectorAll('.hero-bg img'), image => {
+      (image.runtimeStyle || image.style).background = `url("${image.src}") no-repeat 50%/${image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit')}`
+      image.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${image.width}' height='${image.height}'%3E%3C/svg%3E`
     })
   })
 }
@@ -81,7 +83,7 @@ export default class HeroSlider {
     this._currentSlideIdx = this.opts.initialSlideNumber
 
     // style the slides
-    for (const s of Array.from(this.slides)) {
+    Array.from(this.slides).forEach(s => {
       TweenMax.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
@@ -104,7 +106,7 @@ export default class HeroSlider {
       } else {
         console.error('==> JUPITER/HEROSLIDER: MISSING .hero-slide-img INSIDE [data-hero-slide]')
       }
-    }
+    })
 
     this.slides[0].style.zIndex = this.opts.zIndex.visible
     if (this.slides[1]) {
@@ -164,7 +166,7 @@ export default class HeroSlider {
       this._previousSlide = this.slides[this._currentSlideIdx]
       this._currentSlideIdx = this._currentSlideIdx + 1
       if (this._currentSlideIdx === this.slideCount) {
-        this._nextSlide = this.slides[0]
+        [this._nextSlide] = this.slides
       } else {
         this._nextSlide = this.slides[this._currentSlideIdx + 1]
       }
@@ -246,6 +248,9 @@ export default class HeroSlider {
           .call(this.next, null, this)
 
         break
+
+      default:
+        console.error('==> JUPITER/HEROSLIDER: Unrecognized `opts.transition.type` option.')
     }
   }
 
@@ -265,7 +270,7 @@ export default class HeroSlider {
     this.observer.observe(this.el)
   }
 
-  _resizeSlides (e) {
+  _resizeSlides () {
     TweenMax.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'

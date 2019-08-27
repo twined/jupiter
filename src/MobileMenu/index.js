@@ -9,7 +9,7 @@ const DEFAULT_OPTIONS = {
   hamburgerColor: '#000',
 
   onResize: null,
-  openTween: (m) => {
+  openTween: m => {
     const timeline = new TimelineLite()
 
     m.hamburger.classList.toggle('is-active')
@@ -24,18 +24,39 @@ const DEFAULT_OPTIONS = {
       .set(m.content, { display: 'block' })
       .set(m.logoPath, { fill: m.opts.logoColor })
       .set(m.logo, { xPercent: 3 })
-      .staggerFromTo(m.lis, 1, { opacity: 0, x: 20 }, { x: 0, opacity: 1, ease: Power3.easeOut }, 0.05)
+      .staggerFromTo(
+        m.lis,
+        1, {
+          opacity: 0, x: 20
+        },
+        {
+          x: 0,
+          opacity: 1,
+          ease: Power3.easeOut
+        }, 0.05,
+      )
       .to(m.logo, 0.55, { opacity: 1, xPercent: 0, ease: Power3.ease }, '-=1.2')
       .call(m._emitMobileMenuOpenEvent)
   },
 
-  closeTween: (m) => {
+  closeTween: m => {
     document.body.classList.toggle('open-menu')
     const timeline = new TimelineLite()
 
     timeline
       .call(() => { m.hamburger.classList.toggle('is-active') })
-      .fromTo(m.logo, 0.2, { opacity: 1, xPercent: 0 }, { opacity: 0, xPercent: 5, ease: Power3.easeOut })
+      .fromTo(
+        m.logo,
+        0.2, {
+          opacity: 1,
+          xPercent: 0
+        },
+        {
+          opacity: 0,
+          xPercent: 5,
+          ease: Power3.easeOut
+        },
+      )
       .set(m.logoPath, { clearProps: 'fill' })
       .staggerTo(m.lis, 0.5, { opacity: 0, x: 20, ease: Power3.easeOut }, 0.04)
       .set(m.nav, { clearProps: 'height' })
@@ -63,7 +84,7 @@ export default class MobileMenu {
     this.lis = this.header.querySelectorAll('li')
     this.nav = this.header.querySelector('nav')
 
-    this.hamburger.addEventListener('click', e => {
+    this.hamburger.addEventListener('click', () => {
       this.toggleMenu()
     })
 
