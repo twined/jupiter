@@ -1,6 +1,14 @@
-README
-======
+<p align="center">
+  <sup><em>«Earth people, I was born on»</em></sup>
+</p>
 
+![](http://univers.agency/jupiter.svg)
+
+<p align="center">
+  <a href="https://travis-ci.org/univers-agency/jupiter"><img src="https://img.shields.io/travis/univers-agency/jupiter/master.svg" alt="Build Status"></a>
+</p>
+
+------
 
 ## StackedBoxes
 
