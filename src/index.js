@@ -1,5 +1,5 @@
 import {
-  TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear
+  TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear, Back
 } from 'gsap/all'
 import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
@@ -47,6 +47,7 @@ export {
   TweenMax,
   TimelineLite,
   Power3,
+  Back,
   Sine,
   Linear,
   CSSPlugin,
