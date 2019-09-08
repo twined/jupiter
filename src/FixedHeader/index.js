@@ -157,7 +157,7 @@ export default class FixedHeader {
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
       const elm = document.querySelector(this.opts.offsetBg)
-      this.opts.offsetBg = elm.offsetTop - this.el.offsetHeight
+      this.opts.offsetBg = elm.offsetTop
     }
 
     window.addEventListener('scroll', this.requestTick.bind(this), false)
