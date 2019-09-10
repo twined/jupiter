@@ -6,10 +6,10 @@
     "license": "UNLICENSED",
     "repository": {
         "type": "git",
-        "url": "git+https://twined@github.com/twined/jupiter.git"
+        "url": "git+https://univers-agency@github.com/univers-agency/jupiter.git"
     },
     "bugs": {
-        "url": "https://github.com/twined/jupiter/issues"
+        "url": "https://github.com/univers-agency/jupiter/issues"
     },
     "main": "dist/jupiter.cjs.js",
     "module": "dist/jupiter.esm.js",
@@ -17,7 +17,7 @@
     "files": [
         "dist"
     ],
-    "homepage": "https://github.com/twined/jupiter#readme",
+    "homepage": "https://github.com/univers-agency/jupiter#readme",
     "sideEffects": false,
     "scripts": {
         "build": "rollup -c",
