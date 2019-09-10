@@ -76,10 +76,10 @@ export default class MobileMenu {
 
     this.bg = this.header.querySelector('.mobile-bg')
     this.logo = this.header.querySelector('figure.brand')
-    this.logoPath = this.logo.querySelectorAll(this.opts.logoPathSelector)
+    this.logoPath = this.logo ? this.logo.querySelectorAll(this.opts.logoPathSelector) : null
     this.menuButton = this.header.querySelector('figure.menu-button')
-    this.hamburger = this.menuButton.querySelector('.hamburger')
-    this.hamburgerInner = this.menuButton.querySelector('.hamburger-inner')
+    this.hamburger = this.menuButton ? this.menuButton.querySelector('.hamburger') : null
+    this.hamburgerInner = this.menuButton ? this.menuButton.querySelector('.hamburger-inner') : null
     this.content = this.header.querySelectorAll(this.opts.contentSelector)
     this.lis = this.header.querySelectorAll('li')
     this.nav = this.header.querySelector('nav')
