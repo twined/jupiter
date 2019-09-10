@@ -1,6 +1,7 @@
 import {
   TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear, Back
 } from 'gsap/all'
+
 import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import Hammer from '@egjs/hammerjs'

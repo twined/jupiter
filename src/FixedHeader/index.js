@@ -140,11 +140,13 @@ export default class FixedHeader {
     this._bottom = false
     this._small = false
     this._altBg = false
+    this._isResizing = false
     this._hiding = false // if we're in the process of hiding the bar
     this.lastKnownScrollY = 0
     this.currentScrollY = 0
     this.mobileMenuOpen = false
     this.timer = null
+    this.resetResizeTimer = null
 
     this.initialize()
   }
@@ -160,7 +162,9 @@ export default class FixedHeader {
       this.opts.offsetBg = elm.offsetTop
     }
 
+    window.addEventListener('resize', this.setResizeTimer.bind(this), false)
     window.addEventListener('scroll', this.requestTick.bind(this), false)
+
     this.redraw(true)
     this._bindMobileMenuListeners()
   }
@@ -170,6 +174,24 @@ export default class FixedHeader {
       requestAnimationFrame(this.update.bind(this))
     }
     this.ticking = true
+  }
+
+  setResizeTimer () {
+    this._isResizing = true
+
+    if (this._pinned) {
+      // unpin if resizing to prevent visual clutter
+      this.unpin()
+    }
+
+    if (this.resetResizeTimer) {
+      clearTimeout(this.resetResizeTimer)
+    }
+    this.resetResizeTimer = setTimeout(() => {
+      this._isResizing = false
+      clearTimeout(this.resetResizeTimer)
+      this.resetResizeTimer = null
+    }, 500)
   }
 
   update () {
@@ -361,6 +383,10 @@ export default class FixedHeader {
   }
 
   shouldPin (toleranceExceeded) {
+    if (this._isResizing) {
+      return false
+    }
+
     const scrollingUp = this.currentScrollY < this.lastKnownScrollY
     const pastOffset = this.currentScrollY <= this.opts.offset
 
