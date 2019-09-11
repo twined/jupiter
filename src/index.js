@@ -24,6 +24,8 @@ import StackedBoxes from './StackedBoxes'
 import StickyHeader from './StickyHeader'
 import Typography from './Typography'
 
+import prefersReducedMotion from './utils/prefersReducedMotion'
+
 export {
   Breakpoints,
   Cookies,
@@ -43,7 +45,11 @@ export {
   StickyHeader,
   Typography,
 
-  // Export some of the libs we use, that can also be used in the main frontend.
+  // Export utils
+  prefersReducedMotion,
+
+  // Export some of the libs we use,
+  // that can also be used in the main frontend.
   imagesLoaded,
   TweenMax,
   TimelineLite,

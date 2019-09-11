@@ -13,6 +13,7 @@ import {
   TweenMax, Sine, Power3, CSSPlugin, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import prefersReducedMotion from '../utils/prefersReducedMotion'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
@@ -145,7 +146,12 @@ export default class HeroSlider {
           fadeIn()
         } else {
           firstVid.oncanplay = () => {
-            firstVid.play()
+            if (prefersReducedMotion()) {
+              firstVid.stop()
+            } else {
+              firstVid.play()
+            }
+
             fadeIn()
           }
         }
@@ -157,6 +163,10 @@ export default class HeroSlider {
    * Calculate which slide is next, and call the slide function
    */
   next () {
+    if (prefersReducedMotion()) {
+      return
+    }
+
     if (this._currentSlideIdx === this.slideCount) {
       this._previousSlide = this.slides[this._currentSlideIdx]
       // last slide --> next slide will be 0

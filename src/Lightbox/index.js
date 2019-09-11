@@ -8,6 +8,25 @@ TweenMax.defaultEase = Sine.easeOut
 const DEFAULT_OPTIONS = {
   captions: false,
 
+  elements: {
+    arrowRight: () => {
+      const sp1 = document.createElement('span')
+      sp1.classList.add('arrow-r')
+      sp1.appendChild(document.createTextNode('→'))
+      return sp1
+    },
+
+    arrowLeft: () => {
+      const sp1 = document.createElement('span')
+      sp1.classList.add('arrow-l')
+      sp1.appendChild(document.createTextNode('←'))
+      return sp1
+    },
+
+    close: () => document.createTextNode('×'),
+    dot: () => document.createTextNode('▪')
+  },
+
   onClose: h => {
     if (h.opts.captions) {
       TweenMax.to(h.caption, 0.45, { opacity: 0 })
@@ -35,36 +54,45 @@ export default class Lightbox {
     this.fader = document.querySelector('#fader')
     this.imgs = []
     this.imgAlts = []
+    this.sections = {}
+    this.currentIdx = null
 
     this.lightboxes.forEach(lightbox => {
       const href = lightbox.getAttribute('data-lightbox')
       const imgInLightbox = lightbox.querySelector('img')
       const alt = imgInLightbox.getAttribute('alt')
-      this.imgs.push(href)
-      this.imgAlts.push(alt)
+      const section = lightbox.getAttribute('data-lightbox-section') || 'general'
+
+      if (!this.sections.hasOwnProperty(section)) {
+        this.sections[section] = []
+      }
+
+      const image = {
+        href,
+        alt
+      }
+
+      const idx = this.sections[section].push(image) - 1
 
       lightbox.addEventListener('click', e => {
         e.preventDefault()
-        const idx = this.imgs.indexOf(href)
-        this.showBox(idx)
+        this.showBox(section, idx)
       })
     })
   }
 
-  showBox (idx) {
+  showBox (section, idx) {
     this.fader.style.display = 'block'
 
     TweenMax.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
-        this.buildBox(idx)
+        this.buildBox(section, idx)
       }
     })
   }
 
-  buildBox (idx) {
-    let bIdx = idx
-
+  buildBox (section, idx) {
     this.wrapper = document.createElement('div')
     this.content = document.createElement('div')
     this.imgWrapper = document.createElement('div')
@@ -74,55 +102,48 @@ export default class Lightbox {
     this.prevArrow = document.createElement('a')
     this.close = document.createElement('a')
 
+    this.content.setAttribute('data-current-idx', idx)
+
     this.content.classList.add('lightbox-content')
     this.nextArrow.classList.add('lightbox-next')
     this.prevArrow.classList.add('lightbox-prev')
     this.close.classList.add('lightbox-close')
     this.dots.classList.add('lightbox-dots')
     this.wrapper.classList.add('lightbox-backdrop')
+    this.wrapper.setAttribute('data-lightbox-wrapper-section', section)
     this.imgWrapper.classList.add('lightbox-image-wrapper')
     this.img.classList.add('lightbox-image', 'm-lg')
 
-    this.close.appendChild(document.createTextNode('×'))
+    this.close.appendChild(this.opts.elements.close())
     this.close.href = '#'
 
-    let sp1 = document.createElement('span')
-    sp1.classList.add('arrow-r')
-    sp1.appendChild(document.createTextNode('→'))
-    this.nextArrow.appendChild(sp1)
+    this.nextArrow.appendChild(this.opts.elements.arrowRight())
     this.nextArrow.href = '#'
 
     this.nextArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      const oldIdx = bIdx
-      bIdx = this.getNextIdx(oldIdx)
-      this.setImg(bIdx, oldIdx)
+      this.setImg(section, this.getNextIdx(section))
     })
 
     this.prevArrow.addEventListener('click', e => {
       e.stopPropagation()
       e.preventDefault()
-      const oldIdx = bIdx
-      bIdx = this.getPrevIdx(oldIdx)
-      this.setImg(bIdx, oldIdx)
+      this.setImg(section, this.getPrevIdx(section))
     })
 
-    sp1 = document.createElement('span')
-    sp1.classList.add('arrow-l')
-    sp1.appendChild(document.createTextNode('←'))
-    this.prevArrow.appendChild(sp1)
+    this.prevArrow.appendChild(this.opts.elements.arrowLeft())
     this.prevArrow.href = '#'
 
     // add dot links
     let activeLink
 
-    this.imgs.forEach((img, x) => {
+    this.sections[section].forEach((img, x) => {
       const a = document.createElement('a')
       a.setAttribute('href', '#')
       a.setAttribute('data-idx', x)
 
-      if (x === bIdx) {
+      if (x === idx) {
         a.classList.add('active')
         activeLink = a
       }
@@ -133,10 +154,10 @@ export default class Lightbox {
         activeLink = a
         e.stopPropagation()
         e.preventDefault()
-        this.setImg(x, this.imgs, null)
+        this.setImg(section, x, null)
       })
 
-      a.appendChild(document.createTextNode('▪'))
+      a.appendChild(this.opts.elements.dot())
       this.dots.appendChild(a)
     })
 
@@ -156,8 +177,8 @@ export default class Lightbox {
     this.wrapper.appendChild(this.content)
     document.body.appendChild(this.wrapper)
 
-    this.setImg(idx, this.getPrevIdx(idx))
-    this.attachSwiper(this.content, idx)
+    this.setImg(section, idx, this.getPrevIdx(idx))
+    this.attachSwiper(section, this.content, idx)
 
     imagesLoaded(this.wrapper, () => {
       TweenMax.to(this.wrapper, 0.5, {
@@ -174,15 +195,12 @@ export default class Lightbox {
       e.stopPropagation()
 
       this.opts.onClose(this)
+      this.currentIdx = null
     })
   }
 
-  setImg (x, oldIdx) {
-    let oIdx = oldIdx
-    if (oIdx === null) {
-      oIdx = this.content.getAttribute('data-current-id')
-    }
-
+  setImg (section, x) {
+    this.currentIdx = x
     this.content.setAttribute('data-current-idx', x)
 
     let a = document.querySelector('.lightbox-dots a.active')
@@ -198,7 +216,7 @@ export default class Lightbox {
       TweenMax.to(this.caption, 0.5, {
         opacity: 0,
         onComplete: () => {
-          this.caption.innerHTML = this.imgAlts[x]
+          this.caption.innerHTML = this.sections[section][x].alt
         }
       })
     }
@@ -206,7 +224,7 @@ export default class Lightbox {
     TweenMax.to(this.img, 0.5, {
       opacity: 0,
       onComplete: () => {
-        this.img.src = this.imgs[x]
+        this.img.src = this.sections[section][x].href
 
         TweenMax.to(this.img, 0.5, {
           opacity: 1
@@ -219,21 +237,23 @@ export default class Lightbox {
     })
   }
 
-  getNextIdx (idx) {
-    if (idx === this.imgs.length - 1) {
+  getNextIdx (section) {
+    const idx = this.currentIdx
+    if (idx === this.sections[section].length - 1) {
       return 0
     }
     return idx + 1
   }
 
-  getPrevIdx (idx) {
+  getPrevIdx (section) {
+    const idx = this.currentIdx
     if (idx === 0) {
-      return this.imgs.length - 1
+      return this.sections[section].length - 1
     }
     return idx - 1
   }
 
-  attachSwiper (el, initialIdx) {
+  attachSwiper (section, el, initialIdx) {
     const hammerManager = new Manager(el)
     const swipeHandler = new Swipe()
 
@@ -242,15 +262,13 @@ export default class Lightbox {
     hammerManager.add(swipeHandler)
 
     hammerManager.on('swipeleft', () => {
-      const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
-      const idx = this.getNextIdx(oldIdx)
-      this.setImg(idx, oldIdx)
+      const idx = this.getNextIdx(section)
+      this.setImg(section, idx)
     })
 
     hammerManager.on('swiperight', () => {
-      const oldIdx = parseInt(this.content.getAttribute('data-current-idx'))
-      const idx = this.getPrevIdx(oldIdx)
-      this.setImg(idx, oldIdx)
+      const idx = this.getPrevIdx(section)
+      this.setImg(section, idx)
     })
   }
 }

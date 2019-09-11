@@ -29,6 +29,7 @@ export default class Lazyload {
       })
     } else {
       this.imgObserver = new IntersectionObserver(this.lazyloadImages.bind(this))
+
       this.lazyImages = document.querySelectorAll('[data-ll-image]')
       this.lazyImages.forEach(img => {
         img.setAttribute('data-ll-blurred', '')
@@ -36,6 +37,7 @@ export default class Lazyload {
       })
 
       this.pictureObserver = new IntersectionObserver(this.lazyloadPictures.bind(this))
+
       this.lazyPictures = document.querySelectorAll('[data-ll-srcset]')
       this.lazyPictures.forEach(picture => {
         picture.querySelectorAll('img').forEach(img => { img.setAttribute('data-ll-blurred', '') })

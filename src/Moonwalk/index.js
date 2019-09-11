@@ -1,5 +1,6 @@
 import ScrollReveal from 'scrollreveal'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import prefersReducedMotion from '../utils/prefersReducedMotion'
 
 const DEFAULT_OPTIONS = {
   /* if your app needs to do some initialization while the application:ready has been fired,
@@ -21,12 +22,35 @@ const DEFAULT_OPTIONS = {
 export default class Moonwalk {
   constructor (opts = {}) {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-    this.SR = ScrollReveal()
-    this.parseChildren()
 
-    if (this.opts.fireOnReady) {
-      window.addEventListener('application:ready', this.ready.bind(this))
+    if (prefersReducedMotion()) {
+      this.removeAllWalks()
+    } else {
+      this.SR = ScrollReveal()
+      this.parseChildren()
+
+      if (this.opts.fireOnReady) {
+        window.addEventListener('application:ready', this.ready.bind(this))
+      }
     }
+  }
+
+  removeAllWalks () {
+    Object.keys(this.opts.walks).forEach(key => {
+      let searchAttr
+
+      if (key === 'default') {
+        searchAttr = 'data-moonwalk'
+      } else {
+        searchAttr = `data-moonwalk-${key}`
+      }
+
+      const elems = document.querySelectorAll(`[${searchAttr}]`)
+
+      Array.from(elems).forEach(el => {
+        el.removeAttribute(searchAttr)
+      })
+    }, this)
   }
 
   parseChildren () {
