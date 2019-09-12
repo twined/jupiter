@@ -1,5 +1,5 @@
 import {
-  TweenMax, TimelineLite, CSSPlugin, Power3, Sine, Linear, Back
+  TweenMax, TimelineLite, TimelineMax, CSSPlugin, Power3, Sine, Linear, Back
 } from 'gsap/all'
 
 import imagesLoaded from 'imagesloaded'
@@ -53,6 +53,7 @@ export {
   imagesLoaded,
   TweenMax,
   TimelineLite,
+  TimelineMax,
   Power3,
   Back,
   Sine,

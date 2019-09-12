@@ -3484,6 +3484,524 @@ var TimelineLite = globals.TimelineLite;
  * @author: Jack Doyle, jack@greensock.com
  */
 
+_gsScope._gsDefine("TimelineMax", ["TimelineLite","TweenLite","easing.Ease"], function() {
+		
+		var TimelineMax = function(vars) {
+				TimelineLite.call(this, vars);
+				this._repeat = this.vars.repeat || 0;
+				this._repeatDelay = this.vars.repeatDelay || 0;
+				this._cycle = 0;
+				this._yoyo = !!this.vars.yoyo;
+				this._dirty = true;
+			},
+			_tinyNum = 0.00000001,
+			TweenLiteInternals = TweenLite._internals,
+			_lazyTweens = TweenLiteInternals.lazyTweens,
+			_lazyRender = TweenLiteInternals.lazyRender,
+			_globals = _gsScope._gsDefine.globals,
+			_easeNone = new Ease(null, null, 1, 0),
+			p = TimelineMax.prototype = new TimelineLite();
+
+		p.constructor = TimelineMax;
+		p.kill()._gc = false;
+		TimelineMax.version = "2.1.3";
+
+		p.invalidate = function() {
+			this._yoyo = !!this.vars.yoyo;
+			this._repeat = this.vars.repeat || 0;
+			this._repeatDelay = this.vars.repeatDelay || 0;
+			this._uncache(true);
+			return TimelineLite.prototype.invalidate.call(this);
+		};
+
+		p.addCallback = function(callback, position, params, scope) {
+			return this.add( TweenLite.delayedCall(0, callback, params, scope), position);
+		};
+
+		p.removeCallback = function(callback, position) {
+			if (callback) {
+				if (position == null) {
+					this._kill(null, callback);
+				} else {
+					var a = this.getTweensOf(callback, false),
+						i = a.length,
+						time = this._parseTimeOrLabel(position);
+					while (--i > -1) {
+						if (a[i]._startTime === time) {
+							a[i]._enabled(false, false);
+						}
+					}
+				}
+			}
+			return this;
+		};
+
+		p.removePause = function(position) {
+			return this.removeCallback(TimelineLite._internals.pauseCallback, position);
+		};
+
+		p.tweenTo = function(position, vars) {
+			vars = vars || {};
+			var copy = {ease:_easeNone, useFrames:this.usesFrames(), immediateRender:false, lazy:false},
+				Engine = (vars.repeat && _globals.TweenMax) || TweenLite,
+				duration, p, t;
+			for (p in vars) {
+				copy[p] = vars[p];
+			}
+			copy.time = this._parseTimeOrLabel(position);
+			duration = (Math.abs(Number(copy.time) - this._time) / this._timeScale) || 0.001;
+			t = new Engine(this, duration, copy);
+			copy.onStart = function() {
+				t.target.paused(true);
+				if (t.vars.time !== t.target.time() && duration === t.duration() && !t.isFromTo) { //don't make the duration zero - if it's supposed to be zero, don't worry because it's already initting the tween and will complete immediately, effectively making the duration zero anyway. If we make duration zero, the tween won't run at all.
+					t.duration( Math.abs( t.vars.time - t.target.time()) / t.target._timeScale ).render(t.time(), true, true); //render() right away to ensure that things look right, especially in the case of .tweenTo(0).
+				}
+				if (vars.onStart) { //in case the user had an onStart in the vars - we don't want to overwrite it.
+					vars.onStart.apply(vars.onStartScope || vars.callbackScope || t, vars.onStartParams || []); //don't use t._callback("onStart") or it'll point to the copy.onStart and we'll get a recursion error.
+				}
+			};
+			return t;
+		};
+
+		p.tweenFromTo = function(fromPosition, toPosition, vars) {
+			vars = vars || {};
+			fromPosition = this._parseTimeOrLabel(fromPosition);
+			vars.startAt = {onComplete:this.seek, onCompleteParams:[fromPosition], callbackScope:this};
+			vars.immediateRender = (vars.immediateRender !== false);
+			var t = this.tweenTo(toPosition, vars);
+			t.isFromTo = 1; //to ensure we don't mess with the duration in the onStart (we've got the start and end values here, so lock it in)
+			return t.duration((Math.abs( t.vars.time - fromPosition) / this._timeScale) || 0.001);
+		};
+
+		p.render = function(time, suppressEvents, force) {
+			if (this._gc) {
+				this._enabled(true, false);
+			}
+			var self = this,
+				prevTime = self._time,
+				totalDur = (!self._dirty) ? self._totalDuration : self.totalDuration(),
+				dur = self._duration,
+				prevTotalTime = self._totalTime,
+				prevStart = self._startTime,
+				prevTimeScale = self._timeScale,
+				prevRawPrevTime = self._rawPrevTime,
+				prevPaused = self._paused,
+				prevCycle = self._cycle,
+				tween, isComplete, next, callback, internalForce, cycleDuration, pauseTween, curTime, pauseTime;
+			if (prevTime !== self._time) { //if totalDuration() finds a child with a negative startTime and smoothChildTiming is true, things get shifted around internally so we need to adjust the time accordingly. For example, if a tween starts at -30 we must shift EVERYTHING forward 30 seconds and move this timeline's startTime backward by 30 seconds so that things align with the playhead (no jump).
+				time += self._time - prevTime;
+			}
+			if (time >= totalDur - _tinyNum && time >= 0) { //to work around occasional floating point math artifacts.
+				if (!self._locked) {
+					self._totalTime = totalDur;
+					self._cycle = self._repeat;
+				}
+				if (!self._reversed) if (!self._hasPausedChild()) {
+					isComplete = true;
+					callback = "onComplete";
+					internalForce = !!self._timeline.autoRemoveChildren; //otherwise, if the animation is unpaused/activated after it's already finished, it doesn't get removed from the parent timeline.
+					if (self._duration === 0) if ((time <= 0 && time >= -_tinyNum) || prevRawPrevTime < 0 || prevRawPrevTime === _tinyNum) if (prevRawPrevTime !== time && self._first) {
+						internalForce = true;
+						if (prevRawPrevTime > _tinyNum) {
+							callback = "onReverseComplete";
+						}
+					}
+				}
+				self._rawPrevTime = (self._duration || !suppressEvents || time || self._rawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration timeline or tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
+				if (self._yoyo && (self._cycle & 1)) {
+					self._time = time = 0;
+				} else {
+					self._time = dur;
+					time = dur + 0.0001; //to avoid occasional floating point rounding errors - sometimes child tweens/timelines were not being fully completed (their progress might be 0.999999999999998 instead of 1 because when _time - tween._startTime is performed, floating point errors would return a value that was SLIGHTLY off). Try (999999999999.7 - 999999999999) * 1 = 0.699951171875 instead of 0.7. We cannot do less then 0.0001 because the same issue can occur when the duration is extremely large like 999999999999 in which case adding 0.00000001, for example, causes it to act like nothing was added.
+				}
+
+			} else if (time < _tinyNum) { //to work around occasional floating point math artifacts, round super small values to 0.
+				if (!self._locked) {
+					self._totalTime = self._cycle = 0;
+				}
+				self._time = 0;
+				if (time > -_tinyNum) {
+					time = 0;
+				}
+				if (prevTime !== 0 || (dur === 0 && prevRawPrevTime !== _tinyNum && (prevRawPrevTime > 0 || (time < 0 && prevRawPrevTime >= 0)) && !self._locked)) { //edge case for checking time < 0 && prevRawPrevTime >= 0: a zero-duration fromTo() tween inside a zero-duration timeline (yeah, very rare)
+					callback = "onReverseComplete";
+					isComplete = self._reversed;
+				}
+				if (time < 0) {
+					self._active = false;
+					if (self._timeline.autoRemoveChildren && self._reversed) {
+						internalForce = isComplete = true;
+						callback = "onReverseComplete";
+					} else if (prevRawPrevTime >= 0 && self._first) { //when going back beyond the start, force a render so that zero-duration tweens that sit at the very beginning render their start values properly. Otherwise, if the parent timeline's playhead lands exactly at this timeline's startTime, and then moves backwards, the zero-duration tweens at the beginning would still be at their end state.
+						internalForce = true;
+					}
+					self._rawPrevTime = time;
+				} else {
+					self._rawPrevTime = (dur || !suppressEvents || time || self._rawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration timeline or tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
+					if (time === 0 && isComplete) { //if there's a zero-duration tween at the very beginning of a timeline and the playhead lands EXACTLY at time 0, that tween will correctly render its end values, but we need to keep the timeline alive for one more render so that the beginning values render properly as the parent's playhead keeps moving beyond the begining. Imagine obj.x starts at 0 and then we do tl.set(obj, {x:100}).to(obj, 1, {x:200}) and then later we tl.reverse()...the goal is to have obj.x revert to 0. If the playhead happens to land on exactly 0, without this chunk of code, it'd complete the timeline and remove it from the rendering queue (not good).
+						tween = self._first;
+						while (tween && tween._startTime === 0) {
+							if (!tween._duration) {
+								isComplete = false;
+							}
+							tween = tween._next;
+						}
+					}
+					time = 0; //to avoid occasional floating point rounding errors (could cause problems especially with zero-duration tweens at the very beginning of the timeline)
+					if (!self._initted) {
+						internalForce = true;
+					}
+				}
+
+			} else {
+				if (dur === 0 && prevRawPrevTime < 0) { //without this, zero-duration repeating timelines (like with a simple callback nested at the very beginning and a repeatDelay) wouldn't render the first time through.
+					internalForce = true;
+				}
+				self._time = self._rawPrevTime = time;
+				if (!self._locked) {
+					self._totalTime = time;
+					if (self._repeat !== 0) {
+						cycleDuration = dur + self._repeatDelay;
+						self._cycle = (self._totalTime / cycleDuration) >> 0; //originally _totalTime % cycleDuration but floating point errors caused problems, so I normalized it. (4 % 0.8 should be 0 but it gets reported as 0.79999999!)
+						if (self._cycle) if (self._cycle === self._totalTime / cycleDuration && prevTotalTime <= time) {
+							self._cycle--; //otherwise when rendered exactly at the end time, it will act as though it is repeating (at the beginning)
+						}
+						self._time = self._totalTime - (self._cycle * cycleDuration);
+						if (self._yoyo) if (self._cycle & 1) {
+							self._time = dur - self._time;
+						}
+						if (self._time > dur) {
+							self._time = dur;
+							time = dur + 0.0001; //to avoid occasional floating point rounding error
+						} else if (self._time < 0) {
+							self._time = time = 0;
+						} else {
+							time = self._time;
+						}
+					}
+				}
+			}
+
+			if (self._hasPause && !self._forcingPlayhead && !suppressEvents) {
+				time = self._time;
+				if (time > prevTime || (self._repeat && prevCycle !== self._cycle)) {
+					tween = self._first;
+					while (tween && tween._startTime <= time && !pauseTween) {
+						if (!tween._duration) if (tween.data === "isPause" && !tween.ratio && !(tween._startTime === 0 && self._rawPrevTime === 0)) {
+							pauseTween = tween;
+						}
+						tween = tween._next;
+					}
+				} else {
+					tween = self._last;
+					while (tween && tween._startTime >= time && !pauseTween) {
+						if (!tween._duration) if (tween.data === "isPause" && tween._rawPrevTime > 0) {
+							pauseTween = tween;
+						}
+						tween = tween._prev;
+					}
+				}
+				if (pauseTween) {
+					pauseTime = self._startTime + (self._reversed ? self._duration - pauseTween._startTime : pauseTween._startTime) / self._timeScale;
+					if (pauseTween._startTime < dur) {
+						self._time = self._rawPrevTime = time = pauseTween._startTime;
+						self._totalTime = time + (self._cycle * (self._totalDuration + self._repeatDelay));
+					}
+				}
+			}
+
+			if (self._cycle !== prevCycle) if (!self._locked) {
+				/*
+				make sure children at the end/beginning of the timeline are rendered properly. If, for example,
+				a 3-second long timeline rendered at 2.9 seconds previously, and now renders at 3.2 seconds (which
+				would get translated to 2.8 seconds if the timeline yoyos or 0.2 seconds if it just repeats), there
+				could be a callback or a short tween that's at 2.95 or 3 seconds in which wouldn't render. So
+				we need to push the timeline to the end (and/or beginning depending on its yoyo value). Also we must
+				ensure that zero-duration tweens at the very beginning or end of the TimelineMax work.
+				*/
+				var backwards = (self._yoyo && (prevCycle & 1) !== 0),
+					wrap = (backwards === (self._yoyo && (self._cycle & 1) !== 0)),
+					recTotalTime = self._totalTime,
+					recCycle = self._cycle,
+					recRawPrevTime = self._rawPrevTime,
+					recTime = self._time;
+
+				self._totalTime = prevCycle * dur;
+				if (self._cycle < prevCycle) {
+					backwards = !backwards;
+				} else {
+					self._totalTime += dur;
+				}
+				self._time = prevTime; //temporarily revert _time so that render() renders the children in the correct order. Without this, tweens won't rewind correctly. We could arhictect things in a "cleaner" way by splitting out the rendering queue into a separate method but for performance reasons, we kept it all inside this method.
+
+				self._rawPrevTime = (dur === 0) ? prevRawPrevTime - 0.0001 : prevRawPrevTime;
+				self._cycle = prevCycle;
+				self._locked = true; //prevents changes to totalTime and skips repeat/yoyo behavior when we recursively call render()
+				prevTime = (backwards) ? 0 : dur;
+				self.render(prevTime, suppressEvents, (dur === 0));
+				if (!suppressEvents) if (!self._gc) {
+					if (self.vars.onRepeat) {
+						self._cycle = recCycle; //in case the onRepeat alters the playhead or invalidates(), we shouldn't stay locked or use the previous cycle.
+						self._locked = false;
+						self._callback("onRepeat");
+					}
+				}
+				if (prevTime !== self._time) { //in case there's a callback like onComplete in a nested tween/timeline that changes the playhead position, like via seek(), we should just abort.
+					return;
+				}
+				if (wrap) {
+					self._cycle = prevCycle; //if there's an onRepeat, we reverted this above, so make sure it's set properly again. We also unlocked in that scenario, so reset that too.
+					self._locked = true;
+					prevTime = (backwards) ? dur + 0.0001 : -0.0001;
+					self.render(prevTime, true, false);
+				}
+				self._locked = false;
+				if (self._paused && !prevPaused) { //if the render() triggered callback that paused this timeline, we should abort (very rare, but possible)
+					return;
+				}
+				self._time = recTime;
+				self._totalTime = recTotalTime;
+				self._cycle = recCycle;
+				self._rawPrevTime = recRawPrevTime;
+			}
+
+			if ((self._time === prevTime || !self._first) && !force && !internalForce && !pauseTween) {
+				if (prevTotalTime !== self._totalTime) if (self._onUpdate) if (!suppressEvents) { //so that onUpdate fires even during the repeatDelay - as long as the totalTime changed, we should trigger onUpdate.
+					self._callback("onUpdate");
+				}
+				return;
+			} else if (!self._initted) {
+				self._initted = true;
+			}
+
+			if (!self._active) if (!self._paused && self._totalTime !== prevTotalTime && time > 0) {
+				self._active = true;  //so that if the user renders the timeline (as opposed to the parent timeline rendering it), it is forced to re-render and align it with the proper time/frame on the next rendering cycle. Maybe the timeline already finished but the user manually re-renders it as halfway done, for example.
+			}
+
+			if (prevTotalTime === 0) if (self.vars.onStart) if (self._totalTime !== 0 || !self._totalDuration) if (!suppressEvents) {
+				self._callback("onStart");
+			}
+
+			curTime = self._time;
+			if (curTime >= prevTime) {
+				tween = self._first;
+				while (tween) {
+					next = tween._next; //record it here because the value could change after rendering...
+					if (curTime !== self._time || (self._paused && !prevPaused)) { //in case a tween pauses or seeks the timeline when rendering, like inside of an onUpdate/onComplete
+						break;
+					} else if (tween._active || (tween._startTime <= self._time && !tween._paused && !tween._gc)) {
+						if (pauseTween === tween) {
+							self.pause();
+							self._pauseTime = pauseTime; //so that when we resume(), it's starting from exactly the right spot (the pause() method uses the rawTime for the parent, but that may be a bit too far ahead)
+						}
+						if (!tween._reversed) {
+							tween.render((time - tween._startTime) * tween._timeScale, suppressEvents, force);
+						} else {
+							tween.render(((!tween._dirty) ? tween._totalDuration : tween.totalDuration()) - ((time - tween._startTime) * tween._timeScale), suppressEvents, force);
+						}
+					}
+					tween = next;
+				}
+			} else {
+				tween = self._last;
+				while (tween) {
+					next = tween._prev; //record it here because the value could change after rendering...
+					if (curTime !== self._time || (self._paused && !prevPaused)) { //in case a tween pauses or seeks the timeline when rendering, like inside of an onUpdate/onComplete
+						break;
+					} else if (tween._active || (tween._startTime <= prevTime && !tween._paused && !tween._gc)) {
+						if (pauseTween === tween) {
+							pauseTween = tween._prev; //the linked list is organized by _startTime, thus it's possible that a tween could start BEFORE the pause and end after it, in which case it would be positioned before the pause tween in the linked list, but we should render it before we pause() the timeline and cease rendering. This is only a concern when going in reverse.
+							while (pauseTween && pauseTween.endTime() > self._time) {
+								pauseTween.render( (pauseTween._reversed ? pauseTween.totalDuration() - ((time - pauseTween._startTime) * pauseTween._timeScale) : (time - pauseTween._startTime) * pauseTween._timeScale), suppressEvents, force);
+								pauseTween = pauseTween._prev;
+							}
+							pauseTween = null;
+							self.pause();
+							self._pauseTime = pauseTime; //so that when we resume(), it's starting from exactly the right spot (the pause() method uses the rawTime for the parent, but that may be a bit too far ahead)
+						}
+						if (!tween._reversed) {
+							tween.render((time - tween._startTime) * tween._timeScale, suppressEvents, force);
+						} else {
+							tween.render(((!tween._dirty) ? tween._totalDuration : tween.totalDuration()) - ((time - tween._startTime) * tween._timeScale), suppressEvents, force);
+						}
+					}
+					tween = next;
+				}
+			}
+
+			if (self._onUpdate) if (!suppressEvents) {
+				if (_lazyTweens.length) { //in case rendering caused any tweens to lazy-init, we should render them because typically when a timeline finishes, users expect things to have rendered fully. Imagine an onUpdate on a timeline that reports/checks tweened values.
+					_lazyRender();
+				}
+				self._callback("onUpdate");
+			}
+			if (callback) if (!self._locked) if (!self._gc) if (prevStart === self._startTime || prevTimeScale !== self._timeScale) if (self._time === 0 || totalDur >= self.totalDuration()) { //if one of the tweens that was rendered altered this timeline's startTime (like if an onComplete reversed the timeline), it probably isn't complete. If it is, don't worry, because whatever call altered the startTime would complete if it was necessary at the new time. The only exception is the timeScale property. Also check _gc because there's a chance that kill() could be called in an onUpdate
+				if (isComplete) {
+					if (_lazyTweens.length) { //in case rendering caused any tweens to lazy-init, we should render them because typically when a timeline finishes, users expect things to have rendered fully. Imagine an onComplete on a timeline that reports/checks tweened values.
+						_lazyRender();
+					}
+					if (self._timeline.autoRemoveChildren) {
+						self._enabled(false, false);
+					}
+					self._active = false;
+				}
+				if (!suppressEvents && self.vars[callback]) {
+					self._callback(callback);
+				}
+			}
+		};
+
+		p.getActive = function(nested, tweens, timelines) {
+			var a = [],
+				all = this.getChildren(nested || (nested == null), tweens || (nested == null), !!timelines),
+				cnt = 0,
+				l = all.length,
+				i, tween;
+			for (i = 0; i < l; i++) {
+				tween = all[i];
+				if (tween.isActive()) {
+					a[cnt++] = tween;
+				}
+			}
+			return a;
+		};
+
+
+		p.getLabelAfter = function(time) {
+			if (!time) if (time !== 0) { //faster than isNan()
+				time = this._time;
+			}
+			var labels = this.getLabelsArray(),
+				l = labels.length,
+				i;
+			for (i = 0; i < l; i++) {
+				if (labels[i].time > time) {
+					return labels[i].name;
+				}
+			}
+			return null;
+		};
+
+		p.getLabelBefore = function(time) {
+			if (time == null) {
+				time = this._time;
+			}
+			var labels = this.getLabelsArray(),
+				i = labels.length;
+			while (--i > -1) {
+				if (labels[i].time < time) {
+					return labels[i].name;
+				}
+			}
+			return null;
+		};
+
+		p.getLabelsArray = function() {
+			var a = [],
+				cnt = 0,
+				p;
+			for (p in this._labels) {
+				a[cnt++] = {time:this._labels[p], name:p};
+			}
+			a.sort(function(a,b) {
+				return a.time - b.time;
+			});
+			return a;
+		};
+
+		p.invalidate = function() {
+			this._locked = false; //unlock and set cycle in case invalidate() is called from inside an onRepeat
+			return TimelineLite.prototype.invalidate.call(this);
+		};
+
+
+//---- GETTERS / SETTERS -------------------------------------------------------------------------------------------------------
+
+		p.progress = function(value, suppressEvents) {
+			return (!arguments.length) ? (this._time / this.duration()) || 0 : this.totalTime( this.duration() * ((this._yoyo && (this._cycle & 1) !== 0) ? 1 - value : value) + (this._cycle * (this._duration + this._repeatDelay)), suppressEvents);
+		};
+
+		p.totalProgress = function(value, suppressEvents) {
+			return (!arguments.length) ? (this._totalTime / this.totalDuration()) || 0 : this.totalTime( this.totalDuration() * value, suppressEvents);
+		};
+
+		p.totalDuration = function(value) {
+			if (!arguments.length) {
+				if (this._dirty) {
+					TimelineLite.prototype.totalDuration.call(this); //just forces refresh
+					//Instead of Infinity, we use 999999999999 so that we can accommodate reverses.
+					this._totalDuration = (this._repeat === -1) ? 999999999999 : this._duration * (this._repeat + 1) + (this._repeatDelay * this._repeat);
+				}
+				return this._totalDuration;
+			}
+			return (this._repeat === -1 || !value) ? this : this.timeScale( this.totalDuration() / value );
+		};
+
+		p.time = function(value, suppressEvents) {
+			if (!arguments.length) {
+				return this._time;
+			}
+			if (this._dirty) {
+				this.totalDuration();
+			}
+			var duration = this._duration,
+				cycle = this._cycle,
+				cycleDur = cycle * (duration + this._repeatDelay);
+			if (value > duration) {
+				value = duration;
+			}
+			return this.totalTime((this._yoyo && (cycle & 1)) ? duration - value + cycleDur : this._repeat ? value + cycleDur : value, suppressEvents);
+		};
+
+		p.repeat = function(value) {
+			if (!arguments.length) {
+				return this._repeat;
+			}
+			this._repeat = value;
+			return this._uncache(true);
+		};
+
+		p.repeatDelay = function(value) {
+			if (!arguments.length) {
+				return this._repeatDelay;
+			}
+			this._repeatDelay = value;
+			return this._uncache(true);
+		};
+
+		p.yoyo = function(value) {
+			if (!arguments.length) {
+				return this._yoyo;
+			}
+			this._yoyo = value;
+			return this;
+		};
+
+		p.currentLabel = function(value) {
+			if (!arguments.length) {
+				return this.getLabelBefore(this._time + _tinyNum);
+			}
+			return this.seek(value, true);
+		};
+		
+		return TimelineMax;
+		
+	}, true);
+
+var TimelineMax = globals.TimelineMax;
+
+/*!
+ * VERSION: 2.1.3
+ * DATE: 2019-05-17
+ * UPDATES AND DOCS AT: http://greensock.com
+ *
+ * @license Copyright (c) 2008-2019, GreenSock. All rights reserved.
+ * This work is subject to the terms at http://greensock.com/standard-license or for
+ * Club GreenSock members, the software agreement that was issued with your membership.
+ * 
+ * @author: Jack Doyle, jack@greensock.com
+ */
+
 	_gsScope._gsDefine("plugins.CSSPlugin", ["plugins.TweenPlugin","TweenLite"], function() {
 
 		/** @constructor **/
@@ -14956,1595 +15474,77 @@ class MobileMenu {
   }
 }
 
-/*! @license is-dom-node v1.0.4
-
-	Copyright 2018 Fisssion LLC.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
-
-*/
-function isDomNode(x) {
-	return typeof window.Node === 'object'
-		? x instanceof window.Node
-		: x !== null &&
-				typeof x === 'object' &&
-				typeof x.nodeType === 'number' &&
-				typeof x.nodeName === 'string'
-}
-
-/*! @license is-dom-node-list v1.2.1
-
-	Copyright 2018 Fisssion LLC.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
-
-*/
-
-function isDomNodeList(x) {
-	var prototypeToString = Object.prototype.toString.call(x);
-	var regex = /^\[object (HTMLCollection|NodeList|Object)\]$/;
-
-	return typeof window.NodeList === 'object'
-		? x instanceof window.NodeList
-		: x !== null &&
-				typeof x === 'object' &&
-				typeof x.length === 'number' &&
-				regex.test(prototypeToString) &&
-				(x.length === 0 || isDomNode(x[0]))
-}
-
-/*! @license Tealight v0.3.6
-
-	Copyright 2018 Fisssion LLC.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
-
-*/
-
-function tealight(target, context) {
-  if ( context === void 0 ) context = document;
-
-  if (target instanceof Array) { return target.filter(isDomNode); }
-  if (isDomNode(target)) { return [target]; }
-  if (isDomNodeList(target)) { return Array.prototype.slice.call(target); }
-  if (typeof target === "string") {
-    try {
-      var query = context.querySelectorAll(target);
-      return Array.prototype.slice.call(query);
-    } catch (err) {
-      return [];
-    }
-  }
-  return [];
-}
-
-/*! @license Rematrix v0.3.0
-
-	Copyright 2018 Julian Lloyd.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in
-	all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-	THE SOFTWARE.
-*/
-/**
- * @module Rematrix
- */
-
-/**
- * Transformation matrices in the browser come in two flavors:
- *
- *  - `matrix` using 6 values (short)
- *  - `matrix3d` using 16 values (long)
- *
- * This utility follows this [conversion guide](https://goo.gl/EJlUQ1)
- * to expand short form matrices to their equivalent long form.
- *
- * @param  {array} source - Accepts both short and long form matrices.
- * @return {array}
- */
-function format(source) {
-	if (source.constructor !== Array) {
-		throw new TypeError('Expected array.')
-	}
-	if (source.length === 16) {
-		return source
-	}
-	if (source.length === 6) {
-		var matrix = identity();
-		matrix[0] = source[0];
-		matrix[1] = source[1];
-		matrix[4] = source[2];
-		matrix[5] = source[3];
-		matrix[12] = source[4];
-		matrix[13] = source[5];
-		return matrix
-	}
-	throw new RangeError('Expected array with either 6 or 16 values.')
-}
-
-/**
- * Returns a matrix representing no transformation. The product of any matrix
- * multiplied by the identity matrix will be the original matrix.
- *
- * > **Tip:** Similar to how `5 * 1 === 5`, where `1` is the identity.
- *
- * @return {array}
- */
-function identity() {
-	var matrix = [];
-	for (var i = 0; i < 16; i++) {
-		i % 5 == 0 ? matrix.push(1) : matrix.push(0);
-	}
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing the combined transformations
- * of both arguments.
- *
- * > **Note:** Order is very important. For example, rotating 45°
- * along the Z-axis, followed by translating 500 pixels along the
- * Y-axis... is not the same as translating 500 pixels along the
- * Y-axis, followed by rotating 45° along on the Z-axis.
- *
- * @param  {array} m - Accepts both short and long form matrices.
- * @param  {array} x - Accepts both short and long form matrices.
- * @return {array}
- */
-function multiply(m, x) {
-	var fm = format(m);
-	var fx = format(x);
-	var product = [];
-
-	for (var i = 0; i < 4; i++) {
-		var row = [fm[i], fm[i + 4], fm[i + 8], fm[i + 12]];
-		for (var j = 0; j < 4; j++) {
-			var k = j * 4;
-			var col = [fx[k], fx[k + 1], fx[k + 2], fx[k + 3]];
-			var result =
-				row[0] * col[0] + row[1] * col[1] + row[2] * col[2] + row[3] * col[3];
-
-			product[i + k] = result;
-		}
-	}
-
-	return product
-}
-
-/**
- * Attempts to return a 4x4 matrix describing the CSS transform
- * matrix passed in, but will return the identity matrix as a
- * fallback.
- *
- * > **Tip:** This method is used to convert a CSS matrix (retrieved as a
- * `string` from computed styles) to its equivalent array format.
- *
- * @param  {string} source - `matrix` or `matrix3d` CSS Transform value.
- * @return {array}
- */
-function parse(source) {
-	if (typeof source === 'string') {
-		var match = source.match(/matrix(3d)?\(([^)]+)\)/);
-		if (match) {
-			var raw = match[2].split(', ').map(parseFloat);
-			return format(raw)
-		}
-	}
-	return identity()
-}
-
-/**
- * Returns a 4x4 matrix describing X-axis rotation.
- *
- * @param  {number} angle - Measured in degrees.
- * @return {array}
- */
-function rotateX(angle) {
-	var theta = Math.PI / 180 * angle;
-	var matrix = identity();
-
-	matrix[5] = matrix[10] = Math.cos(theta);
-	matrix[6] = matrix[9] = Math.sin(theta);
-	matrix[9] *= -1;
-
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing Y-axis rotation.
- *
- * @param  {number} angle - Measured in degrees.
- * @return {array}
- */
-function rotateY(angle) {
-	var theta = Math.PI / 180 * angle;
-	var matrix = identity();
-
-	matrix[0] = matrix[10] = Math.cos(theta);
-	matrix[2] = matrix[8] = Math.sin(theta);
-	matrix[2] *= -1;
-
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing Z-axis rotation.
- *
- * @param  {number} angle - Measured in degrees.
- * @return {array}
- */
-function rotateZ(angle) {
-	var theta = Math.PI / 180 * angle;
-	var matrix = identity();
-
-	matrix[0] = matrix[5] = Math.cos(theta);
-	matrix[1] = matrix[4] = Math.sin(theta);
-	matrix[4] *= -1;
-
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing 2D scaling. The first argument
- * is used for both X and Y-axis scaling, unless an optional
- * second argument is provided to explicitly define Y-axis scaling.
- *
- * @param  {number} scalar    - Decimal multiplier.
- * @param  {number} [scalarY] - Decimal multiplier.
- * @return {array}
- */
-function scale(scalar, scalarY) {
-	var matrix = identity();
-
-	matrix[0] = scalar;
-	matrix[5] = typeof scalarY === 'number' ? scalarY : scalar;
-
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing X-axis translation.
- *
- * @param  {number} distance - Measured in pixels.
- * @return {array}
- */
-function translateX(distance) {
-	var matrix = identity();
-	matrix[12] = distance;
-	return matrix
-}
-
-/**
- * Returns a 4x4 matrix describing Y-axis translation.
- *
- * @param  {number} distance - Measured in pixels.
- * @return {array}
- */
-function translateY(distance) {
-	var matrix = identity();
-	matrix[13] = distance;
-	return matrix
-}
-
-/*! @license miniraf v1.0.0
-
-	Copyright 2018 Fisssion LLC.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
-
-*/
-var polyfill = (function () {
-	var clock = Date.now();
-
-	return function (callback) {
-		var currentTime = Date.now();
-		if (currentTime - clock > 16) {
-			clock = currentTime;
-			callback(currentTime);
-		} else {
-			setTimeout(function () { return polyfill(callback); }, 0);
-		}
-	}
-})();
-
-var index = window.requestAnimationFrame ||
-	window.webkitRequestAnimationFrame ||
-	window.mozRequestAnimationFrame ||
-	polyfill;
-
-/*! @license ScrollReveal v4.0.5
-
-	Copyright 2018 Fisssion LLC.
-
-	Licensed under the GNU General Public License 3.0 for
-	compatible open source projects and non-commercial use.
-
-	For commercial sites, themes, projects, and applications,
-	keep your source code private/proprietary by purchasing
-	a commercial license from https://scrollrevealjs.org/
-*/
-
-var defaults$1 = {
-	delay: 0,
-	distance: '0',
-	duration: 600,
-	easing: 'cubic-bezier(0.5, 0, 0, 1)',
-	interval: 0,
-	opacity: 0,
-	origin: 'bottom',
-	rotate: {
-		x: 0,
-		y: 0,
-		z: 0
-	},
-	scale: 1,
-	cleanup: false,
-	container: document.documentElement,
-	desktop: true,
-	mobile: true,
-	reset: false,
-	useDelay: 'always',
-	viewFactor: 0.0,
-	viewOffset: {
-		top: 0,
-		right: 0,
-		bottom: 0,
-		left: 0
-	},
-	afterReset: function afterReset() {},
-	afterReveal: function afterReveal() {},
-	beforeReset: function beforeReset() {},
-	beforeReveal: function beforeReveal() {}
-};
-
-function failure() {
-	document.documentElement.classList.remove('sr');
-
-	return {
-		clean: function clean() {},
-		destroy: function destroy() {},
-		reveal: function reveal() {},
-		sync: function sync() {},
-		get noop() {
-			return true
-		}
-	}
-}
-
-function success() {
-	document.documentElement.classList.add('sr');
-
-	if (document.body) {
-		document.body.style.height = '100%';
-	} else {
-		document.addEventListener('DOMContentLoaded', function () {
-			document.body.style.height = '100%';
-		});
-	}
-}
-
-var mount = { success: success, failure: failure };
-
-function isObject$1(x) {
-	return (
-		x !== null &&
-		x instanceof Object &&
-		(x.constructor === Object ||
-			Object.prototype.toString.call(x) === '[object Object]')
-	)
-}
-
-function each$1(collection, callback) {
-	if (isObject$1(collection)) {
-		var keys = Object.keys(collection);
-		return keys.forEach(function (key) { return callback(collection[key], key, collection); })
-	}
-	if (collection instanceof Array) {
-		return collection.forEach(function (item, i) { return callback(item, i, collection); })
-	}
-	throw new TypeError('Expected either an array or object literal.')
-}
-
-function logger(message) {
-	var details = [], len = arguments.length - 1;
-	while ( len-- > 0 ) details[ len ] = arguments[ len + 1 ];
-
-	if (this.constructor.debug && console) {
-		var report = "%cScrollReveal: " + message;
-		details.forEach(function (detail) { return (report += "\n — " + detail); });
-		console.log(report, 'color: #ea654b;'); // eslint-disable-line no-console
-	}
-}
-
-function rinse() {
-	var this$1 = this;
-
-	var struct = function () { return ({
-		active: [],
-		stale: []
-	}); };
-
-	var elementIds = struct();
-	var sequenceIds = struct();
-	var containerIds = struct();
-
-	/**
-	 * Take stock of active element IDs.
-	 */
-	try {
-		each$1(tealight('[data-sr-id]'), function (node) {
-			var id = parseInt(node.getAttribute('data-sr-id'));
-			elementIds.active.push(id);
-		});
-	} catch (e) {
-		throw e
-	}
-	/**
-	 * Destroy stale elements.
-	 */
-	each$1(this.store.elements, function (element) {
-		if (elementIds.active.indexOf(element.id) === -1) {
-			elementIds.stale.push(element.id);
-		}
-	});
-
-	each$1(elementIds.stale, function (staleId) { return delete this$1.store.elements[staleId]; });
-
-	/**
-	 * Take stock of active container and sequence IDs.
-	 */
-	each$1(this.store.elements, function (element) {
-		if (containerIds.active.indexOf(element.containerId) === -1) {
-			containerIds.active.push(element.containerId);
-		}
-		if (element.hasOwnProperty('sequence')) {
-			if (sequenceIds.active.indexOf(element.sequence.id) === -1) {
-				sequenceIds.active.push(element.sequence.id);
-			}
-		}
-	});
-
-	/**
-	 * Destroy stale containers.
-	 */
-	each$1(this.store.containers, function (container) {
-		if (containerIds.active.indexOf(container.id) === -1) {
-			containerIds.stale.push(container.id);
-		}
-	});
-
-	each$1(containerIds.stale, function (staleId) {
-		var stale = this$1.store.containers[staleId].node;
-		stale.removeEventListener('scroll', this$1.delegate);
-		stale.removeEventListener('resize', this$1.delegate);
-		delete this$1.store.containers[staleId];
-	});
-
-	/**
-	 * Destroy stale sequences.
-	 */
-	each$1(this.store.sequences, function (sequence) {
-		if (sequenceIds.active.indexOf(sequence.id) === -1) {
-			sequenceIds.stale.push(sequence.id);
-		}
-	});
-
-	each$1(sequenceIds.stale, function (staleId) { return delete this$1.store.sequences[staleId]; });
-}
-
-function clean(target) {
-	var this$1 = this;
-
-	var dirty;
-	try {
-		each$1(tealight(target), function (node) {
-			var id = node.getAttribute('data-sr-id');
-			if (id !== null) {
-				dirty = true;
-				var element = this$1.store.elements[id];
-				if (element.callbackTimer) {
-					window.clearTimeout(element.callbackTimer.clock);
-				}
-				node.setAttribute('style', element.styles.inline.generated);
-				node.removeAttribute('data-sr-id');
-				delete this$1.store.elements[id];
-			}
-		});
-	} catch (e) {
-		return logger.call(this, 'Clean failed.', e.message)
-	}
-
-	if (dirty) {
-		try {
-			rinse.call(this);
-		} catch (e) {
-			return logger.call(this, 'Clean failed.', e.message)
-		}
-	}
-}
-
-function destroy() {
-	var this$1 = this;
-
-	/**
-	 * Remove all generated styles and element ids
-	 */
-	each$1(this.store.elements, function (element) {
-		element.node.setAttribute('style', element.styles.inline.generated);
-		element.node.removeAttribute('data-sr-id');
-	});
-
-	/**
-	 * Remove all event listeners.
-	 */
-	each$1(this.store.containers, function (container) {
-		var target =
-			container.node === document.documentElement ? window : container.node;
-		target.removeEventListener('scroll', this$1.delegate);
-		target.removeEventListener('resize', this$1.delegate);
-	});
-
-	/**
-	 * Clear all data from the store
-	 */
-	this.store = {
-		containers: {},
-		elements: {},
-		history: [],
-		sequences: {}
-	};
-}
-
-var getPrefixedCssProp = (function () {
-	var properties = {};
-	var style = document.documentElement.style;
-
-	function getPrefixedCssProperty(name, source) {
-		if ( source === void 0 ) source = style;
-
-		if (name && typeof name === 'string') {
-			if (properties[name]) {
-				return properties[name]
-			}
-			if (typeof source[name] === 'string') {
-				return (properties[name] = name)
-			}
-			if (typeof source[("-webkit-" + name)] === 'string') {
-				return (properties[name] = "-webkit-" + name)
-			}
-			throw new RangeError(("Unable to find \"" + name + "\" style property."))
-		}
-		throw new TypeError('Expected a string.')
-	}
-
-	getPrefixedCssProperty.clearCache = function () { return (properties = {}); };
-
-	return getPrefixedCssProperty
-})();
-
-function style(element) {
-	var computed = window.getComputedStyle(element.node);
-	var position = computed.position;
-	var config = element.config;
-
-	/**
-	 * Generate inline styles
-	 */
-	var inline = {};
-	var inlineStyle = element.node.getAttribute('style') || '';
-	var inlineMatch = inlineStyle.match(/[\w-]+\s*:\s*[^;]+\s*/gi) || [];
-
-	inline.computed = inlineMatch ? inlineMatch.map(function (m) { return m.trim(); }).join('; ') + ';' : '';
-
-	inline.generated = inlineMatch.some(function (m) { return m.match(/visibility\s?:\s?visible/i); })
-		? inline.computed
-		: inlineMatch.concat( ['visibility: visible']).map(function (m) { return m.trim(); }).join('; ') + ';';
-
-	/**
-	 * Generate opacity styles
-	 */
-	var computedOpacity = parseFloat(computed.opacity);
-	var configOpacity = !isNaN(parseFloat(config.opacity))
-		? parseFloat(config.opacity)
-		: parseFloat(computed.opacity);
-
-	var opacity = {
-		computed: computedOpacity !== configOpacity ? ("opacity: " + computedOpacity + ";") : '',
-		generated: computedOpacity !== configOpacity ? ("opacity: " + configOpacity + ";") : ''
-	};
-
-	/**
-	 * Generate transformation styles
-	 */
-	var transformations = [];
-
-	if (parseFloat(config.distance)) {
-		var axis = config.origin === 'top' || config.origin === 'bottom' ? 'Y' : 'X';
-
-		/**
-		 * Let’s make sure our our pixel distances are negative for top and left.
-		 * e.g. { origin: 'top', distance: '25px' } starts at `top: -25px` in CSS.
-		 */
-		var distance = config.distance;
-		if (config.origin === 'top' || config.origin === 'left') {
-			distance = /^-/.test(distance) ? distance.substr(1) : ("-" + distance);
-		}
-
-		var ref = distance.match(/(^-?\d+\.?\d?)|(em$|px$|%$)/g);
-		var value = ref[0];
-		var unit = ref[1];
-
-		switch (unit) {
-			case 'em':
-				distance = parseInt(computed.fontSize) * value;
-				break
-			case 'px':
-				distance = value;
-				break
-			case '%':
-				/**
-				 * Here we use `getBoundingClientRect` instead of
-				 * the existing data attached to `element.geometry`
-				 * because only the former includes any transformations
-				 * current applied to the element.
-				 *
-				 * If that behavior ends up being unintuitive, this
-				 * logic could instead utilize `element.geometry.height`
-				 * and `element.geoemetry.width` for the distaince calculation
-				 */
-				distance =
-					axis === 'Y'
-						? element.node.getBoundingClientRect().height * value / 100
-						: element.node.getBoundingClientRect().width * value / 100;
-				break
-			default:
-				throw new RangeError('Unrecognized or missing distance unit.')
-		}
-
-		if (axis === 'Y') {
-			transformations.push(translateY(distance));
-		} else {
-			transformations.push(translateX(distance));
-		}
-	}
-
-	if (config.rotate.x) { transformations.push(rotateX(config.rotate.x)); }
-	if (config.rotate.y) { transformations.push(rotateY(config.rotate.y)); }
-	if (config.rotate.z) { transformations.push(rotateZ(config.rotate.z)); }
-	if (config.scale !== 1) {
-		if (config.scale === 0) {
-			/**
-			 * The CSS Transforms matrix interpolation specification
-			 * basically disallows transitions of non-invertible
-			 * matrixes, which means browsers won't transition
-			 * elements with zero scale.
-			 *
-			 * That’s inconvenient for the API and developer
-			 * experience, so we simply nudge their value
-			 * slightly above zero; this allows browsers
-			 * to transition our element as expected.
-			 *
-			 * `0.0002` was the smallest number
-			 * that performed across browsers.
-			 */
-			transformations.push(scale(0.0002));
-		} else {
-			transformations.push(scale(config.scale));
-		}
-	}
-
-	var transform = {};
-	if (transformations.length) {
-		transform.property = getPrefixedCssProp('transform');
-		/**
-		 * The default computed transform value should be one of:
-		 * undefined || 'none' || 'matrix()' || 'matrix3d()'
-		 */
-		transform.computed = {
-			raw: computed[transform.property],
-			matrix: parse(computed[transform.property])
-		};
-
-		transformations.unshift(transform.computed.matrix);
-		var product = transformations.reduce(multiply);
-
-		transform.generated = {
-			initial: ((transform.property) + ": matrix3d(" + (product.join(', ')) + ");"),
-			final: ((transform.property) + ": matrix3d(" + (transform.computed.matrix.join(
-				', '
-			)) + ");")
-		};
-	} else {
-		transform.generated = {
-			initial: '',
-			final: ''
-		};
-	}
-
-	/**
-	 * Generate transition styles
-	 */
-	var transition = {};
-	if (opacity.generated || transform.generated.initial) {
-		transition.property = getPrefixedCssProp('transition');
-		transition.computed = computed[transition.property];
-		transition.fragments = [];
-
-		var delay = config.delay;
-		var duration = config.duration;
-		var easing = config.easing;
-
-		if (opacity.generated) {
-			transition.fragments.push({
-				delayed: ("opacity " + (duration / 1000) + "s " + easing + " " + (delay / 1000) + "s"),
-				instant: ("opacity " + (duration / 1000) + "s " + easing + " 0s")
-			});
-		}
-
-		if (transform.generated.initial) {
-			transition.fragments.push({
-				delayed: ((transform.property) + " " + (duration / 1000) + "s " + easing + " " + (delay /
-					1000) + "s"),
-				instant: ((transform.property) + " " + (duration / 1000) + "s " + easing + " 0s")
-			});
-		}
-
-		/**
-		 * The default computed transition property should be one of:
-		 * undefined || '' || 'all 0s ease 0s' || 'all 0s 0s cubic-bezier()'
-		 */
-		if (transition.computed && !transition.computed.match(/all 0s/)) {
-			transition.fragments.unshift({
-				delayed: transition.computed,
-				instant: transition.computed
-			});
-		}
-
-		var composed = transition.fragments.reduce(
-			function (composition, fragment, i) {
-				composition.delayed +=
-					i === 0 ? fragment.delayed : (", " + (fragment.delayed));
-				composition.instant +=
-					i === 0 ? fragment.instant : (", " + (fragment.instant));
-				return composition
-			},
-			{
-				delayed: '',
-				instant: ''
-			}
-		);
-
-		transition.generated = {
-			delayed: ((transition.property) + ": " + (composed.delayed) + ";"),
-			instant: ((transition.property) + ": " + (composed.instant) + ";")
-		};
-	} else {
-		transition.generated = {
-			delayed: '',
-			instant: ''
-		};
-	}
-
-	return {
-		inline: inline,
-		opacity: opacity,
-		position: position,
-		transform: transform,
-		transition: transition
-	}
-}
-
-function animate(element, force) {
-	if ( force === void 0 ) force = {};
-
-	var pristine = force.pristine || this.pristine;
-	var delayed =
-		element.config.useDelay === 'always' ||
-		(element.config.useDelay === 'onload' && pristine) ||
-		(element.config.useDelay === 'once' && !element.seen);
-
-	var shouldReveal = element.visible && !element.revealed;
-	var shouldReset = !element.visible && element.revealed && element.config.reset;
-
-	if (force.reveal || shouldReveal) {
-		return triggerReveal.call(this, element, delayed)
-	}
-
-	if (force.reset || shouldReset) {
-		return triggerReset.call(this, element)
-	}
-}
-
-function triggerReveal(element, delayed) {
-	var styles = [
-		element.styles.inline.generated,
-		element.styles.opacity.computed,
-		element.styles.transform.generated.final
-	];
-	if (delayed) {
-		styles.push(element.styles.transition.generated.delayed);
-	} else {
-		styles.push(element.styles.transition.generated.instant);
-	}
-	element.revealed = element.seen = true;
-	element.node.setAttribute('style', styles.filter(function (s) { return s !== ''; }).join(' '));
-	registerCallbacks.call(this, element, delayed);
-}
-
-function triggerReset(element) {
-	var styles = [
-		element.styles.inline.generated,
-		element.styles.opacity.generated,
-		element.styles.transform.generated.initial,
-		element.styles.transition.generated.instant
-	];
-	element.revealed = false;
-	element.node.setAttribute('style', styles.filter(function (s) { return s !== ''; }).join(' '));
-	registerCallbacks.call(this, element);
-}
-
-function registerCallbacks(element, isDelayed) {
-	var this$1 = this;
-
-	var duration = isDelayed
-		? element.config.duration + element.config.delay
-		: element.config.duration;
-
-	var beforeCallback = element.revealed
-		? element.config.beforeReveal
-		: element.config.beforeReset;
-
-	var afterCallback = element.revealed
-		? element.config.afterReveal
-		: element.config.afterReset;
-
-	var elapsed = 0;
-	if (element.callbackTimer) {
-		elapsed = Date.now() - element.callbackTimer.start;
-		window.clearTimeout(element.callbackTimer.clock);
-	}
-
-	beforeCallback(element.node);
-
-	element.callbackTimer = {
-		start: Date.now(),
-		clock: window.setTimeout(function () {
-			afterCallback(element.node);
-			element.callbackTimer = null;
-			if (element.revealed && !element.config.reset && element.config.cleanup) {
-				clean.call(this$1, element.node);
-			}
-		}, duration - elapsed)
-	};
-}
-
-var nextUniqueId = (function () {
-	var uid = 0;
-	return function () { return uid++; }
-})();
-
-function sequence(element, pristine) {
-	if ( pristine === void 0 ) pristine = this.pristine;
-
-	/**
-	 * We first check if the element should reset.
-	 */
-	if (!element.visible && element.revealed && element.config.reset) {
-		return animate.call(this, element, { reset: true })
-	}
-
-	var seq = this.store.sequences[element.sequence.id];
-	var i = element.sequence.index;
-
-	if (seq) {
-		var visible = new SequenceModel(seq, 'visible', this.store);
-		var revealed = new SequenceModel(seq, 'revealed', this.store);
-
-		seq.models = { visible: visible, revealed: revealed };
-
-		/**
-		 * If the sequence has no revealed members,
-		 * then we reveal the first visible element
-		 * within that sequence.
-		 *
-		 * The sequence then cues a recursive call
-		 * in both directions.
-		 */
-		if (!revealed.body.length) {
-			var nextId = seq.members[visible.body[0]];
-			var nextElement = this.store.elements[nextId];
-
-			if (nextElement) {
-				cue.call(this, seq, visible.body[0], -1, pristine);
-				cue.call(this, seq, visible.body[0], +1, pristine);
-				return animate.call(this, nextElement, { reveal: true, pristine: pristine })
-			}
-		}
-
-		/**
-		 * If our element isn’t resetting, we check the
-		 * element sequence index against the head, and
-		 * then the foot of the sequence.
-		 */
-		if (
-			!seq.blocked.head &&
-			i === [].concat( revealed.head ).pop() &&
-			i >= [].concat( visible.body ).shift()
-		) {
-			cue.call(this, seq, i, -1, pristine);
-			return animate.call(this, element, { reveal: true, pristine: pristine })
-		}
-
-		if (
-			!seq.blocked.foot &&
-			i === [].concat( revealed.foot ).shift() &&
-			i <= [].concat( visible.body ).pop()
-		) {
-			cue.call(this, seq, i, +1, pristine);
-			return animate.call(this, element, { reveal: true, pristine: pristine })
-		}
-	}
-}
-
-function Sequence(interval) {
-	var i = Math.abs(interval);
-	if (!isNaN(i)) {
-		this.id = nextUniqueId();
-		this.interval = Math.max(i, 16);
-		this.members = [];
-		this.models = {};
-		this.blocked = {
-			head: false,
-			foot: false
-		};
-	} else {
-		throw new RangeError('Invalid sequence interval.')
-	}
-}
-
-function SequenceModel(seq, prop, store) {
-	var this$1 = this;
-
-	this.head = [];
-	this.body = [];
-	this.foot = [];
-
-	each$1(seq.members, function (id, index) {
-		var element = store.elements[id];
-		if (element && element[prop]) {
-			this$1.body.push(index);
-		}
-	});
-
-	if (this.body.length) {
-		each$1(seq.members, function (id, index) {
-			var element = store.elements[id];
-			if (element && !element[prop]) {
-				if (index < this$1.body[0]) {
-					this$1.head.push(index);
-				} else {
-					this$1.foot.push(index);
-				}
-			}
-		});
-	}
-}
-
-function cue(seq, i, direction, pristine) {
-	var this$1 = this;
-
-	var blocked = ['head', null, 'foot'][1 + direction];
-	var nextId = seq.members[i + direction];
-	var nextElement = this.store.elements[nextId];
-
-	seq.blocked[blocked] = true;
-
-	setTimeout(function () {
-		seq.blocked[blocked] = false;
-		if (nextElement) {
-			sequence.call(this$1, nextElement, pristine);
-		}
-	}, seq.interval);
-}
-
-function initialize() {
-	var this$1 = this;
-
-	rinse.call(this);
-
-	each$1(this.store.elements, function (element) {
-		var styles = [element.styles.inline.generated];
-
-		if (element.visible) {
-			styles.push(element.styles.opacity.computed);
-			styles.push(element.styles.transform.generated.final);
-			element.revealed = true;
-		} else {
-			styles.push(element.styles.opacity.generated);
-			styles.push(element.styles.transform.generated.initial);
-			element.revealed = false;
-		}
-
-		element.node.setAttribute('style', styles.filter(function (s) { return s !== ''; }).join(' '));
-	});
-
-	each$1(this.store.containers, function (container) {
-		var target =
-			container.node === document.documentElement ? window : container.node;
-		target.addEventListener('scroll', this$1.delegate);
-		target.addEventListener('resize', this$1.delegate);
-	});
-
-	/**
-	 * Manually invoke delegate once to capture
-	 * element and container dimensions, container
-	 * scroll position, and trigger any valid reveals
-	 */
-	this.delegate();
-
-	/**
-	 * Wipe any existing `setTimeout` now
-	 * that initialization has completed.
-	 */
-	this.initTimeout = null;
-}
-
-function isMobile(agent) {
-	if ( agent === void 0 ) agent = navigator.userAgent;
-
-	return /Android|iPhone|iPad|iPod/i.test(agent)
-}
-
-function deepAssign(target) {
-	var sources = [], len = arguments.length - 1;
-	while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
-
-	if (isObject$1(target)) {
-		each$1(sources, function (source) {
-			each$1(source, function (data, key) {
-				if (isObject$1(data)) {
-					if (!target[key] || !isObject$1(target[key])) {
-						target[key] = {};
-					}
-					deepAssign(target[key], data);
-				} else {
-					target[key] = data;
-				}
-			});
-		});
-		return target
-	} else {
-		throw new TypeError('Target must be an object literal.')
-	}
-}
-
-function reveal(target, options, syncing) {
-	var this$1 = this;
-	if ( options === void 0 ) options = {};
-	if ( syncing === void 0 ) syncing = false;
-
-	var containerBuffer = [];
-	var sequence$$1;
-	var interval = options.interval || defaults$1.interval;
-
-	try {
-		if (interval) {
-			sequence$$1 = new Sequence(interval);
-		}
-
-		var nodes = tealight(target);
-		if (!nodes.length) {
-			throw new Error('Invalid reveal target.')
-		}
-
-		var elements = nodes.reduce(function (elementBuffer, elementNode) {
-			var element = {};
-			var existingId = elementNode.getAttribute('data-sr-id');
-
-			if (existingId) {
-				deepAssign(element, this$1.store.elements[existingId]);
-
-				/**
-				 * In order to prevent previously generated styles
-				 * from throwing off the new styles, the style tag
-				 * has to be reverted to its pre-reveal state.
-				 */
-				element.node.setAttribute('style', element.styles.inline.computed);
-			} else {
-				element.id = nextUniqueId();
-				element.node = elementNode;
-				element.seen = false;
-				element.revealed = false;
-				element.visible = false;
-			}
-
-			var config = deepAssign({}, element.config || this$1.defaults, options);
-
-			if ((!config.mobile && isMobile()) || (!config.desktop && !isMobile())) {
-				if (existingId) {
-					clean.call(this$1, element);
-				}
-				return elementBuffer // skip elements that are disabled
-			}
-
-			var containerNode = tealight(config.container)[0];
-			if (!containerNode) {
-				throw new Error('Invalid container.')
-			}
-			if (!containerNode.contains(elementNode)) {
-				return elementBuffer // skip elements found outside the container
-			}
-
-			var containerId;
-			{
-				containerId = getContainerId(
-					containerNode,
-					containerBuffer,
-					this$1.store.containers
-				);
-				if (containerId === null) {
-					containerId = nextUniqueId();
-					containerBuffer.push({ id: containerId, node: containerNode });
-				}
-			}
-
-			element.config = config;
-			element.containerId = containerId;
-			element.styles = style(element);
-
-			if (sequence$$1) {
-				element.sequence = {
-					id: sequence$$1.id,
-					index: sequence$$1.members.length
-				};
-				sequence$$1.members.push(element.id);
-			}
-
-			elementBuffer.push(element);
-			return elementBuffer
-		}, []);
-
-		/**
-		 * Modifying the DOM via setAttribute needs to be handled
-		 * separately from reading computed styles in the map above
-		 * for the browser to batch DOM changes (limiting reflows)
-		 */
-		each$1(elements, function (element) {
-			this$1.store.elements[element.id] = element;
-			element.node.setAttribute('data-sr-id', element.id);
-		});
-	} catch (e) {
-		return logger.call(this, 'Reveal failed.', e.message)
-	}
-
-	/**
-	 * Now that element set-up is complete...
-	 * Let’s commit any container and sequence data we have to the store.
-	 */
-	each$1(containerBuffer, function (container) {
-		this$1.store.containers[container.id] = {
-			id: container.id,
-			node: container.node
-		};
-	});
-	if (sequence$$1) {
-		this.store.sequences[sequence$$1.id] = sequence$$1;
-	}
-
-	/**
-	 * If reveal wasn't invoked by sync, we want to
-	 * make sure to add this call to the history.
-	 */
-	if (syncing !== true) {
-		this.store.history.push({ target: target, options: options });
-
-		/**
-		 * Push initialization to the event queue, giving
-		 * multiple reveal calls time to be interpreted.
-		 */
-		if (this.initTimeout) {
-			window.clearTimeout(this.initTimeout);
-		}
-		this.initTimeout = window.setTimeout(initialize.bind(this), 0);
-	}
-}
-
-function getContainerId(node) {
-	var collections = [], len = arguments.length - 1;
-	while ( len-- > 0 ) collections[ len ] = arguments[ len + 1 ];
-
-	var id = null;
-	each$1(collections, function (collection) {
-		each$1(collection, function (container) {
-			if (id === null && container.node === node) {
-				id = container.id;
-			}
-		});
-	});
-	return id
-}
-
-/**
- * Re-runs the reveal method for each record stored in history,
- * for capturing new content asynchronously loaded into the DOM.
- */
-function sync() {
-	var this$1 = this;
-
-	each$1(this.store.history, function (record) {
-		reveal.call(this$1, record.target, record.options, true);
-	});
-
-	initialize.call(this);
-}
-
-var polyfill$1 = function (x) { return (x > 0) - (x < 0) || +x; };
-var mathSign = Math.sign || polyfill$1;
-
-function getGeometry(target, isContainer) {
-	/**
-	 * We want to ignore padding and scrollbars for container elements.
-	 * More information here: https://goo.gl/vOZpbz
-	 */
-	var height = isContainer ? target.node.clientHeight : target.node.offsetHeight;
-	var width = isContainer ? target.node.clientWidth : target.node.offsetWidth;
-
-	var offsetTop = 0;
-	var offsetLeft = 0;
-	var node = target.node;
-
-	do {
-		if (!isNaN(node.offsetTop)) {
-			offsetTop += node.offsetTop;
-		}
-		if (!isNaN(node.offsetLeft)) {
-			offsetLeft += node.offsetLeft;
-		}
-		node = node.offsetParent;
-	} while (node)
-
-	return {
-		bounds: {
-			top: offsetTop,
-			right: offsetLeft + width,
-			bottom: offsetTop + height,
-			left: offsetLeft
-		},
-		height: height,
-		width: width
-	}
-}
-
-function getScrolled(container) {
-	var top, left;
-	if (container.node === document.documentElement) {
-		top = window.pageYOffset;
-		left = window.pageXOffset;
-	} else {
-		top = container.node.scrollTop;
-		left = container.node.scrollLeft;
-	}
-	return { top: top, left: left }
-}
-
-function isElementVisible(element) {
-	if ( element === void 0 ) element = {};
-
-	var container = this.store.containers[element.containerId];
-	if (!container) { return }
-
-	var viewFactor = Math.max(0, Math.min(1, element.config.viewFactor));
-	var viewOffset = element.config.viewOffset;
-
-	var elementBounds = {
-		top: element.geometry.bounds.top + element.geometry.height * viewFactor,
-		right: element.geometry.bounds.right - element.geometry.width * viewFactor,
-		bottom: element.geometry.bounds.bottom - element.geometry.height * viewFactor,
-		left: element.geometry.bounds.left + element.geometry.width * viewFactor
-	};
-
-	var containerBounds = {
-		top: container.geometry.bounds.top + container.scroll.top + viewOffset.top,
-		right: container.geometry.bounds.right + container.scroll.left - viewOffset.right,
-		bottom:
-			container.geometry.bounds.bottom + container.scroll.top - viewOffset.bottom,
-		left: container.geometry.bounds.left + container.scroll.left + viewOffset.left
-	};
-
-	return (
-		(elementBounds.top < containerBounds.bottom &&
-			elementBounds.right > containerBounds.left &&
-			elementBounds.bottom > containerBounds.top &&
-			elementBounds.left < containerBounds.right) ||
-		element.styles.position === 'fixed'
-	)
-}
-
-function delegate(
-	event,
-	elements
-) {
-	var this$1 = this;
-	if ( event === void 0 ) event = { type: 'init' };
-	if ( elements === void 0 ) elements = this.store.elements;
-
-	index(function () {
-		var stale = event.type === 'init' || event.type === 'resize';
-
-		each$1(this$1.store.containers, function (container) {
-			if (stale) {
-				container.geometry = getGeometry.call(this$1, container, true);
-			}
-			var scroll = getScrolled.call(this$1, container);
-			if (container.scroll) {
-				container.direction = {
-					x: mathSign(scroll.left - container.scroll.left),
-					y: mathSign(scroll.top - container.scroll.top)
-				};
-			}
-			container.scroll = scroll;
-		});
-
-		/**
-		 * Due to how the sequencer is implemented, it’s
-		 * important that we update the state of all
-		 * elements, before any animation logic is
-		 * evaluated (in the second loop below).
-		 */
-		each$1(elements, function (element) {
-			if (stale) {
-				element.geometry = getGeometry.call(this$1, element);
-			}
-			element.visible = isElementVisible.call(this$1, element);
-		});
-
-		each$1(elements, function (element) {
-			if (element.sequence) {
-				sequence.call(this$1, element);
-			} else {
-				animate.call(this$1, element);
-			}
-		});
-
-		this$1.pristine = false;
-	});
-}
-
-function transformSupported() {
-	var style = document.documentElement.style;
-	return 'transform' in style || 'WebkitTransform' in style
-}
-
-function transitionSupported() {
-	var style = document.documentElement.style;
-	return 'transition' in style || 'WebkitTransition' in style
-}
-
-var version = "4.0.5";
-
-var boundDelegate;
-var boundDestroy;
-var boundReveal;
-var boundClean;
-var boundSync;
-var config;
-var debug;
-var instance;
-
-function ScrollReveal(options) {
-	if ( options === void 0 ) options = {};
-
-	var invokedWithoutNew =
-		typeof this === 'undefined' ||
-		Object.getPrototypeOf(this) !== ScrollReveal.prototype;
-
-	if (invokedWithoutNew) {
-		return new ScrollReveal(options)
-	}
-
-	if (!ScrollReveal.isSupported()) {
-		logger.call(this, 'Instantiation failed.', 'This browser is not supported.');
-		return mount.failure()
-	}
-
-	var buffer;
-	try {
-		buffer = config
-			? deepAssign({}, config, options)
-			: deepAssign({}, defaults$1, options);
-	} catch (e) {
-		logger.call(this, 'Invalid configuration.', e.message);
-		return mount.failure()
-	}
-
-	try {
-		var container = tealight(buffer.container)[0];
-		if (!container) {
-			throw new Error('Invalid container.')
-		}
-	} catch (e) {
-		logger.call(this, e.message);
-		return mount.failure()
-	}
-
-	config = buffer;
-
-	if ((!config.mobile && isMobile()) || (!config.desktop && !isMobile())) {
-		logger.call(
-			this,
-			'This device is disabled.',
-			("desktop: " + (config.desktop)),
-			("mobile: " + (config.mobile))
-		);
-		return mount.failure()
-	}
-
-	mount.success();
-
-	this.store = {
-		containers: {},
-		elements: {},
-		history: [],
-		sequences: {}
-	};
-
-	this.pristine = true;
-
-	boundDelegate = boundDelegate || delegate.bind(this);
-	boundDestroy = boundDestroy || destroy.bind(this);
-	boundReveal = boundReveal || reveal.bind(this);
-	boundClean = boundClean || clean.bind(this);
-	boundSync = boundSync || sync.bind(this);
-
-	Object.defineProperty(this, 'delegate', { get: function () { return boundDelegate; } });
-	Object.defineProperty(this, 'destroy', { get: function () { return boundDestroy; } });
-	Object.defineProperty(this, 'reveal', { get: function () { return boundReveal; } });
-	Object.defineProperty(this, 'clean', { get: function () { return boundClean; } });
-	Object.defineProperty(this, 'sync', { get: function () { return boundSync; } });
-
-	Object.defineProperty(this, 'defaults', { get: function () { return config; } });
-	Object.defineProperty(this, 'version', { get: function () { return version; } });
-	Object.defineProperty(this, 'noop', { get: function () { return false; } });
-
-	return instance ? instance : (instance = this)
-}
-
-ScrollReveal.isSupported = function () { return transformSupported() && transitionSupported(); };
-
-Object.defineProperty(ScrollReveal, 'debug', {
-	get: function () { return debug || false; },
-	set: function (value) { return (debug = typeof value === 'boolean' ? value : debug); }
-});
-
-ScrollReveal();
-
 const DEFAULT_OPTIONS$c = {
-  /* if your app needs to do some initialization while the application:ready has been fired,
-  /* you can set this to false. You will then have to call `this.ready()` to start the reveals */
+  /**
+   * if your app needs to do some initialization while the
+   * application:ready has been fired, you can set this to
+   * false. You will then have to call `this.ready()`
+   * to start the reveals
+   */
+
   fireOnReady: true,
+  clearLazyload: false,
+
+  rootMargin: '-15%',
+  threshold: 0,
+
   walks: {
     default: {
+      overlap: '-=0.3',
       duration: 800,
-      distance: '20px',
-      easing: 'ease',
-      viewFactor: 0.0,
-      delay: 50,
-      interval: 90,
-      useDelay: 'once'
+      transition: {
+        from: {
+          y: -20
+        },
+        to: {
+          autoAlpha: 1,
+          y: 0
+        }
+      }
     }
   }
 };
 
 class Moonwalk {
-  constructor (opts = {}) {
+  constructor (opts) {
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$c);
+    this.sections = this.buildSections();
+    this.parseChildren();
+
+    if (this.opts.clearLazyload) {
+      this.clearLazyloads();
+    }
 
     if (prefersReducedMotion()) {
       this.removeAllWalks();
-    } else {
-      this.SR = ScrollReveal();
-      this.parseChildren();
+    }
 
-      if (this.opts.fireOnReady) {
-        window.addEventListener('application:ready', this.ready.bind(this));
-      }
+    if (this.opts.fireOnReady) {
+      window.addEventListener('application:ready', this.ready.bind(this));
     }
   }
 
   removeAllWalks () {
-    Object.keys(this.opts.walks).forEach(key => {
-      let searchAttr;
+    const key = '[data-moonwalk]';
+    const elems = document.querySelectorAll(key);
 
-      if (key === 'default') {
-        searchAttr = 'data-moonwalk';
-      } else {
-        searchAttr = `data-moonwalk-${key}`;
-      }
+    Array.from(elems).forEach(el => el.removeAttribute(key));
+  }
 
-      const elems = document.querySelectorAll(`[${searchAttr}]`);
+  buildSections () {
+    const sections = document.querySelectorAll('[data-moonwalk-section]');
 
-      Array.from(elems).forEach(el => {
-        el.removeAttribute(searchAttr);
-      });
-    }, this);
+    Array.from(sections).map(section => ({
+      el: section,
+      timeline: new TimelineMax(),
+      observer: null,
+      elements: []
+    }));
+  }
+
+  clearLazyloads () {
+    const srcsets = document.querySelectorAll('[data-ll-srcset][data-moonwalk]');
+    Array.from(srcsets).forEach(srcset => srcset.removeAttribute('data-moonwalk'));
   }
 
   parseChildren () {
@@ -16556,62 +15556,94 @@ class Moonwalk {
   findElementsByKey (key) {
     let searchAttr = '';
     let attr = '';
+    let val = '';
 
     if (key === 'default') {
       searchAttr = '[data-moonwalk-children]';
       attr = 'data-moonwalk';
+      val = '';
     } else {
       searchAttr = `[data-moonwalk-${key}-children]`;
-      attr = `data-moonwalk-${key}`;
+      attr = 'data-moonwalk';
+      val = key;
     }
 
     const elements = document.querySelectorAll(searchAttr);
-    return this.setAttrs(elements, attr)
+    return this.setAttrs(elements, attr, val)
   }
 
-  setAttrs (elements, attr) {
+  setAttrs (elements, attr, val) {
     const affectedElements = [];
 
     Array.prototype.forEach.call(elements, el => {
       const { children } = el;
 
       Array.prototype.forEach.call(children, c => {
-        c.setAttribute(attr, '');
+        c.setAttribute(attr, val);
         affectedElements.push(c);
       });
     });
+
     return affectedElements
   }
 
   ready () {
-    const walkSections = document.querySelectorAll('[data-moonwalk-section]');
+    const { opts } = this;
 
-    // loop through walk sections
-    for (let i = 0; i < walkSections.length; i += 1) {
-      // process walksection
-      Object.keys(this.opts.walks).forEach(key => {
-        let searchAttr = '';
-        if (key === 'default') {
-          searchAttr = '[data-moonwalk]:not(.lazyload)';
-        } else {
-          searchAttr = `[data-moonwalk-${key}]:not(.lazyload)`;
-        }
-        const walks = walkSections[i].querySelectorAll(searchAttr);
-        this.reveal(walks, this.opts.walks[key]);
-      }, this);
-    }
-  }
+    this.sections.forEach((section, idx) => {
+      // if this is the last section, set rootMargin to 0
+      let rootMargin;
 
-  reveal (elements, config, callback = null) {
-    let modifiedConfig = config;
+      if (idx === this.sections.length - 1) {
+        rootMargin = '0px';
+      } else {
+        rootMargin = opts.rootMargin;
+      }
 
-    if (callback) {
-      modifiedConfig = { ...config, beforeReveal: callback };
-    }
+      section.observer = new IntersectionObserver(((entries, self) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Get cfg
+            let cfg;
+            const walkName = entry.target.getAttribute('data-moonwalk');
 
-    if (elements.length) {
-      this.SR.reveal(elements, modifiedConfig);
-    }
+            if (!walkName.length) {
+              cfg = opts.walks.default;
+            } else {
+              cfg = opts.walks[walkName];
+            }
+
+            const {
+              duration, transition
+            } = cfg;
+
+            let { overlap } = cfg;
+
+            if (!section.timeline.isActive()) {
+              overlap = '+=0';
+            }
+
+            section.timeline.fromTo(
+              entry.target,
+              duration,
+              transition.from,
+              transition.to,
+              overlap
+            );
+
+            self.unobserve(entry.target);
+          }
+        });
+      }), {
+        rootMargin,
+        threshold: opts.threshold
+      });
+
+      section.elements = section.el.querySelectorAll('[data-moonwalk]');
+      section.elements.forEach(box => {
+        section.observer.observe(box);
+      });
+    });
   }
 }
 
@@ -17310,4 +16342,4 @@ class Typography {
   }
 }
 
-export { Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, Fader, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenMax, Typography, imagesloaded as imagesLoaded, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
+export { Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, Fader, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TimelineMax, TweenMax, Typography, imagesloaded as imagesLoaded, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };

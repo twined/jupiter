@@ -1,56 +1,78 @@
-import ScrollReveal from 'scrollreveal'
+import { TimelineMax } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import prefersReducedMotion from '../utils/prefersReducedMotion'
 
 const DEFAULT_OPTIONS = {
-  /* if your app needs to do some initialization while the application:ready has been fired,
-  /* you can set this to false. You will then have to call `this.ready()` to start the reveals */
+  /**
+   * if your app needs to do some initialization while the
+   * application:ready has been fired, you can set this to
+   * false. You will then have to call `this.ready()`
+   * to start the reveals
+   */
+
   fireOnReady: true,
+  clearLazyload: false,
+
+  rootMargin: '-15%',
+  threshold: 0,
+
   walks: {
     default: {
+      overlap: '-=0.3',
       duration: 800,
-      distance: '20px',
-      easing: 'ease',
-      viewFactor: 0.0,
-      delay: 50,
-      interval: 90,
-      useDelay: 'once'
+      transition: {
+        from: {
+          y: -20
+        },
+        to: {
+          autoAlpha: 1,
+          y: 0
+        }
+      }
     }
   }
 }
 
 export default class Moonwalk {
-  constructor (opts = {}) {
+  constructor (opts) {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.sections = this.buildSections()
+    this.parseChildren()
+
+    if (this.opts.clearLazyload) {
+      this.clearLazyloads()
+    }
 
     if (prefersReducedMotion()) {
       this.removeAllWalks()
-    } else {
-      this.SR = ScrollReveal()
-      this.parseChildren()
+    }
 
-      if (this.opts.fireOnReady) {
-        window.addEventListener('application:ready', this.ready.bind(this))
-      }
+    if (this.opts.fireOnReady) {
+      window.addEventListener('application:ready', this.ready.bind(this))
     }
   }
 
   removeAllWalks () {
-    Object.keys(this.opts.walks).forEach(key => {
-      let searchAttr
+    const key = '[data-moonwalk]'
+    const elems = document.querySelectorAll(key)
 
-      if (key === 'default') {
-        searchAttr = 'data-moonwalk'
-      } else {
-        searchAttr = `data-moonwalk-${key}`
-      }
+    Array.from(elems).forEach(el => el.removeAttribute(key))
+  }
 
-      const elems = document.querySelectorAll(`[${searchAttr}]`)
+  buildSections () {
+    const sections = document.querySelectorAll('[data-moonwalk-section]')
 
-      Array.from(elems).forEach(el => {
-        el.removeAttribute(searchAttr)
-      })
-    }, this)
+    Array.from(sections).map(section => ({
+      el: section,
+      timeline: new TimelineMax(),
+      observer: null,
+      elements: []
+    }))
+  }
+
+  clearLazyloads () {
+    const srcsets = document.querySelectorAll('[data-ll-srcset][data-moonwalk]')
+    Array.from(srcsets).forEach(srcset => srcset.removeAttribute('data-moonwalk'))
   }
 
   parseChildren () {
@@ -62,61 +84,93 @@ export default class Moonwalk {
   findElementsByKey (key) {
     let searchAttr = ''
     let attr = ''
+    let val = ''
 
     if (key === 'default') {
       searchAttr = '[data-moonwalk-children]'
       attr = 'data-moonwalk'
+      val = ''
     } else {
       searchAttr = `[data-moonwalk-${key}-children]`
-      attr = `data-moonwalk-${key}`
+      attr = 'data-moonwalk'
+      val = key
     }
 
     const elements = document.querySelectorAll(searchAttr)
-    return this.setAttrs(elements, attr)
+    return this.setAttrs(elements, attr, val)
   }
 
-  setAttrs (elements, attr) {
+  setAttrs (elements, attr, val) {
     const affectedElements = []
 
     Array.prototype.forEach.call(elements, el => {
       const { children } = el
 
       Array.prototype.forEach.call(children, c => {
-        c.setAttribute(attr, '')
+        c.setAttribute(attr, val)
         affectedElements.push(c)
       })
     })
+
     return affectedElements
   }
 
   ready () {
-    const walkSections = document.querySelectorAll('[data-moonwalk-section]')
+    const { opts } = this
 
-    // loop through walk sections
-    for (let i = 0; i < walkSections.length; i += 1) {
-      // process walksection
-      Object.keys(this.opts.walks).forEach(key => {
-        let searchAttr = ''
-        if (key === 'default') {
-          searchAttr = '[data-moonwalk]:not(.lazyload)'
-        } else {
-          searchAttr = `[data-moonwalk-${key}]:not(.lazyload)`
-        }
-        const walks = walkSections[i].querySelectorAll(searchAttr)
-        this.reveal(walks, this.opts.walks[key])
-      }, this)
-    }
-  }
+    this.sections.forEach((section, idx) => {
+      // if this is the last section, set rootMargin to 0
+      let rootMargin
 
-  reveal (elements, config, callback = null) {
-    let modifiedConfig = config
+      if (idx === this.sections.length - 1) {
+        rootMargin = '0px'
+      } else {
+        rootMargin = opts.rootMargin
+      }
 
-    if (callback) {
-      modifiedConfig = { ...config, beforeReveal: callback }
-    }
+      section.observer = new IntersectionObserver(((entries, self) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Get cfg
+            let cfg
+            const walkName = entry.target.getAttribute('data-moonwalk')
 
-    if (elements.length) {
-      this.SR.reveal(elements, modifiedConfig)
-    }
+            if (!walkName.length) {
+              cfg = opts.walks.default
+            } else {
+              cfg = opts.walks[walkName]
+            }
+
+            const {
+              duration, transition
+            } = cfg
+
+            let { overlap } = cfg
+
+            if (!section.timeline.isActive()) {
+              overlap = '+=0'
+            }
+
+            section.timeline.fromTo(
+              entry.target,
+              duration,
+              transition.from,
+              transition.to,
+              overlap
+            )
+
+            self.unobserve(entry.target)
+          }
+        });
+      }), {
+        rootMargin,
+        threshold: opts.threshold
+      })
+
+      section.elements = section.el.querySelectorAll('[data-moonwalk]')
+      section.elements.forEach(box => {
+        section.observer.observe(box)
+      })
+    })
   }
 }
