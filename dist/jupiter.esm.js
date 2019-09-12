@@ -15507,6 +15507,7 @@ const DEFAULT_OPTIONS$c = {
 
 class Moonwalk {
   constructor (opts) {
+    document.documentElement.classList.add('moonwalk');
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$c);
     this.sections = this.buildSections();
     this.parseChildren();

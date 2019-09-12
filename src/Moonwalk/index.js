@@ -35,6 +35,7 @@ const DEFAULT_OPTIONS = {
 
 export default class Moonwalk {
   constructor (opts) {
+    document.documentElement.classList.add('moonwalk')
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.sections = this.buildSections()
     this.parseChildren()
