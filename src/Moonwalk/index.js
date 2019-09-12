@@ -62,7 +62,7 @@ export default class Moonwalk {
   buildSections () {
     const sections = document.querySelectorAll('[data-moonwalk-section]')
 
-    Array.from(sections).map(section => ({
+    return Array.from(sections).map(section => ({
       el: section,
       timeline: new TimelineMax(),
       observer: null,
