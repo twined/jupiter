@@ -1,6 +1,7 @@
 import { TimelineLite, Power3, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import _debounce from 'lodash.debounce'
+import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   logoColor: '#000',
@@ -112,12 +113,12 @@ export default class MobileMenu {
   }
 
   _emitMobileMenuOpenEvent () {
-    const mobileMenuOpenEvent = new window.CustomEvent('application:mobile_menu:open')
+    const mobileMenuOpenEvent = new window.CustomEvent(Events.APPLICATION_MOBILE_MENU_OPEN)
     window.dispatchEvent(mobileMenuOpenEvent)
   }
 
   _emitMobileMenuClosedEvent () {
-    const mobileMenuClosedEvent = new window.CustomEvent('application:mobile_menu:closed')
+    const mobileMenuClosedEvent = new window.CustomEvent(Events.APPLICATION_MOBILE_MENU_OPEN)
     window.dispatchEvent(mobileMenuClosedEvent)
   }
 }

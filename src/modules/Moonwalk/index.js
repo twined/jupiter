@@ -1,6 +1,11 @@
 import { TimelineMax } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import prefersReducedMotion from '../utils/prefersReducedMotion'
+import prefersReducedMotion from '../../utils/prefersReducedMotion'
+import * as Events from '../../events'
+
+// eslint-disable-next-line no-unused-vars
+// const plugins = [CSSPlugin]
+// CSSPlugin.useSVGTransformAttr = true
 
 const DEFAULT_OPTIONS = {
   /**
@@ -21,20 +26,15 @@ const DEFAULT_OPTIONS = {
       overlap: '-=0.3',
       duration: 800,
       transition: {
-        from: {
-          y: -20
-        },
-        to: {
-          autoAlpha: 1,
-          y: 0
-        }
+        from: {},
+        to: {}
       }
     }
   }
 }
 
 export default class Moonwalk {
-  constructor (opts) {
+  constructor (opts = {}) {
     document.documentElement.classList.add('moonwalk')
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.sections = this.buildSections()
@@ -49,7 +49,7 @@ export default class Moonwalk {
     }
 
     if (this.opts.fireOnReady) {
-      window.addEventListener('application:ready', this.ready.bind(this))
+      window.addEventListener(Events.APPLICATION_READY, this.ready.bind(this))
     }
   }
 
@@ -132,7 +132,6 @@ export default class Moonwalk {
       section.observer = new IntersectionObserver(((entries, self) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            // Get cfg
             let cfg
             const walkName = entry.target.getAttribute('data-moonwalk')
 
@@ -143,10 +142,11 @@ export default class Moonwalk {
             }
 
             const {
-              duration, transition
+              duration, transition, interval
             } = cfg
 
-            let { overlap } = cfg
+            const overlapNumber = duration - interval
+            let overlap = `-=${overlapNumber}`
 
             if (!section.timeline.isActive()) {
               overlap = '+=0'

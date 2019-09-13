@@ -1,4 +1,5 @@
 import _defaultsDeep from 'lodash.defaultsdeep'
+import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   runListenerOnInit: false,
@@ -24,7 +25,7 @@ export default class Breakpoints {
   constructor (opts = {}) {
     this.mediaQueries = {}
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-    window.addEventListener('application:initialized', this.initialize.bind(this))
+    window.addEventListener(Events.APPLICATION_INITIALIZED, this.initialize.bind(this))
   }
 
   initialize () {

@@ -6,31 +6,34 @@ import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import Hammer from '@egjs/hammerjs'
 
-import Breakpoints from './Breakpoints'
-import Cookies from './Cookies'
-import CoverOverlay from './CoverOverlay'
-import Fader from './Fader'
-import FixedHeader from './FixedHeader'
-import FooterReveal from './FooterReveal'
-import Parallax from './Parallax'
-import HeroSlider from './HeroSlider'
-import Lazyload from './Lazyload'
-import Lightbox from './Lightbox'
-import Links from './Links'
-import MobileMenu from './MobileMenu'
-import Moonwalk from './Moonwalk'
-import Popup from './Popup'
-import StackedBoxes from './StackedBoxes'
-import StickyHeader from './StickyHeader'
-import Typography from './Typography'
+import Application from './modules/Application'
+import Breakpoints from './modules/Breakpoints'
+import Cookies from './modules/Cookies'
+import CoverOverlay from './modules/CoverOverlay'
+import * as Events from './events'
+import FixedHeader from './modules/FixedHeader'
+import FooterReveal from './modules/FooterReveal'
+import Parallax from './modules/Parallax'
+import HeroSlider from './modules/HeroSlider'
+import Lazyload from './modules/Lazyload'
+import Lightbox from './modules/Lightbox'
+import Links from './modules/Links'
+import MobileMenu from './modules/MobileMenu'
+import Moonwalk from './modules/Moonwalk'
+import Popup from './modules/Popup'
+import StackedBoxes from './modules/StackedBoxes'
+import StickyHeader from './modules/StickyHeader'
+import Typography from './modules/Typography'
 
 import prefersReducedMotion from './utils/prefersReducedMotion'
+import loadScript from './utils/loadScript'
 
 export {
+  Application,
   Breakpoints,
   Cookies,
   CoverOverlay,
-  Fader,
+  Events,
   FixedHeader,
   FooterReveal,
   Parallax,
@@ -47,6 +50,7 @@ export {
 
   // Export utils
   prefersReducedMotion,
+  loadScript,
 
   // Export some of the libs we use,
   // that can also be used in the main frontend.

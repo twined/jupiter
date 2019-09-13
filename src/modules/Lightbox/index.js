@@ -63,7 +63,7 @@ export default class Lightbox {
       const alt = imgInLightbox.getAttribute('alt')
       const section = lightbox.getAttribute('data-lightbox-section') || 'general'
 
-      if (!this.sections.hasOwnProperty(section)) {
+      if (!Object.prototype.hasOwnProperty.call(this.sections, section)) {
         this.sections[section] = []
       }
 

@@ -1,5 +1,6 @@
 import { TimelineLite, Power3 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   onAccept: c => {
@@ -53,7 +54,7 @@ export default class Cookies {
       return
     }
 
-    window.addEventListener('application:ready', () => { this.opts.showCC(this) })
+    window.addEventListener(Events.APPLICATION_READY, () => { this.opts.showCC(this) })
 
     this.btn.addEventListener('click', () => {
       this.opts.onAccept(this)

@@ -13,7 +13,8 @@ import {
   TweenMax, Sine, Power3, CSSPlugin, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import prefersReducedMotion from '../utils/prefersReducedMotion'
+import prefersReducedMotion from '../../utils/prefersReducedMotion'
+import * as Events from '../../events'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
@@ -127,7 +128,7 @@ export default class HeroSlider {
       }
     }
 
-    window.addEventListener('application:ready', () => {
+    window.addEventListener(Events.APPLICATION_READY, () => {
       /* Wait for the first image to load, then fade in container element */
       const firstImg = this.slides[this._currentSlideIdx].querySelector('img')
 

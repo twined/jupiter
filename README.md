@@ -10,6 +10,27 @@
 
 ------
 
+## Events
+
+`APPLICATION:INITIALIZED`
+`APPLICATION:READY`
+`APPLICATION:SCROLL`
+`APPLICATION:RESIZE`
+`APPLICATION:MOBILE_MENU:OPEN`
+`APPLICATION:MOBILE_MENU:CLOSE`
+
+## Application
+
+```es6
+
+const app = new Application()
+
+app.registerCallback(Events.APPLICATION_PRELUDIUM, () => { ... })
+app.registerCallback(Events.APPLICATION_INITIALIZED, () => { ... })
+app.registerCallback(Events.APPLICATION_READY, () => { ... })
+
+```
+
 ## StackedBoxes
 
 ```

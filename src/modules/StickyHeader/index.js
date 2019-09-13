@@ -27,6 +27,7 @@ import {
   TweenMax, Power3, Sine, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import * as Events from '../../events'
 
 const DEFAULT_EVENTS = {
   onMainVisible: h => {
@@ -173,7 +174,7 @@ export default class StickyHeader {
     })
 
     this.observer.observe(this.el)
-    window.addEventListener('scroll', this.requestTick.bind(this), false)
+    window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
   }
 
   _hideAlt () {
@@ -184,15 +185,7 @@ export default class StickyHeader {
     this.pin()
   }
 
-  requestTick () {
-    if (!this.ticking) {
-      requestAnimationFrame(this.update.bind(this))
-    }
-    this.ticking = true
-  }
-
   update () {
-    this.ticking = false
     this.redraw(false)
   }
 
@@ -422,8 +415,14 @@ export default class StickyHeader {
   }
 
   _bindMobileMenuListeners () {
-    window.addEventListener('application:mobile_menu:open', this._onMobileMenuOpen.bind(this))
-    window.addEventListener('application:mobile_menu:closed', this._onMobileMenuClose.bind(this))
+    window.addEventListener(
+      Events.APPLICATION_MOBILE_MENU_OPEN,
+      this._onMobileMenuOpen.bind(this)
+    )
+    window.addEventListener(
+      Events.APPLICATION_MOBILE_MENU_CLOSED,
+      this._onMobileMenuClose.bind(this)
+    )
   }
 
   _onMobileMenuOpen () {

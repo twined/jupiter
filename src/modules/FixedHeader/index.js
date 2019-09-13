@@ -27,6 +27,7 @@ import {
   TweenMax, Power3, Sine, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import * as Events from '../../events'
 
 const DEFAULT_EVENTS = {
   onPin: h => {
@@ -92,6 +93,7 @@ const DEFAULT_EVENTS = {
 }
 
 const DEFAULT_OPTIONS = {
+  el: 'header[data-nav]',
   default: {
     canvas: window,
     enter: h => {
@@ -116,11 +118,11 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class FixedHeader {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el)
+  constructor (opts = {}) {
+    if (typeof opts.el === 'string') {
+      this.el = document.querySelector(opts.el)
     } else {
-      this.el = el
+      this.el = opts.el
     }
 
     if (!this.el) {
@@ -162,18 +164,11 @@ export default class FixedHeader {
       this.opts.offsetBg = elm.offsetTop
     }
 
-    window.addEventListener('resize', this.setResizeTimer.bind(this), false)
-    window.addEventListener('scroll', this.requestTick.bind(this), false)
+    window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
+    window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
 
     this.redraw(true)
     this._bindMobileMenuListeners()
-  }
-
-  requestTick () {
-    if (!this.ticking) {
-      requestAnimationFrame(this.update.bind(this))
-    }
-    this.ticking = true
   }
 
   setResizeTimer () {
@@ -195,7 +190,6 @@ export default class FixedHeader {
   }
 
   update () {
-    this.ticking = false
     this.redraw(false)
   }
 
@@ -473,8 +467,8 @@ export default class FixedHeader {
   }
 
   _bindMobileMenuListeners () {
-    window.addEventListener('application:mobile_menu:open', this._onMobileMenuOpen.bind(this))
-    window.addEventListener('application:mobile_menu:closed', this._onMobileMenuClose.bind(this))
+    window.addEventListener('APPLICATION:MOBILE_MENU:OPEN', this._onMobileMenuOpen.bind(this))
+    window.addEventListener('APPLICATION:MOBILE_MENU:CLOSED', this._onMobileMenuClose.bind(this))
   }
 
   _onMobileMenuOpen () {

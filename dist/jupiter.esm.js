@@ -13113,7 +13113,185 @@ function stubFalse() {
 module.exports = defaultsDeep;
 });
 
+const DEFAULT_FPS = 60;
+const SCOPES = {};
+
+var rafCallback = (callback, fps = DEFAULT_FPS) => (...passedArgs) => requestAnimationFrame(() => {
+  const msCurrent = new Date().getTime();
+  const fpsInterval = 1000 / fps;
+
+  SCOPES[callback] = SCOPES[callback] || null;
+
+  const msDelta = SCOPES[callback] ? msCurrent - SCOPES[callback] : null;
+
+  if (msDelta === null || msDelta > fpsInterval) {
+    SCOPES[callback] = msCurrent - (msDelta % fpsInterval);
+    callback(...passedArgs);
+  }
+});
+
+/**
+ * Checks if OS prefers reduced motion
+ */
+function prefersReducedMotion () {
+  if (!window.matchMedia) {
+    return false
+  }
+
+  const matchMediaObj = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (matchMediaObj) {
+    return matchMediaObj.matches
+  }
+
+  return false
+}
+
+const APPLICATION_MOBILE_MENU_OPEN = 'APPLICATION:MOBILE_MENU:OPEN';
+const APPLICATION_MOBILE_MENU_CLOSED = 'APPLICATION:MOBILE_MENU:CLOSED';
+
+const APPLICATION_PRELUDIUM = 'APPLICATION_PRELUDIUM';
+const APPLICATION_INITIALIZED = 'APPLICATION:INITIALIZED';
+const APPLICATION_READY = 'APPLICATION:READY';
+const APPLICATION_RESIZE = 'APPLICATION:RESIZE';
+const APPLICATION_SCROLL = 'APPLICATION:SCROLL';
+const APPLICATION_VISIBILITY_CHANGE = 'APPLICATION:VISIBILITY_CHANGE';
+
+var index = /*#__PURE__*/Object.freeze({
+	APPLICATION_MOBILE_MENU_OPEN: APPLICATION_MOBILE_MENU_OPEN,
+	APPLICATION_MOBILE_MENU_CLOSED: APPLICATION_MOBILE_MENU_CLOSED,
+	APPLICATION_PRELUDIUM: APPLICATION_PRELUDIUM,
+	APPLICATION_INITIALIZED: APPLICATION_INITIALIZED,
+	APPLICATION_READY: APPLICATION_READY,
+	APPLICATION_RESIZE: APPLICATION_RESIZE,
+	APPLICATION_SCROLL: APPLICATION_SCROLL,
+	APPLICATION_VISIBILITY_CHANGE: APPLICATION_VISIBILITY_CHANGE
+});
+
 const DEFAULT_OPTIONS = {
+  faderOpts: {
+    fadeIn: () => {
+      const fader = document.querySelector('#fader');
+
+      TweenMax.to(fader, 0.65, {
+        opacity: 0,
+        ease: Power1.easeInOut,
+        delay: 0.35,
+        onComplete: () => {
+          TweenMax.set(fader, { display: 'none' });
+          document.body.classList.remove('unloaded');
+        }
+      });
+    }
+  }
+};
+
+class Application {
+  constructor (opts = {}) {
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS);
+    this.fader = null;
+    this.callbacks = {};
+
+    this.INITIALIZED = false;
+    this.PREFERS_REDUCED_MOTION = prefersReducedMotion();
+
+    if (this.PREFERS_REDUCED_MOTION) {
+      TweenMax.globalTimeScale(200);
+      document.documentElement.classList.add('prefers-reduced-motion');
+    }
+
+    this.beforeInitializedEvent = new window.CustomEvent(APPLICATION_PRELUDIUM, this);
+    this.initializedEvent = new window.CustomEvent(APPLICATION_INITIALIZED, this);
+    this.readyEvent = new window.CustomEvent(APPLICATION_READY, this);
+
+    /**
+     * Grab common events and defer
+     */
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    window.addEventListener('orientationchange', this.onResize);
+    window.addEventListener('scroll', rafCallback(this.onScroll));
+    window.addEventListener('resize', rafCallback(this.onResize));
+
+    TweenMax.defaultEase = Sine.easeOut;
+  }
+
+  /**
+   * Main init. Called from client application on DOMReady.
+   */
+  initialize () {
+    this._emitBeforeInitializedEvent();
+    this.executeCallbacks(APPLICATION_PRELUDIUM);
+    this.setupGridoverlay();
+    this._emitInitializedEvent();
+    this.executeCallbacks(APPLICATION_INITIALIZED);
+    this.ready();
+  }
+
+  ready () {
+    this.fadeIn();
+    this._emitReadyEvent();
+    this.executeCallbacks(APPLICATION_READY);
+  }
+
+  fadeIn () {
+    this.opts.faderOpts.fadeIn();
+  }
+
+  registerCallback (type, callback) {
+    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
+      this.callbacks[type] = [];
+    }
+    this.callbacks[type].push(callback);
+  }
+
+  executeCallbacks (type) {
+    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
+      return
+    }
+    this.callbacks[type].forEach(cb => cb(this));
+  }
+
+  _emitBeforeInitializedEvent () {
+    window.dispatchEvent(this.beforeInitializedEvent);
+  }
+
+  _emitInitializedEvent () {
+    window.dispatchEvent(this.initializedEvent);
+    this.INITIALIZED = true;
+  }
+
+  _emitReadyEvent () {
+    window.dispatchEvent(this.readyEvent);
+  }
+
+  // raf'ed resize event
+  onResize (e) {
+    const evt = new CustomEvent(APPLICATION_RESIZE, e);
+    window.dispatchEvent(evt);
+  }
+
+  onScroll (e) {
+    const evt = new CustomEvent(APPLICATION_SCROLL, e);
+    window.dispatchEvent(evt);
+  }
+
+  onVisibilityChange (e) {
+    const evt = new CustomEvent(APPLICATION_VISIBILITY_CHANGE, e);
+    window.dispatchEvent(evt);
+  }
+
+  setupGridoverlay () {
+    const gridKeyPressed = e => {
+      if (e.keyCode === 71 && e.ctrlKey) {
+        const guides = document.querySelector('.__dbg');
+        guides.classList.toggle('visible');
+      }
+    };
+    document.onkeydown = gridKeyPressed;
+  }
+}
+
+const DEFAULT_OPTIONS$1 = {
   runListenerOnInit: false,
   breakpoints: [
     'xs',
@@ -13136,8 +13314,8 @@ const DEFAULT_OPTIONS = {
 class Breakpoints {
   constructor (opts = {}) {
     this.mediaQueries = {};
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS);
-    window.addEventListener('application:initialized', this.initialize.bind(this));
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$1);
+    window.addEventListener(APPLICATION_INITIALIZED, this.initialize.bind(this));
   }
 
   initialize () {
@@ -13184,7 +13362,7 @@ class Breakpoints {
   }
 }
 
-const DEFAULT_OPTIONS$1 = {
+const DEFAULT_OPTIONS$2 = {
   onAccept: c => {
     const timeline = new TimelineLite();
     c.setCookie('cookielaw_accepted', 1);
@@ -13225,7 +13403,7 @@ const DEFAULT_OPTIONS$1 = {
 
 class Cookies {
   constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$1);
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$2);
     this.cc = document.querySelector('.cookie-container');
     this.inner = document.querySelector('.cookie-container-inner');
     this.text = document.querySelector('.cookie-law-text');
@@ -13236,7 +13414,7 @@ class Cookies {
       return
     }
 
-    window.addEventListener('application:ready', () => { this.opts.showCC(this); });
+    window.addEventListener(APPLICATION_READY, () => { this.opts.showCC(this); });
 
     this.btn.addEventListener('click', () => {
       this.opts.onAccept(this);
@@ -13294,11 +13472,11 @@ class Cookies {
 
 // import Headroom from 'headroom.js'
 
-const DEFAULT_OPTIONS$2 = {};
+const DEFAULT_OPTIONS$3 = {};
 
 class CoverOverlay {
   constructor (app, opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$2);
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$3);
     this.initialize();
   }
 
@@ -13335,43 +13513,6 @@ class CoverOverlay {
             }
           });
       });
-    });
-  }
-}
-
-const DEFAULT_OPTIONS$3 = {
-  fadeOutDuration: 0.85,
-  fadeOutDelay: 0.35
-};
-
-class Fader {
-  constructor (app, el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el);
-    } else {
-      this.el = el;
-    }
-
-    if (!this.el) {
-      return
-    }
-
-    this.app = app;
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$3);
-  }
-
-  out (callback = () => {}) {
-    // fire ready event before fade
-    this.app._emitReadyEvent();
-    TweenMax.to(this.el, this.opts.fadeOutDuration, {
-      opacity: 0,
-      ease: Power1.easeInOut,
-      delay: this.opts.fadeOutDelay,
-      onComplete: () => {
-        this.el.style.display = 'none';
-        document.body.classList.remove('unloaded');
-        callback.apply(this.app);
-      }
     });
   }
 }
@@ -13465,6 +13606,7 @@ const DEFAULT_EVENTS = {
 };
 
 const DEFAULT_OPTIONS$4 = {
+  el: 'header[data-nav]',
   default: {
     canvas: window,
     enter: h => {
@@ -13489,11 +13631,11 @@ const DEFAULT_OPTIONS$4 = {
 };
 
 class FixedHeader {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el);
+  constructor (opts = {}) {
+    if (typeof opts.el === 'string') {
+      this.el = document.querySelector(opts.el);
     } else {
-      this.el = el;
+      this.el = opts.el;
     }
 
     if (!this.el) {
@@ -13535,18 +13677,11 @@ class FixedHeader {
       this.opts.offsetBg = elm.offsetTop;
     }
 
-    window.addEventListener('resize', this.setResizeTimer.bind(this), false);
-    window.addEventListener('scroll', this.requestTick.bind(this), false);
+    window.addEventListener(APPLICATION_RESIZE, this.setResizeTimer.bind(this), false);
+    window.addEventListener(APPLICATION_SCROLL, this.update.bind(this), false);
 
     this.redraw(true);
     this._bindMobileMenuListeners();
-  }
-
-  requestTick () {
-    if (!this.ticking) {
-      requestAnimationFrame(this.update.bind(this));
-    }
-    this.ticking = true;
   }
 
   setResizeTimer () {
@@ -13568,7 +13703,6 @@ class FixedHeader {
   }
 
   update () {
-    this.ticking = false;
     this.redraw(false);
   }
 
@@ -13846,8 +13980,8 @@ class FixedHeader {
   }
 
   _bindMobileMenuListeners () {
-    window.addEventListener('application:mobile_menu:open', this._onMobileMenuOpen.bind(this));
-    window.addEventListener('application:mobile_menu:closed', this._onMobileMenuClose.bind(this));
+    window.addEventListener('APPLICATION:MOBILE_MENU:OPEN', this._onMobileMenuOpen.bind(this));
+    window.addEventListener('APPLICATION:MOBILE_MENU:CLOSED', this._onMobileMenuClose.bind(this));
   }
 
   _onMobileMenuOpen () {
@@ -14218,23 +14352,6 @@ class Parallax {
 }
 
 /**
- * Checks if OS prefers reduced motion
- */
-function prefersReducedMotion () {
-  if (!window.matchMedia) {
-    return false
-  }
-
-  const matchMediaObj = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  if (matchMediaObj) {
-    return matchMediaObj.matches
-  }
-
-  return false
-}
-
-/**
  *
  * HERO SLIDER
  * ============
@@ -14354,7 +14471,7 @@ class HeroSlider {
       }
     };
 
-    window.addEventListener('application:ready', () => {
+    window.addEventListener(APPLICATION_READY, () => {
       /* Wait for the first image to load, then fade in container element */
       const firstImg = this.slides[this._currentSlideIdx].querySelector('img');
 
@@ -14676,7 +14793,7 @@ class Lightbox {
       const alt = imgInLightbox.getAttribute('alt');
       const section = lightbox.getAttribute('data-lightbox-section') || 'general';
 
-      if (!this.sections.hasOwnProperty(section)) {
+      if (!Object.prototype.hasOwnProperty.call(this.sections, section)) {
         this.sections[section] = [];
       }
 
@@ -15464,15 +15581,19 @@ class MobileMenu {
   }
 
   _emitMobileMenuOpenEvent () {
-    const mobileMenuOpenEvent = new window.CustomEvent('application:mobile_menu:open');
+    const mobileMenuOpenEvent = new window.CustomEvent(APPLICATION_MOBILE_MENU_OPEN);
     window.dispatchEvent(mobileMenuOpenEvent);
   }
 
   _emitMobileMenuClosedEvent () {
-    const mobileMenuClosedEvent = new window.CustomEvent('application:mobile_menu:closed');
+    const mobileMenuClosedEvent = new window.CustomEvent(APPLICATION_MOBILE_MENU_OPEN);
     window.dispatchEvent(mobileMenuClosedEvent);
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+// const plugins = [CSSPlugin]
+// CSSPlugin.useSVGTransformAttr = true
 
 const DEFAULT_OPTIONS$c = {
   /**
@@ -15493,20 +15614,15 @@ const DEFAULT_OPTIONS$c = {
       overlap: '-=0.3',
       duration: 800,
       transition: {
-        from: {
-          y: -20
-        },
-        to: {
-          autoAlpha: 1,
-          y: 0
-        }
+        from: {},
+        to: {}
       }
     }
   }
 };
 
 class Moonwalk {
-  constructor (opts) {
+  constructor (opts = {}) {
     document.documentElement.classList.add('moonwalk');
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$c);
     this.sections = this.buildSections();
@@ -15521,7 +15637,7 @@ class Moonwalk {
     }
 
     if (this.opts.fireOnReady) {
-      window.addEventListener('application:ready', this.ready.bind(this));
+      window.addEventListener(APPLICATION_READY, this.ready.bind(this));
     }
   }
 
@@ -15604,7 +15720,6 @@ class Moonwalk {
       section.observer = new IntersectionObserver(((entries, self) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            // Get cfg
             let cfg;
             const walkName = entry.target.getAttribute('data-moonwalk');
 
@@ -15615,10 +15730,11 @@ class Moonwalk {
             }
 
             const {
-              duration, transition
+              duration, transition, interval
             } = cfg;
 
-            let { overlap } = cfg;
+            const overlapNumber = duration - interval;
+            let overlap = `-=${overlapNumber}`;
 
             if (!section.timeline.isActive()) {
               overlap = '+=0';
@@ -15962,7 +16078,7 @@ class StickyHeader {
     });
 
     this.observer.observe(this.el);
-    window.addEventListener('scroll', this.requestTick.bind(this), false);
+    window.addEventListener(APPLICATION_SCROLL, this.update.bind(this), false);
   }
 
   _hideAlt () {
@@ -15973,15 +16089,7 @@ class StickyHeader {
     this.pin();
   }
 
-  requestTick () {
-    if (!this.ticking) {
-      requestAnimationFrame(this.update.bind(this));
-    }
-    this.ticking = true;
-  }
-
   update () {
-    this.ticking = false;
     this.redraw(false);
   }
 
@@ -16211,8 +16319,14 @@ class StickyHeader {
   }
 
   _bindMobileMenuListeners () {
-    window.addEventListener('application:mobile_menu:open', this._onMobileMenuOpen.bind(this));
-    window.addEventListener('application:mobile_menu:closed', this._onMobileMenuClose.bind(this));
+    window.addEventListener(
+      APPLICATION_MOBILE_MENU_OPEN,
+      this._onMobileMenuOpen.bind(this)
+    );
+    window.addEventListener(
+      APPLICATION_MOBILE_MENU_CLOSED,
+      this._onMobileMenuClose.bind(this)
+    );
   }
 
   _onMobileMenuOpen () {
@@ -16343,4 +16457,28 @@ class Typography {
   }
 }
 
-export { Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, Fader, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TimelineMax, TweenMax, Typography, imagesloaded as imagesLoaded, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
+var loadScript = (url, completeCallback) => {
+  const script = document.createElement('script'); let done = false;
+  const head = document.getElementsByTagName('head')[0];
+  script.src = url;
+
+  script.onreadystatechange = function cb () {
+    if (!done
+      && (!this.readyState
+      || this.readyState === 'loaded'
+      || this.readyState === 'complete')) {
+      done = true;
+      completeCallback();
+
+      // IE memory leak
+      script.onload = null;
+      script.onreadystatechange = null;
+
+      head.removeChild(script);
+    }
+  };
+  script.onload = script.onreadystatechange;
+  head.appendChild(script);
+};
+
+export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TimelineMax, TweenMax, Typography, imagesloaded as imagesLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
