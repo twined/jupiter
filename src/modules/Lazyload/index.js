@@ -78,6 +78,7 @@ export default class Lazyload {
 
   swapImage (image) {
     image.src = image.dataset.src
+    image.setAttribute('data-ll-loaded', '')
   }
 
   swapPicture (picture) {
@@ -89,6 +90,7 @@ export default class Lazyload {
 
       if (source.hasAttribute('srcset')) {
         source.setAttribute('srcset', source.dataset.srcset)
+        source.setAttribute('data-ll-loaded', '')
       }
     }
 
@@ -101,12 +103,14 @@ export default class Lazyload {
 
     if (img.hasAttribute('src')) {
       img.setAttribute('src', img.dataset.src)
+      img.setAttribute('data-ll-loaded', '')
     }
 
     // safari sometimes caches, so force load
     if (img.complete) {
       img.removeAttribute('data-ll-placeholder')
       img.removeAttribute('data-ll-blurred')
+      img.setAttribute('data-ll-loaded', '')
     }
   }
 }

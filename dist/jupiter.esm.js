@@ -14710,6 +14710,7 @@ class Lazyload {
 
   swapImage (image) {
     image.src = image.dataset.src;
+    image.setAttribute('data-ll-loaded', '');
   }
 
   swapPicture (picture) {
@@ -14721,6 +14722,7 @@ class Lazyload {
 
       if (source.hasAttribute('srcset')) {
         source.setAttribute('srcset', source.dataset.srcset);
+        source.setAttribute('data-ll-loaded', '');
       }
     }
 
@@ -14733,12 +14735,14 @@ class Lazyload {
 
     if (img.hasAttribute('src')) {
       img.setAttribute('src', img.dataset.src);
+      img.setAttribute('data-ll-loaded', '');
     }
 
     // safari sometimes caches, so force load
     if (img.complete) {
       img.removeAttribute('data-ll-placeholder');
       img.removeAttribute('data-ll-blurred');
+      img.setAttribute('data-ll-loaded', '');
     }
   }
 }
@@ -15750,13 +15754,29 @@ class Moonwalk {
               overlap = '+=0';
             }
 
-            section.timeline.fromTo(
-              entry.target,
-              duration,
-              transition.from,
-              transition.to,
-              overlap
-            );
+            const tween = () => {
+              section.timeline.fromTo(
+                entry.target,
+                duration,
+                transition.from,
+                transition.to,
+                overlap
+              );
+            };
+
+            if (entry.target.tagName === 'IMG') {
+              // ensure image is loaded before we tween
+              this.imageIsLoaded(entry.target).then(() => tween());
+            } else {
+              const imagesInEntry = entry.target.querySelectorAll('img');
+              if (imagesInEntry.length) {
+                // entry has children elements that are images
+                this.imagesAreLoaded(imagesInEntry).then(() => tween());
+              } else {
+                // regular entry, just tween it
+                tween();
+              }
+            }
 
             self.unobserve(entry.target);
           }
@@ -15771,6 +15791,21 @@ class Moonwalk {
         section.observer.observe(box);
       });
     });
+  }
+
+  imageIsLoaded (img) {
+    return new Promise(resolve => {
+      if (img.complete) {
+        resolve({ img, status: 'ok' });
+      }
+
+      img.onload = () => resolve({ img, status: 'ok' });
+      img.onerror = () => resolve({ img, status: 'error' });
+    })
+  }
+
+  imagesAreLoaded (imgs) {
+    return Promise.all(Array.from(imgs).map(this.imageIsLoaded))
   }
 }
 
