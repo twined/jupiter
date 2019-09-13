@@ -13679,9 +13679,22 @@ class FixedHeader {
 
     window.addEventListener(APPLICATION_RESIZE, this.setResizeTimer.bind(this), false);
     window.addEventListener(APPLICATION_SCROLL, this.update.bind(this), false);
+    window.addEventListener(APPLICATION_READY, this.unpinIfScrolled.bind(this));
 
     this.redraw(true);
     this._bindMobileMenuListeners();
+  }
+
+  isScrolled () {
+    return (window.pageYOffset
+      || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0) > 0
+  }
+
+  unpinIfScrolled () {
+    if (this.isScrolled()) {
+      // page is scrolled on ready -- unpin
+      this.unpin();
+    }
   }
 
   setResizeTimer () {
@@ -15223,7 +15236,7 @@ class MobileMenu {
   }
 
   _emitMobileMenuClosedEvent () {
-    const mobileMenuClosedEvent = new window.CustomEvent(APPLICATION_MOBILE_MENU_OPEN);
+    const mobileMenuClosedEvent = new window.CustomEvent(APPLICATION_MOBILE_MENU_CLOSED);
     window.dispatchEvent(mobileMenuClosedEvent);
   }
 }
