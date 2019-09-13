@@ -1,6 +1,10 @@
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
+  intersectionObserverConfig: {
+    rootMargin: '200px 0px',
+    threshold: 0.0
+  },
   useNativeLazyloadIfAvailable: true,
   mode: 'default'
 }
@@ -28,7 +32,10 @@ export default class Lazyload {
         this.swapPicture(picture)
       })
     } else {
-      this.imgObserver = new IntersectionObserver(this.lazyloadImages.bind(this))
+      this.imgObserver = new IntersectionObserver(
+        this.lazyloadImages.bind(this),
+        this.opts.intersectionObserverConfig
+      )
 
       this.lazyImages = document.querySelectorAll('[data-ll-image]')
       this.lazyImages.forEach(img => {
@@ -36,7 +43,10 @@ export default class Lazyload {
         this.imgObserver.observe(img)
       })
 
-      this.pictureObserver = new IntersectionObserver(this.lazyloadPictures.bind(this))
+      this.pictureObserver = new IntersectionObserver(
+        this.lazyloadPictures.bind(this),
+        this.opts.intersectionObserverConfig
+      )
 
       this.lazyPictures = document.querySelectorAll('[data-ll-srcset]')
       this.lazyPictures.forEach(picture => {

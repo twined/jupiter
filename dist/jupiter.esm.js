@@ -14633,6 +14633,10 @@ class HeroSlider {
 }
 
 const DEFAULT_OPTIONS$8 = {
+  intersectionObserverConfig: {
+    rootMargin: '200px 0px',
+    threshold: 0.0
+  },
   useNativeLazyloadIfAvailable: true,
   mode: 'default'
 };
@@ -14660,7 +14664,10 @@ class Lazyload {
         this.swapPicture(picture);
       });
     } else {
-      this.imgObserver = new IntersectionObserver(this.lazyloadImages.bind(this));
+      this.imgObserver = new IntersectionObserver(
+        this.lazyloadImages.bind(this),
+        this.opts.intersectionObserverConfig
+      );
 
       this.lazyImages = document.querySelectorAll('[data-ll-image]');
       this.lazyImages.forEach(img => {
@@ -14668,7 +14675,10 @@ class Lazyload {
         this.imgObserver.observe(img);
       });
 
-      this.pictureObserver = new IntersectionObserver(this.lazyloadPictures.bind(this));
+      this.pictureObserver = new IntersectionObserver(
+        this.lazyloadPictures.bind(this),
+        this.opts.intersectionObserverConfig
+      );
 
       this.lazyPictures = document.querySelectorAll('[data-ll-srcset]');
       this.lazyPictures.forEach(picture => {
