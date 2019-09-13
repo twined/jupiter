@@ -1,5 +1,5 @@
 // import Headroom from 'headroom.js'
-import { TweenMax } from 'gsap/all'
+import { TweenLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {}
@@ -63,10 +63,10 @@ export default class StackedBoxes {
   }
 
   pull (box, amnt) {
-    TweenMax.set(box, { y: amnt * -1, marginBottom: amnt * -1 })
+    TweenLite.set(box, { y: amnt * -1, marginBottom: amnt * -1 })
   }
 
   size (target, src) {
-    TweenMax.set(target, { height: src.clientHeight })
+    TweenLite.set(target, { height: src.clientHeight })
   }
 }

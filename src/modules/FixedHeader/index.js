@@ -24,14 +24,14 @@
  */
 
 import {
-  TweenMax, Power3, Sine, TimelineLite
+  TweenLite, Power3, Sine, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 
 const DEFAULT_EVENTS = {
   onPin: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.35,
       {
@@ -44,7 +44,7 @@ const DEFAULT_EVENTS = {
 
   onUnpin: h => {
     h._hiding = true
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.25,
       {
@@ -59,7 +59,7 @@ const DEFAULT_EVENTS = {
   },
 
   onAltBg: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.2,
       {
@@ -69,7 +69,7 @@ const DEFAULT_EVENTS = {
   },
 
   onNotAltBg: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.4,
       {

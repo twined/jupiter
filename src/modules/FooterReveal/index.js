@@ -1,4 +1,4 @@
-import { TweenMax } from 'gsap/all'
+import { TweenLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
@@ -13,14 +13,14 @@ export default class FooterReveal {
     const main = document.querySelector('main')
     const footer = document.querySelector('[data-footer-reveal]')
     // fix footer
-    TweenMax.set(footer, {
+    TweenLite.set(footer, {
       'z-index': -100,
       position: 'fixed',
       bottom: 0
     })
     const footerHeight = footer.offsetHeight
     // add height as margin
-    TweenMax.set(main, { marginBottom: footerHeight })
+    TweenLite.set(main, { marginBottom: footerHeight })
     if (this.opts.shadow) {
       const shadowStyle = `0 50px 50px -20px ${this.opts.shadowColor}`
       main.style.mozBoxShadow = shadowStyle

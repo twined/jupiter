@@ -1,8 +1,13 @@
 import {
-  TweenMax, TimelineLite, TimelineMax, CSSPlugin, Power3, Sine, Linear, Back
+  Back,
+  CSSPlugin,
+  Linear,
+  Power3,
+  Sine,
+  TweenLite,
+  TimelineLite
 } from 'gsap/all'
 
-import imagesLoaded from 'imagesloaded'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import Hammer from '@egjs/hammerjs'
 
@@ -25,8 +30,10 @@ import StackedBoxes from './modules/StackedBoxes'
 import StickyHeader from './modules/StickyHeader'
 import Typography from './modules/Typography'
 
-import prefersReducedMotion from './utils/prefersReducedMotion'
+import imageIsLoaded from './utils/imageIsLoaded'
+import imagesAreLoaded from './utils/imagesAreLoaded'
 import loadScript from './utils/loadScript'
+import prefersReducedMotion from './utils/prefersReducedMotion'
 
 export {
   Application,
@@ -49,20 +56,20 @@ export {
   Typography,
 
   // Export utils
-  prefersReducedMotion,
+  imageIsLoaded,
+  imagesAreLoaded,
   loadScript,
+  prefersReducedMotion,
 
   // Export some of the libs we use,
   // that can also be used in the main frontend.
-  imagesLoaded,
-  TweenMax,
-  TimelineLite,
-  TimelineMax,
-  Power3,
   Back,
-  Sine,
-  Linear,
   CSSPlugin,
+  Hammer,
+  Linear,
+  Power3,
   scrollIntoView,
-  Hammer
+  Sine,
+  TweenLite,
+  TimelineLite
 }

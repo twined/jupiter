@@ -10,7 +10,7 @@
  */
 
 import {
-  TweenMax, Sine, Power3, CSSPlugin, TimelineLite
+  TweenLite, Sine, Power3, CSSPlugin, TimelineLite
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
@@ -68,7 +68,7 @@ export default class HeroSlider {
   initialize () {
     this._addResizeHandler()
     // style the container
-    TweenMax.set(this.el, {
+    TweenLite.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -86,7 +86,7 @@ export default class HeroSlider {
 
     // style the slides
     Array.from(this.slides).forEach(s => {
-      TweenMax.set(s, {
+      TweenLite.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
         top: 0,
@@ -98,7 +98,7 @@ export default class HeroSlider {
       const img = s.querySelector('.hero-slide-img')
 
       if (img) {
-        TweenMax.set(img, {
+        TweenLite.set(img, {
           width: document.body.clientWidth,
           height: '100%',
           top: 0,
@@ -117,12 +117,12 @@ export default class HeroSlider {
 
     const fadeIn = () => {
       if (this.slides.length > 1) {
-        TweenMax.to(this.el, 0.250, {
+        TweenLite.to(this.el, 0.250, {
           opacity: 1,
           onComplete: () => { this.next() }
         })
       } else {
-        TweenMax.to(this.el, 0.250, {
+        TweenLite.to(this.el, 0.250, {
           opacity: 1
         })
       }
@@ -283,7 +283,7 @@ export default class HeroSlider {
   }
 
   _resizeSlides () {
-    TweenMax.to(this.images, 0.150, {
+    TweenLite.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     })

@@ -1,9 +1,9 @@
-import imagesLoaded from 'imagesloaded'
 import { Manager, Swipe } from '@egjs/hammerjs'
-import { TweenMax, Sine } from 'gsap/all'
+import { TweenLite, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
-TweenMax.defaultEase = Sine.easeOut
+TweenLite.defaultEase = Sine.easeOut
 
 const DEFAULT_OPTIONS = {
   captions: false,
@@ -29,13 +29,13 @@ const DEFAULT_OPTIONS = {
 
   onClose: h => {
     if (h.opts.captions) {
-      TweenMax.to(h.caption, 0.45, { opacity: 0 })
+      TweenLite.to(h.caption, 0.45, { opacity: 0 })
     }
 
-    TweenMax.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
+    TweenLite.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenMax.to(h.wrapper, 0.45, {
+        TweenLite.to(h.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
             h.wrapper.parentNode.removeChild(h.wrapper)
@@ -84,7 +84,7 @@ export default class Lightbox {
   showBox (section, idx) {
     this.fader.style.display = 'block'
 
-    TweenMax.to(this.fader, 0.450, {
+    TweenLite.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
         this.buildBox(section, idx)
@@ -180,8 +180,8 @@ export default class Lightbox {
     this.setImg(section, idx, this.getPrevIdx(idx))
     this.attachSwiper(section, this.content, idx)
 
-    imagesLoaded(this.wrapper, () => {
-      TweenMax.to(this.wrapper, 0.5, {
+    imagesAreLoaded(this.wrapper).then(() => {
+      TweenLite.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
           this.fader.style.display = 'none'
@@ -213,7 +213,7 @@ export default class Lightbox {
     a.classList.add('active')
 
     if (this.caption) {
-      TweenMax.to(this.caption, 0.5, {
+      TweenLite.to(this.caption, 0.5, {
         opacity: 0,
         onComplete: () => {
           this.caption.innerHTML = this.sections[section][x].alt
@@ -221,17 +221,17 @@ export default class Lightbox {
       })
     }
 
-    TweenMax.to(this.img, 0.5, {
+    TweenLite.to(this.img, 0.5, {
       opacity: 0,
       onComplete: () => {
         this.img.src = this.sections[section][x].href
 
-        TweenMax.to(this.img, 0.5, {
+        TweenLite.to(this.img, 0.5, {
           opacity: 1
         })
 
         if (this.caption) {
-          TweenMax.to(this.caption, 0.5, { opacity: 1 })
+          TweenLite.to(this.caption, 0.5, { opacity: 1 })
         }
       }
     })

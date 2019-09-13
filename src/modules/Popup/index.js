@@ -1,15 +1,15 @@
-import { TweenMax } from 'gsap/all'
+import { TweenLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
   backdropColor: '#ffffff',
 
   tweenIn: (el, popup) => {
-    TweenMax.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor })
-    TweenMax.to(popup.backdrop, 0.3, {
+    TweenLite.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor })
+    TweenLite.to(popup.backdrop, 0.3, {
       opacity: 1,
       onComplete: () => {
-        TweenMax.fromTo(el, 0.3, {
+        TweenLite.fromTo(el, 0.3, {
           yPercent: -50,
           x: -5,
           xPercent: -50,
@@ -27,11 +27,11 @@ const DEFAULT_OPTIONS = {
 
   tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]')
-    TweenMax.to(popups, 0.3, { opacity: 0, display: 'none' })
-    TweenMax.to(popup.backdrop, 0.3, {
+    TweenLite.to(popups, 0.3, { opacity: 0, display: 'none' })
+    TweenLite.to(popup.backdrop, 0.3, {
       opacity: 0,
       onComplete: () => {
-        TweenMax.set(popup.backdrop, { display: 'none' })
+        TweenLite.set(popup.backdrop, { display: 'none' })
       }
     })
   }
@@ -46,7 +46,7 @@ export default class Popup {
   createBackdrop () {
     const backdrop = document.createElement('div')
     backdrop.setAttribute('data-popup-backdrop', '')
-    TweenMax.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 })
+    TweenLite.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 })
 
     backdrop.addEventListener('click', e => {
       e.stopPropagation()

@@ -1978,673 +1978,6 @@ var EventDispatcher = nonGlobals.events.EventDispatcher;
  * Club GreenSock members, the software agreement that was issued with your membership.
  * 
  * @author: Jack Doyle, jack@greensock.com
- **/
-
-
-_gsScope._gsDefine("TweenMax", ["core.Animation","core.SimpleTimeline","TweenLite"], function() {
-
-		var _slice = function(a) { //don't use [].slice because that doesn't work in IE8 with a NodeList that's returned by querySelectorAll()
-				var b = [],
-					l = a.length,
-					i;
-				for (i = 0; i !== l; b.push(a[i++]));
-				return b;
-			},
-			_applyCycle = function(vars, targets, i) {
-				var alt = vars.cycle,
-					p, val;
-				for (p in alt) {
-					val = alt[p];
-					vars[p] = (typeof(val) === "function") ? val(i, targets[i], targets) : val[i % val.length];
-				}
-				delete vars.cycle;
-			},
-			//for distributing values across an array. Can accept a number, a function or (most commonly) a function which can contain the following properties: {base, amount, from, ease, grid, axis, length, each}. Returns a function that expects the following parameters: index, target, array. Recognizes the following
-			_distribute = function(v) {
-				if (typeof(v) === "function") {
-					return v;
-				}
-				var vars = (typeof(v) === "object") ? v : {each:v}, //n:1 is just to indicate v was a number; we leverage that later to set v according to the length we get. If a number is passed in, we treat it like the old stagger value where 0.1, for example, would mean that things would be distributed with 0.1 between each element in the array rather than a total "amount" that's chunked out among them all.
-					ease = vars.ease,
-					from = vars.from || 0,
-					base = vars.base || 0,
-					cache = {},
-					isFromKeyword = isNaN(from),
-					axis = vars.axis,
-					ratio = {center:0.5, end:1}[from] || 0;
-				return function(i, target, a) {
-					var l = (a || vars).length,
-						distances = cache[l],
-						originX, originY, x, y, d, j, max, min, wrap;
-					if (!distances) {
-						wrap = (vars.grid === "auto") ? 0 : (vars.grid || [Infinity])[0];
-						if (!wrap) {
-							max = -Infinity;
-							while (max < (max = a[wrap++].getBoundingClientRect().left) && wrap < l) { }
-							wrap--;
-						}
-						distances = cache[l] = [];
-						originX = isFromKeyword ? (Math.min(wrap, l) * ratio) - 0.5 : from % wrap;
-						originY = isFromKeyword ? l * ratio / wrap - 0.5 : (from / wrap) | 0;
-						max = 0;
-						min = Infinity;
-						for (j = 0; j < l; j++) {
-							x = (j % wrap) - originX;
-							y = originY - ((j / wrap) | 0);
-							distances[j] = d = !axis ? Math.sqrt(x * x + y * y) : Math.abs((axis === "y") ? y : x);
-							if (d > max) {
-								max = d;
-							}
-							if (d < min) {
-								min = d;
-							}
-						}
-						distances.max = max - min;
-						distances.min = min;
-						distances.v = l = vars.amount || (vars.each * (wrap > l ? l - 1 : !axis ? Math.max(wrap, l / wrap) : axis === "y" ? l / wrap : wrap)) || 0;
-						distances.b = (l < 0) ? base - l : base;
-					}
-					l = (distances[i] - distances.min) / distances.max;
-					return distances.b + (ease ? ease.getRatio(l) : l) * distances.v;
-				};
-			},
-			TweenMax = function(target, duration, vars) {
-				TweenLite.call(this, target, duration, vars);
-				this._cycle = 0;
-				this._yoyo = (this.vars.yoyo === true || !!this.vars.yoyoEase);
-				this._repeat = this.vars.repeat || 0;
-				this._repeatDelay = this.vars.repeatDelay || 0;
-				if (this._repeat) {
-					this._uncache(true); //ensures that if there is any repeat, the totalDuration will get recalculated to accurately report it.
-				}
-				this.render = TweenMax.prototype.render; //speed optimization (avoid prototype lookup on this "hot" method)
-			},
-			_tinyNum = 0.00000001,
-			TweenLiteInternals = TweenLite._internals,
-			_isSelector = TweenLiteInternals.isSelector,
-			_isArray = TweenLiteInternals.isArray,
-			p = TweenMax.prototype = TweenLite.to({}, 0.1, {}),
-			_blankArray = [];
-
-		TweenMax.version = "2.1.3";
-		p.constructor = TweenMax;
-		p.kill()._gc = false;
-		TweenMax.killTweensOf = TweenMax.killDelayedCallsTo = TweenLite.killTweensOf;
-		TweenMax.getTweensOf = TweenLite.getTweensOf;
-		TweenMax.lagSmoothing = TweenLite.lagSmoothing;
-		TweenMax.ticker = TweenLite.ticker;
-		TweenMax.render = TweenLite.render;
-		TweenMax.distribute = _distribute;
-
-		p.invalidate = function() {
-			this._yoyo = (this.vars.yoyo === true || !!this.vars.yoyoEase);
-			this._repeat = this.vars.repeat || 0;
-			this._repeatDelay = this.vars.repeatDelay || 0;
-			this._yoyoEase = null;
-			this._uncache(true);
-			return TweenLite.prototype.invalidate.call(this);
-		};
-
-		p.updateTo = function(vars, resetDuration) {
-			var self = this,
-				curRatio = self.ratio,
-				immediate = self.vars.immediateRender || vars.immediateRender,
-				p;
-			if (resetDuration && self._startTime < self._timeline._time) {
-				self._startTime = self._timeline._time;
-				self._uncache(false);
-				if (self._gc) {
-					self._enabled(true, false);
-				} else {
-					self._timeline.insert(self, self._startTime - self._delay); //ensures that any necessary re-sequencing of Animations in the timeline occurs to make sure the rendering order is correct.
-				}
-			}
-			for (p in vars) {
-				self.vars[p] = vars[p];
-			}
-			if (self._initted || immediate) {
-				if (resetDuration) {
-					self._initted = false;
-					if (immediate) {
-						self.render(0, true, true);
-					}
-				} else {
-					if (self._gc) {
-						self._enabled(true, false);
-					}
-					if (self._notifyPluginsOfEnabled && self._firstPT) {
-						TweenLite._onPluginEvent("_onDisable", self); //in case a plugin like MotionBlur must perform some cleanup tasks
-					}
-					if (self._time / self._duration > 0.998) { //if the tween has finished (or come extremely close to finishing), we just need to rewind it to 0 and then render it again at the end which forces it to re-initialize (parsing the new vars). We allow tweens that are close to finishing (but haven't quite finished) to work this way too because otherwise, the values are so small when determining where to project the starting values that binary math issues creep in and can make the tween appear to render incorrectly when run backwards.
-						var prevTime = self._totalTime;
-						self.render(0, true, false);
-						self._initted = false;
-						self.render(prevTime, true, false);
-					} else {
-						self._initted = false;
-						self._init();
-						if (self._time > 0 || immediate) {
-							var inv = 1 / (1 - curRatio),
-								pt = self._firstPT, endValue;
-							while (pt) {
-								endValue = pt.s + pt.c;
-								pt.c *= inv;
-								pt.s = endValue - pt.c;
-								pt = pt._next;
-							}
-						}
-					}
-				}
-			}
-			return self;
-		};
-
-		p.render = function(time, suppressEvents, force) {
-			if (!this._initted) if (this._duration === 0 && this.vars.repeat) { //zero duration tweens that render immediately have render() called from TweenLite's constructor, before TweenMax's constructor has finished setting _repeat, _repeatDelay, and _yoyo which are critical in determining totalDuration() so we need to call invalidate() which is a low-kb way to get those set properly.
-				this.invalidate();
-			}
-			var self = this,
-				totalDur = (!self._dirty) ? self._totalDuration : self.totalDuration(),
-				prevTime = self._time,
-				prevTotalTime = self._totalTime,
-				prevCycle = self._cycle,
-				duration = self._duration,
-				prevRawPrevTime = self._rawPrevTime,
-				isComplete, callback, pt, cycleDuration, r, type, pow, rawPrevTime, yoyoEase;
-			if (time >= totalDur - _tinyNum && time >= 0) { //to work around occasional floating point math artifacts.
-				self._totalTime = totalDur;
-				self._cycle = self._repeat;
-				if (self._yoyo && (self._cycle & 1) !== 0) {
-					self._time = 0;
-					self.ratio = self._ease._calcEnd ? self._ease.getRatio(0) : 0;
-				} else {
-					self._time = duration;
-					self.ratio = self._ease._calcEnd ? self._ease.getRatio(1) : 1;
-				}
-				if (!self._reversed) {
-					isComplete = true;
-					callback = "onComplete";
-					force = (force || self._timeline.autoRemoveChildren); //otherwise, if the animation is unpaused/activated after it's already finished, it doesn't get removed from the parent timeline.
-				}
-				if (duration === 0) if (self._initted || !self.vars.lazy || force) { //zero-duration tweens are tricky because we must discern the momentum/direction of time in order to determine whether the starting values should be rendered or the ending values. If the "playhead" of its timeline goes past the zero-duration tween in the forward direction or lands directly on it, the end values should be rendered, but if the timeline's "playhead" moves past it in the backward direction (from a postitive time to a negative time), the starting values must be rendered.
-					if (self._startTime === self._timeline._duration) { //if a zero-duration tween is at the VERY end of a timeline and that timeline renders at its end, it will typically add a tiny bit of cushion to the render time to prevent rounding errors from getting in the way of tweens rendering their VERY end. If we then reverse() that timeline, the zero-duration tween will trigger its onReverseComplete even though technically the playhead didn't pass over it again. It's a very specific edge case we must accommodate.
-						time = 0;
-					}
-					if (prevRawPrevTime < 0 || (time <= 0 && time >= -_tinyNum) || (prevRawPrevTime === _tinyNum && self.data !== "isPause")) if (prevRawPrevTime !== time) { //note: when this.data is "isPause", it's a callback added by addPause() on a timeline that we should not be triggered when LEAVING its exact start time. In other words, tl.addPause(1).play(1) shouldn't pause.
-						force = true;
-						if (prevRawPrevTime > _tinyNum) {
-							callback = "onReverseComplete";
-						}
-					}
-					self._rawPrevTime = rawPrevTime = (!suppressEvents || time || prevRawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
-				}
-
-			} else if (time < _tinyNum) { //to work around occasional floating point math artifacts, round super small values to 0.
-				self._totalTime = self._time = self._cycle = 0;
-				self.ratio = self._ease._calcEnd ? self._ease.getRatio(0) : 0;
-				if (prevTotalTime !== 0 || (duration === 0 && prevRawPrevTime > 0)) {
-					callback = "onReverseComplete";
-					isComplete = self._reversed;
-				}
-				if (time > -_tinyNum) {
-					time = 0;
-				} else if (time < 0) {
-					self._active = false;
-					if (duration === 0) if (self._initted || !self.vars.lazy || force) { //zero-duration tweens are tricky because we must discern the momentum/direction of time in order to determine whether the starting values should be rendered or the ending values. If the "playhead" of its timeline goes past the zero-duration tween in the forward direction or lands directly on it, the end values should be rendered, but if the timeline's "playhead" moves past it in the backward direction (from a postitive time to a negative time), the starting values must be rendered.
-						if (prevRawPrevTime >= 0) {
-							force = true;
-						}
-						self._rawPrevTime = rawPrevTime = (!suppressEvents || time || prevRawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
-					}
-				}
-				if (!self._initted) { //if we render the very beginning (time == 0) of a fromTo(), we must force the render (normal tweens wouldn't need to render at a time of 0 when the prevTime was also 0). This is also mandatory to make sure overwriting kicks in immediately.
-					force = true;
-				}
-			} else {
-				self._totalTime = self._time = time;
-				if (self._repeat !== 0) {
-					cycleDuration = duration + self._repeatDelay;
-					self._cycle = (self._totalTime / cycleDuration) >> 0; //originally _totalTime % cycleDuration but floating point errors caused problems, so I normalized it. (4 % 0.8 should be 0 but some browsers report it as 0.79999999!)
-					if (self._cycle !== 0) if (self._cycle === self._totalTime / cycleDuration && prevTotalTime <= time) {
-						self._cycle--; //otherwise when rendered exactly at the end time, it will act as though it is repeating (at the beginning)
-					}
-					self._time = self._totalTime - (self._cycle * cycleDuration);
-					if (self._yoyo) if ((self._cycle & 1) !== 0) {
-						self._time = duration - self._time;
-						yoyoEase = self._yoyoEase || self.vars.yoyoEase; //note: we don't set this._yoyoEase in _init() like we do other properties because it's TweenMax-specific and doing it here allows us to optimize performance (most tweens don't have a yoyoEase). Note that we also must skip the this.ratio calculation further down right after we _init() in this function, because we're doing it here.
-						if (yoyoEase) {
-							if (!self._yoyoEase) {
-								if (yoyoEase === true && !self._initted) { //if it's not initted and yoyoEase is true, this._ease won't have been populated yet so we must discern it here.
-									yoyoEase = self.vars.ease;
-									self._yoyoEase = yoyoEase = !yoyoEase ? TweenLite.defaultEase : (yoyoEase instanceof Ease) ? yoyoEase : (typeof(yoyoEase) === "function") ? new Ease(yoyoEase, self.vars.easeParams) : Ease.map[yoyoEase] || TweenLite.defaultEase;
-								} else {
-									self._yoyoEase = yoyoEase = (yoyoEase === true) ? self._ease : (yoyoEase instanceof Ease) ? yoyoEase : Ease.map[yoyoEase];
-								}
-							}
-							self.ratio = yoyoEase ? 1 - yoyoEase.getRatio((duration - self._time) / duration) : 0;
-						}
-					}
-					if (self._time > duration) {
-						self._time = duration;
-					} else if (self._time < 0) {
-						self._time = 0;
-					}
-				}
-				if (self._easeType && !yoyoEase) {
-					r = self._time / duration;
-					type = self._easeType;
-					pow = self._easePower;
-					if (type === 1 || (type === 3 && r >= 0.5)) {
-						r = 1 - r;
-					}
-					if (type === 3) {
-						r *= 2;
-					}
-					if (pow === 1) {
-						r *= r;
-					} else if (pow === 2) {
-						r *= r * r;
-					} else if (pow === 3) {
-						r *= r * r * r;
-					} else if (pow === 4) {
-						r *= r * r * r * r;
-					}
-					self.ratio = (type === 1) ? 1 - r : (type === 2) ? r : (self._time / duration < 0.5) ? r / 2 : 1 - (r / 2);
-
-				} else if (!yoyoEase) {
-					self.ratio = self._ease.getRatio(self._time / duration);
-				}
-
-			}
-
-			if (prevTime === self._time && !force && prevCycle === self._cycle) {
-				if (prevTotalTime !== self._totalTime) if (self._onUpdate) if (!suppressEvents) { //so that onUpdate fires even during the repeatDelay - as long as the totalTime changed, we should trigger onUpdate.
-					self._callback("onUpdate");
-				}
-				return;
-			} else if (!self._initted) {
-				self._init();
-				if (!self._initted || self._gc) { //immediateRender tweens typically won't initialize until the playhead advances (_time is greater than 0) in order to ensure that overwriting occurs properly. Also, if all of the tweening properties have been overwritten (which would cause _gc to be true, as set in _init()), we shouldn't continue otherwise an onStart callback could be called for example.
-					return;
-				} else if (!force && self._firstPT && ((self.vars.lazy !== false && self._duration) || (self.vars.lazy && !self._duration))) { //we stick it in the queue for rendering at the very end of the tick - this is a performance optimization because browsers invalidate styles and force a recalculation if you read, write, and then read style data (so it's better to read/read/read/write/write/write than read/write/read/write/read/write). The down side, of course, is that usually you WANT things to render immediately because you may have code running right after that which depends on the change. Like imagine running TweenLite.set(...) and then immediately after that, creating a nother tween that animates the same property to another value; the starting values of that 2nd tween wouldn't be accurate if lazy is true.
-					self._time = prevTime;
-					self._totalTime = prevTotalTime;
-					self._rawPrevTime = prevRawPrevTime;
-					self._cycle = prevCycle;
-					TweenLiteInternals.lazyTweens.push(self);
-					self._lazy = [time, suppressEvents];
-					return;
-				}
-				//_ease is initially set to defaultEase, so now that init() has run, _ease is set properly and we need to recalculate the ratio. Overall this is faster than using conditional logic earlier in the method to avoid having to set ratio twice because we only init() once but renderTime() gets called VERY frequently.
-				if (self._time && !isComplete && !yoyoEase) {
-					self.ratio = self._ease.getRatio(self._time / duration);
-				} else if (isComplete && this._ease._calcEnd && !yoyoEase) {
-					self.ratio = self._ease.getRatio((self._time === 0) ? 0 : 1);
-				}
-			}
-			if (self._lazy !== false) {
-				self._lazy = false;
-			}
-
-			if (!self._active) if (!self._paused && self._time !== prevTime && time >= 0) {
-				self._active = true; //so that if the user renders a tween (as opposed to the timeline rendering it), the timeline is forced to re-render and align it with the proper time/frame on the next rendering cycle. Maybe the tween already finished but the user manually re-renders it as halfway done.
-			}
-			if (prevTotalTime === 0) {
-				if (self._initted === 2 && time > 0) {
-					self._init(); //will just apply overwriting since _initted of (2) means it was a from() tween that had immediateRender:true
-				}
-				if (self._startAt) {
-					if (time >= 0) {
-						self._startAt.render(time, true, force);
-					} else if (!callback) {
-						callback = "_dummyGS"; //if no callback is defined, use a dummy value just so that the condition at the end evaluates as true because _startAt should render AFTER the normal render loop when the time is negative. We could handle this in a more intuitive way, of course, but the render loop is the MOST important thing to optimize, so this technique allows us to avoid adding extra conditional logic in a high-frequency area.
-					}
-				}
-				if (self.vars.onStart) if (self._totalTime !== 0 || duration === 0) if (!suppressEvents) {
-					self._callback("onStart");
-				}
-			}
-
-			pt = self._firstPT;
-			while (pt) {
-				if (pt.f) {
-					pt.t[pt.p](pt.c * self.ratio + pt.s);
-				} else {
-					pt.t[pt.p] = pt.c * self.ratio + pt.s;
-				}
-				pt = pt._next;
-			}
-
-			if (self._onUpdate) {
-				if (time < 0) if (self._startAt && self._startTime) { //if the tween is positioned at the VERY beginning (_startTime 0) of its parent timeline, it's illegal for the playhead to go back further, so we should not render the recorded startAt values.
-					self._startAt.render(time, true, force); //note: for performance reasons, we tuck this conditional logic inside less traveled areas (most tweens don't have an onUpdate). We'd just have it at the end before the onComplete, but the values should be updated before any onUpdate is called, so we ALSO put it here and then if it's not called, we do so later near the onComplete.
-				}
-				if (!suppressEvents) if (self._totalTime !== prevTotalTime || callback) {
-					self._callback("onUpdate");
-				}
-			}
-			if (self._cycle !== prevCycle) if (!suppressEvents) if (!self._gc) if (self.vars.onRepeat) {
-				self._callback("onRepeat");
-			}
-			if (callback) if (!self._gc || force) { //check gc because there's a chance that kill() could be called in an onUpdate
-				if (time < 0 && self._startAt && !self._onUpdate && self._startTime) { //if the tween is positioned at the VERY beginning (_startTime 0) of its parent timeline, it's illegal for the playhead to go back further, so we should not render the recorded startAt values.
-					self._startAt.render(time, true, force);
-				}
-				if (isComplete) {
-					if (self._timeline.autoRemoveChildren) {
-						self._enabled(false, false);
-					}
-					self._active = false;
-				}
-				if (!suppressEvents && self.vars[callback]) {
-					self._callback(callback);
-				}
-				if (duration === 0 && self._rawPrevTime === _tinyNum && rawPrevTime !== _tinyNum) { //the onComplete or onReverseComplete could trigger movement of the playhead and for zero-duration tweens (which must discern direction) that land directly back on their start time, we don't want to fire again on the next render. Think of several addPause()'s in a timeline that forces the playhead to a certain spot, but what if it's already paused and another tween is tweening the "time" of the timeline? Each time it moves [forward] past that spot, it would move back, and since suppressEvents is true, it'd reset _rawPrevTime to _tinyNum so that when it begins again, the callback would fire (so ultimately it could bounce back and forth during that tween). Again, this is a very uncommon scenario, but possible nonetheless.
-					self._rawPrevTime = 0;
-				}
-			}
-		};
-
-//---- STATIC FUNCTIONS -----------------------------------------------------------------------------------------------------------
-
-		TweenMax.to = function(target, duration, vars) {
-			return new TweenMax(target, duration, vars);
-		};
-
-		TweenMax.from = function(target, duration, vars) {
-			vars.runBackwards = true;
-			vars.immediateRender = (vars.immediateRender != false);
-			return new TweenMax(target, duration, vars);
-		};
-
-		TweenMax.fromTo = function(target, duration, fromVars, toVars) {
-			toVars.startAt = fromVars;
-			toVars.immediateRender = (toVars.immediateRender != false && fromVars.immediateRender != false);
-			return new TweenMax(target, duration, toVars);
-		};
-
-		TweenMax.staggerTo = TweenMax.allTo = function(targets, duration, vars, stagger, onCompleteAll, onCompleteAllParams, onCompleteAllScope) {
-			var a = [],
-				staggerFunc = _distribute(vars.stagger || stagger),
-				cycle = vars.cycle,
-				fromCycle = (vars.startAt || _blankArray).cycle,
-				l, copy, i, p;
-			if (!_isArray(targets)) {
-				if (typeof(targets) === "string") {
-					targets = TweenLite.selector(targets) || targets;
-				}
-				if (_isSelector(targets)) {
-					targets = _slice(targets);
-				}
-			}
-			targets = targets || [];
-			l = targets.length - 1;
-			for (i = 0; i <= l; i++) {
-				copy = {};
-				for (p in vars) {
-					copy[p] = vars[p];
-				}
-				if (cycle) {
-					_applyCycle(copy, targets, i);
-					if (copy.duration != null) {
-						duration = copy.duration;
-						delete copy.duration;
-					}
-				}
-				if (fromCycle) {
-					fromCycle = copy.startAt = {};
-					for (p in vars.startAt) {
-						fromCycle[p] = vars.startAt[p];
-					}
-					_applyCycle(copy.startAt, targets, i);
-				}
-				copy.delay = staggerFunc(i, targets[i], targets) + (copy.delay || 0);
-				if (i === l && onCompleteAll) {
-					copy.onComplete = function() {
-						if (vars.onComplete) {
-							vars.onComplete.apply(vars.onCompleteScope || this, arguments);
-						}
-						onCompleteAll.apply(onCompleteAllScope || vars.callbackScope || this, onCompleteAllParams || _blankArray);
-					};
-				}
-				a[i] = new TweenMax(targets[i], duration, copy);
-			}
-			return a;
-		};
-
-		TweenMax.staggerFrom = TweenMax.allFrom = function(targets, duration, vars, stagger, onCompleteAll, onCompleteAllParams, onCompleteAllScope) {
-			vars.runBackwards = true;
-			vars.immediateRender = (vars.immediateRender != false);
-			return TweenMax.staggerTo(targets, duration, vars, stagger, onCompleteAll, onCompleteAllParams, onCompleteAllScope);
-		};
-
-		TweenMax.staggerFromTo = TweenMax.allFromTo = function(targets, duration, fromVars, toVars, stagger, onCompleteAll, onCompleteAllParams, onCompleteAllScope) {
-			toVars.startAt = fromVars;
-			toVars.immediateRender = (toVars.immediateRender != false && fromVars.immediateRender != false);
-			return TweenMax.staggerTo(targets, duration, toVars, stagger, onCompleteAll, onCompleteAllParams, onCompleteAllScope);
-		};
-
-		TweenMax.delayedCall = function(delay, callback, params, scope, useFrames) {
-			return new TweenMax(callback, 0, {delay:delay, onComplete:callback, onCompleteParams:params, callbackScope:scope, onReverseComplete:callback, onReverseCompleteParams:params, immediateRender:false, useFrames:useFrames, overwrite:0});
-		};
-
-		TweenMax.set = function(target, vars) {
-			return new TweenMax(target, 0, vars);
-		};
-
-		TweenMax.isTweening = function(target) {
-			return (TweenLite.getTweensOf(target, true).length > 0);
-		};
-
-		var _getChildrenOf = function(timeline, includeTimelines) {
-				var a = [],
-					cnt = 0,
-					tween = timeline._first;
-				while (tween) {
-					if (tween instanceof TweenLite) {
-						a[cnt++] = tween;
-					} else {
-						if (includeTimelines) {
-							a[cnt++] = tween;
-						}
-						a = a.concat(_getChildrenOf(tween, includeTimelines));
-						cnt = a.length;
-					}
-					tween = tween._next;
-				}
-				return a;
-			},
-			getAllTweens = TweenMax.getAllTweens = function(includeTimelines) {
-				return _getChildrenOf(Animation._rootTimeline, includeTimelines).concat( _getChildrenOf(Animation._rootFramesTimeline, includeTimelines) );
-			};
-
-		TweenMax.killAll = function(complete, tweens, delayedCalls, timelines) {
-			if (tweens == null) {
-				tweens = true;
-			}
-			if (delayedCalls == null) {
-				delayedCalls = true;
-			}
-			var a = getAllTweens((timelines != false)),
-				l = a.length,
-				allTrue = (tweens && delayedCalls && timelines),
-				isDC, tween, i;
-			for (i = 0; i < l; i++) {
-				tween = a[i];
-				if (allTrue || (tween instanceof SimpleTimeline) || ((isDC = (tween.target === tween.vars.onComplete)) && delayedCalls) || (tweens && !isDC)) {
-					if (complete) {
-						tween.totalTime(tween._reversed ? 0 : tween.totalDuration());
-					} else {
-						tween._enabled(false, false);
-					}
-				}
-			}
-		};
-
-		TweenMax.killChildTweensOf = function(parent, complete) {
-			if (parent == null) {
-				return;
-			}
-			var tl = TweenLiteInternals.tweenLookup,
-				a, curParent, p, i, l;
-			if (typeof(parent) === "string") {
-				parent = TweenLite.selector(parent) || parent;
-			}
-			if (_isSelector(parent)) {
-				parent = _slice(parent);
-			}
-			if (_isArray(parent)) {
-				i = parent.length;
-				while (--i > -1) {
-					TweenMax.killChildTweensOf(parent[i], complete);
-				}
-				return;
-			}
-			a = [];
-			for (p in tl) {
-				curParent = tl[p].target.parentNode;
-				while (curParent) {
-					if (curParent === parent) {
-						a = a.concat(tl[p].tweens);
-					}
-					curParent = curParent.parentNode;
-				}
-			}
-			l = a.length;
-			for (i = 0; i < l; i++) {
-				if (complete) {
-					a[i].totalTime(a[i].totalDuration());
-				}
-				a[i]._enabled(false, false);
-			}
-		};
-
-		var _changePause = function(pause, tweens, delayedCalls, timelines) {
-			tweens = (tweens !== false);
-			delayedCalls = (delayedCalls !== false);
-			timelines = (timelines !== false);
-			var a = getAllTweens(timelines),
-				allTrue = (tweens && delayedCalls && timelines),
-				i = a.length,
-				isDC, tween;
-			while (--i > -1) {
-				tween = a[i];
-				if (allTrue || (tween instanceof SimpleTimeline) || ((isDC = (tween.target === tween.vars.onComplete)) && delayedCalls) || (tweens && !isDC)) {
-					tween.paused(pause);
-				}
-			}
-		};
-
-		TweenMax.pauseAll = function(tweens, delayedCalls, timelines) {
-			_changePause(true, tweens, delayedCalls, timelines);
-		};
-
-		TweenMax.resumeAll = function(tweens, delayedCalls, timelines) {
-			_changePause(false, tweens, delayedCalls, timelines);
-		};
-
-		TweenMax.globalTimeScale = function(value) {
-			var tl = Animation._rootTimeline,
-				t = TweenLite.ticker.time;
-			if (!arguments.length) {
-				return tl._timeScale;
-			}
-			value = value || _tinyNum; //can't allow zero because it'll throw the math off
-			tl._startTime = t - ((t - tl._startTime) * tl._timeScale / value);
-			tl = Animation._rootFramesTimeline;
-			t = TweenLite.ticker.frame;
-			tl._startTime = t - ((t - tl._startTime) * tl._timeScale / value);
-			tl._timeScale = Animation._rootTimeline._timeScale = value;
-			return value;
-		};
-
-
-//---- GETTERS / SETTERS ----------------------------------------------------------------------------------------------------------
-
-		p.progress = function(value, suppressEvents) {
-			return (!arguments.length) ? (this.duration() ? this._time / this._duration : this.ratio) : this.totalTime( this.duration() * ((this._yoyo && (this._cycle & 1) !== 0) ? 1 - value : value) + (this._cycle * (this._duration + this._repeatDelay)), suppressEvents);
-		};
-
-		p.totalProgress = function(value, suppressEvents) {
-			return (!arguments.length) ? this._totalTime / this.totalDuration() : this.totalTime( this.totalDuration() * value, suppressEvents);
-		};
-
-		p.time = function(value, suppressEvents) {
-			if (!arguments.length) {
-				return this._time;
-			}
-			if (this._dirty) {
-				this.totalDuration();
-			}
-			var duration = this._duration,
-				cycle = this._cycle,
-				cycleDur = cycle * (duration + this._repeatDelay);
-			if (value > duration) {
-				value = duration;
-			}
-			return this.totalTime((this._yoyo && (cycle & 1)) ? duration - value + cycleDur : this._repeat ? value + cycleDur : value, suppressEvents);
-		};
-
-		p.duration = function(value) {
-			if (!arguments.length) {
-				return this._duration; //don't set _dirty = false because there could be repeats that haven't been factored into the _totalDuration yet. Otherwise, if you create a repeated TweenMax and then immediately check its duration(), it would cache the value and the totalDuration would not be correct, thus repeats wouldn't take effect.
-			}
-			return Animation.prototype.duration.call(this, value);
-		};
-
-		p.totalDuration = function(value) {
-			if (!arguments.length) {
-				if (this._dirty) {
-					//instead of Infinity, we use 999999999999 so that we can accommodate reverses
-					this._totalDuration = (this._repeat === -1) ? 999999999999 : this._duration * (this._repeat + 1) + (this._repeatDelay * this._repeat);
-					this._dirty = false;
-				}
-				return this._totalDuration;
-			}
-			return (this._repeat === -1) ? this : this.duration( (value - (this._repeat * this._repeatDelay)) / (this._repeat + 1) );
-		};
-
-		p.repeat = function(value) {
-			if (!arguments.length) {
-				return this._repeat;
-			}
-			this._repeat = value;
-			return this._uncache(true);
-		};
-
-		p.repeatDelay = function(value) {
-			if (!arguments.length) {
-				return this._repeatDelay;
-			}
-			this._repeatDelay = value;
-			return this._uncache(true);
-		};
-
-		p.yoyo = function(value) {
-			if (!arguments.length) {
-				return this._yoyo;
-			}
-			this._yoyo = value;
-			return this;
-		};
-
-
-		return TweenMax;
-
-	}, true);
-
-var TweenMax = globals.TweenMax;
-
-/*!
- * VERSION: 2.1.3
- * DATE: 2019-05-17
- * UPDATES AND DOCS AT: http://greensock.com
- *
- * @license Copyright (c) 2008-2019, GreenSock. All rights reserved.
- * This work is subject to the terms at http://greensock.com/standard-license or for
- * Club GreenSock members, the software agreement that was issued with your membership.
- * 
- * @author: Jack Doyle, jack@greensock.com
  */
 
 _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","TweenLite"], function() {
@@ -3471,524 +2804,6 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 	}, true);
 
 var TimelineLite = globals.TimelineLite;
-
-/*!
- * VERSION: 2.1.3
- * DATE: 2019-05-17
- * UPDATES AND DOCS AT: http://greensock.com
- *
- * @license Copyright (c) 2008-2019, GreenSock. All rights reserved.
- * This work is subject to the terms at http://greensock.com/standard-license or for
- * Club GreenSock members, the software agreement that was issued with your membership.
- * 
- * @author: Jack Doyle, jack@greensock.com
- */
-
-_gsScope._gsDefine("TimelineMax", ["TimelineLite","TweenLite","easing.Ease"], function() {
-		
-		var TimelineMax = function(vars) {
-				TimelineLite.call(this, vars);
-				this._repeat = this.vars.repeat || 0;
-				this._repeatDelay = this.vars.repeatDelay || 0;
-				this._cycle = 0;
-				this._yoyo = !!this.vars.yoyo;
-				this._dirty = true;
-			},
-			_tinyNum = 0.00000001,
-			TweenLiteInternals = TweenLite._internals,
-			_lazyTweens = TweenLiteInternals.lazyTweens,
-			_lazyRender = TweenLiteInternals.lazyRender,
-			_globals = _gsScope._gsDefine.globals,
-			_easeNone = new Ease(null, null, 1, 0),
-			p = TimelineMax.prototype = new TimelineLite();
-
-		p.constructor = TimelineMax;
-		p.kill()._gc = false;
-		TimelineMax.version = "2.1.3";
-
-		p.invalidate = function() {
-			this._yoyo = !!this.vars.yoyo;
-			this._repeat = this.vars.repeat || 0;
-			this._repeatDelay = this.vars.repeatDelay || 0;
-			this._uncache(true);
-			return TimelineLite.prototype.invalidate.call(this);
-		};
-
-		p.addCallback = function(callback, position, params, scope) {
-			return this.add( TweenLite.delayedCall(0, callback, params, scope), position);
-		};
-
-		p.removeCallback = function(callback, position) {
-			if (callback) {
-				if (position == null) {
-					this._kill(null, callback);
-				} else {
-					var a = this.getTweensOf(callback, false),
-						i = a.length,
-						time = this._parseTimeOrLabel(position);
-					while (--i > -1) {
-						if (a[i]._startTime === time) {
-							a[i]._enabled(false, false);
-						}
-					}
-				}
-			}
-			return this;
-		};
-
-		p.removePause = function(position) {
-			return this.removeCallback(TimelineLite._internals.pauseCallback, position);
-		};
-
-		p.tweenTo = function(position, vars) {
-			vars = vars || {};
-			var copy = {ease:_easeNone, useFrames:this.usesFrames(), immediateRender:false, lazy:false},
-				Engine = (vars.repeat && _globals.TweenMax) || TweenLite,
-				duration, p, t;
-			for (p in vars) {
-				copy[p] = vars[p];
-			}
-			copy.time = this._parseTimeOrLabel(position);
-			duration = (Math.abs(Number(copy.time) - this._time) / this._timeScale) || 0.001;
-			t = new Engine(this, duration, copy);
-			copy.onStart = function() {
-				t.target.paused(true);
-				if (t.vars.time !== t.target.time() && duration === t.duration() && !t.isFromTo) { //don't make the duration zero - if it's supposed to be zero, don't worry because it's already initting the tween and will complete immediately, effectively making the duration zero anyway. If we make duration zero, the tween won't run at all.
-					t.duration( Math.abs( t.vars.time - t.target.time()) / t.target._timeScale ).render(t.time(), true, true); //render() right away to ensure that things look right, especially in the case of .tweenTo(0).
-				}
-				if (vars.onStart) { //in case the user had an onStart in the vars - we don't want to overwrite it.
-					vars.onStart.apply(vars.onStartScope || vars.callbackScope || t, vars.onStartParams || []); //don't use t._callback("onStart") or it'll point to the copy.onStart and we'll get a recursion error.
-				}
-			};
-			return t;
-		};
-
-		p.tweenFromTo = function(fromPosition, toPosition, vars) {
-			vars = vars || {};
-			fromPosition = this._parseTimeOrLabel(fromPosition);
-			vars.startAt = {onComplete:this.seek, onCompleteParams:[fromPosition], callbackScope:this};
-			vars.immediateRender = (vars.immediateRender !== false);
-			var t = this.tweenTo(toPosition, vars);
-			t.isFromTo = 1; //to ensure we don't mess with the duration in the onStart (we've got the start and end values here, so lock it in)
-			return t.duration((Math.abs( t.vars.time - fromPosition) / this._timeScale) || 0.001);
-		};
-
-		p.render = function(time, suppressEvents, force) {
-			if (this._gc) {
-				this._enabled(true, false);
-			}
-			var self = this,
-				prevTime = self._time,
-				totalDur = (!self._dirty) ? self._totalDuration : self.totalDuration(),
-				dur = self._duration,
-				prevTotalTime = self._totalTime,
-				prevStart = self._startTime,
-				prevTimeScale = self._timeScale,
-				prevRawPrevTime = self._rawPrevTime,
-				prevPaused = self._paused,
-				prevCycle = self._cycle,
-				tween, isComplete, next, callback, internalForce, cycleDuration, pauseTween, curTime, pauseTime;
-			if (prevTime !== self._time) { //if totalDuration() finds a child with a negative startTime and smoothChildTiming is true, things get shifted around internally so we need to adjust the time accordingly. For example, if a tween starts at -30 we must shift EVERYTHING forward 30 seconds and move this timeline's startTime backward by 30 seconds so that things align with the playhead (no jump).
-				time += self._time - prevTime;
-			}
-			if (time >= totalDur - _tinyNum && time >= 0) { //to work around occasional floating point math artifacts.
-				if (!self._locked) {
-					self._totalTime = totalDur;
-					self._cycle = self._repeat;
-				}
-				if (!self._reversed) if (!self._hasPausedChild()) {
-					isComplete = true;
-					callback = "onComplete";
-					internalForce = !!self._timeline.autoRemoveChildren; //otherwise, if the animation is unpaused/activated after it's already finished, it doesn't get removed from the parent timeline.
-					if (self._duration === 0) if ((time <= 0 && time >= -_tinyNum) || prevRawPrevTime < 0 || prevRawPrevTime === _tinyNum) if (prevRawPrevTime !== time && self._first) {
-						internalForce = true;
-						if (prevRawPrevTime > _tinyNum) {
-							callback = "onReverseComplete";
-						}
-					}
-				}
-				self._rawPrevTime = (self._duration || !suppressEvents || time || self._rawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration timeline or tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
-				if (self._yoyo && (self._cycle & 1)) {
-					self._time = time = 0;
-				} else {
-					self._time = dur;
-					time = dur + 0.0001; //to avoid occasional floating point rounding errors - sometimes child tweens/timelines were not being fully completed (their progress might be 0.999999999999998 instead of 1 because when _time - tween._startTime is performed, floating point errors would return a value that was SLIGHTLY off). Try (999999999999.7 - 999999999999) * 1 = 0.699951171875 instead of 0.7. We cannot do less then 0.0001 because the same issue can occur when the duration is extremely large like 999999999999 in which case adding 0.00000001, for example, causes it to act like nothing was added.
-				}
-
-			} else if (time < _tinyNum) { //to work around occasional floating point math artifacts, round super small values to 0.
-				if (!self._locked) {
-					self._totalTime = self._cycle = 0;
-				}
-				self._time = 0;
-				if (time > -_tinyNum) {
-					time = 0;
-				}
-				if (prevTime !== 0 || (dur === 0 && prevRawPrevTime !== _tinyNum && (prevRawPrevTime > 0 || (time < 0 && prevRawPrevTime >= 0)) && !self._locked)) { //edge case for checking time < 0 && prevRawPrevTime >= 0: a zero-duration fromTo() tween inside a zero-duration timeline (yeah, very rare)
-					callback = "onReverseComplete";
-					isComplete = self._reversed;
-				}
-				if (time < 0) {
-					self._active = false;
-					if (self._timeline.autoRemoveChildren && self._reversed) {
-						internalForce = isComplete = true;
-						callback = "onReverseComplete";
-					} else if (prevRawPrevTime >= 0 && self._first) { //when going back beyond the start, force a render so that zero-duration tweens that sit at the very beginning render their start values properly. Otherwise, if the parent timeline's playhead lands exactly at this timeline's startTime, and then moves backwards, the zero-duration tweens at the beginning would still be at their end state.
-						internalForce = true;
-					}
-					self._rawPrevTime = time;
-				} else {
-					self._rawPrevTime = (dur || !suppressEvents || time || self._rawPrevTime === time) ? time : _tinyNum; //when the playhead arrives at EXACTLY time 0 (right on top) of a zero-duration timeline or tween, we need to discern if events are suppressed so that when the playhead moves again (next time), it'll trigger the callback. If events are NOT suppressed, obviously the callback would be triggered in this render. Basically, the callback should fire either when the playhead ARRIVES or LEAVES this exact spot, not both. Imagine doing a timeline.seek(0) and there's a callback that sits at 0. Since events are suppressed on that seek() by default, nothing will fire, but when the playhead moves off of that position, the callback should fire. This behavior is what people intuitively expect. We set the _rawPrevTime to be a precise tiny number to indicate this scenario rather than using another property/variable which would increase memory usage. This technique is less readable, but more efficient.
-					if (time === 0 && isComplete) { //if there's a zero-duration tween at the very beginning of a timeline and the playhead lands EXACTLY at time 0, that tween will correctly render its end values, but we need to keep the timeline alive for one more render so that the beginning values render properly as the parent's playhead keeps moving beyond the begining. Imagine obj.x starts at 0 and then we do tl.set(obj, {x:100}).to(obj, 1, {x:200}) and then later we tl.reverse()...the goal is to have obj.x revert to 0. If the playhead happens to land on exactly 0, without this chunk of code, it'd complete the timeline and remove it from the rendering queue (not good).
-						tween = self._first;
-						while (tween && tween._startTime === 0) {
-							if (!tween._duration) {
-								isComplete = false;
-							}
-							tween = tween._next;
-						}
-					}
-					time = 0; //to avoid occasional floating point rounding errors (could cause problems especially with zero-duration tweens at the very beginning of the timeline)
-					if (!self._initted) {
-						internalForce = true;
-					}
-				}
-
-			} else {
-				if (dur === 0 && prevRawPrevTime < 0) { //without this, zero-duration repeating timelines (like with a simple callback nested at the very beginning and a repeatDelay) wouldn't render the first time through.
-					internalForce = true;
-				}
-				self._time = self._rawPrevTime = time;
-				if (!self._locked) {
-					self._totalTime = time;
-					if (self._repeat !== 0) {
-						cycleDuration = dur + self._repeatDelay;
-						self._cycle = (self._totalTime / cycleDuration) >> 0; //originally _totalTime % cycleDuration but floating point errors caused problems, so I normalized it. (4 % 0.8 should be 0 but it gets reported as 0.79999999!)
-						if (self._cycle) if (self._cycle === self._totalTime / cycleDuration && prevTotalTime <= time) {
-							self._cycle--; //otherwise when rendered exactly at the end time, it will act as though it is repeating (at the beginning)
-						}
-						self._time = self._totalTime - (self._cycle * cycleDuration);
-						if (self._yoyo) if (self._cycle & 1) {
-							self._time = dur - self._time;
-						}
-						if (self._time > dur) {
-							self._time = dur;
-							time = dur + 0.0001; //to avoid occasional floating point rounding error
-						} else if (self._time < 0) {
-							self._time = time = 0;
-						} else {
-							time = self._time;
-						}
-					}
-				}
-			}
-
-			if (self._hasPause && !self._forcingPlayhead && !suppressEvents) {
-				time = self._time;
-				if (time > prevTime || (self._repeat && prevCycle !== self._cycle)) {
-					tween = self._first;
-					while (tween && tween._startTime <= time && !pauseTween) {
-						if (!tween._duration) if (tween.data === "isPause" && !tween.ratio && !(tween._startTime === 0 && self._rawPrevTime === 0)) {
-							pauseTween = tween;
-						}
-						tween = tween._next;
-					}
-				} else {
-					tween = self._last;
-					while (tween && tween._startTime >= time && !pauseTween) {
-						if (!tween._duration) if (tween.data === "isPause" && tween._rawPrevTime > 0) {
-							pauseTween = tween;
-						}
-						tween = tween._prev;
-					}
-				}
-				if (pauseTween) {
-					pauseTime = self._startTime + (self._reversed ? self._duration - pauseTween._startTime : pauseTween._startTime) / self._timeScale;
-					if (pauseTween._startTime < dur) {
-						self._time = self._rawPrevTime = time = pauseTween._startTime;
-						self._totalTime = time + (self._cycle * (self._totalDuration + self._repeatDelay));
-					}
-				}
-			}
-
-			if (self._cycle !== prevCycle) if (!self._locked) {
-				/*
-				make sure children at the end/beginning of the timeline are rendered properly. If, for example,
-				a 3-second long timeline rendered at 2.9 seconds previously, and now renders at 3.2 seconds (which
-				would get translated to 2.8 seconds if the timeline yoyos or 0.2 seconds if it just repeats), there
-				could be a callback or a short tween that's at 2.95 or 3 seconds in which wouldn't render. So
-				we need to push the timeline to the end (and/or beginning depending on its yoyo value). Also we must
-				ensure that zero-duration tweens at the very beginning or end of the TimelineMax work.
-				*/
-				var backwards = (self._yoyo && (prevCycle & 1) !== 0),
-					wrap = (backwards === (self._yoyo && (self._cycle & 1) !== 0)),
-					recTotalTime = self._totalTime,
-					recCycle = self._cycle,
-					recRawPrevTime = self._rawPrevTime,
-					recTime = self._time;
-
-				self._totalTime = prevCycle * dur;
-				if (self._cycle < prevCycle) {
-					backwards = !backwards;
-				} else {
-					self._totalTime += dur;
-				}
-				self._time = prevTime; //temporarily revert _time so that render() renders the children in the correct order. Without this, tweens won't rewind correctly. We could arhictect things in a "cleaner" way by splitting out the rendering queue into a separate method but for performance reasons, we kept it all inside this method.
-
-				self._rawPrevTime = (dur === 0) ? prevRawPrevTime - 0.0001 : prevRawPrevTime;
-				self._cycle = prevCycle;
-				self._locked = true; //prevents changes to totalTime and skips repeat/yoyo behavior when we recursively call render()
-				prevTime = (backwards) ? 0 : dur;
-				self.render(prevTime, suppressEvents, (dur === 0));
-				if (!suppressEvents) if (!self._gc) {
-					if (self.vars.onRepeat) {
-						self._cycle = recCycle; //in case the onRepeat alters the playhead or invalidates(), we shouldn't stay locked or use the previous cycle.
-						self._locked = false;
-						self._callback("onRepeat");
-					}
-				}
-				if (prevTime !== self._time) { //in case there's a callback like onComplete in a nested tween/timeline that changes the playhead position, like via seek(), we should just abort.
-					return;
-				}
-				if (wrap) {
-					self._cycle = prevCycle; //if there's an onRepeat, we reverted this above, so make sure it's set properly again. We also unlocked in that scenario, so reset that too.
-					self._locked = true;
-					prevTime = (backwards) ? dur + 0.0001 : -0.0001;
-					self.render(prevTime, true, false);
-				}
-				self._locked = false;
-				if (self._paused && !prevPaused) { //if the render() triggered callback that paused this timeline, we should abort (very rare, but possible)
-					return;
-				}
-				self._time = recTime;
-				self._totalTime = recTotalTime;
-				self._cycle = recCycle;
-				self._rawPrevTime = recRawPrevTime;
-			}
-
-			if ((self._time === prevTime || !self._first) && !force && !internalForce && !pauseTween) {
-				if (prevTotalTime !== self._totalTime) if (self._onUpdate) if (!suppressEvents) { //so that onUpdate fires even during the repeatDelay - as long as the totalTime changed, we should trigger onUpdate.
-					self._callback("onUpdate");
-				}
-				return;
-			} else if (!self._initted) {
-				self._initted = true;
-			}
-
-			if (!self._active) if (!self._paused && self._totalTime !== prevTotalTime && time > 0) {
-				self._active = true;  //so that if the user renders the timeline (as opposed to the parent timeline rendering it), it is forced to re-render and align it with the proper time/frame on the next rendering cycle. Maybe the timeline already finished but the user manually re-renders it as halfway done, for example.
-			}
-
-			if (prevTotalTime === 0) if (self.vars.onStart) if (self._totalTime !== 0 || !self._totalDuration) if (!suppressEvents) {
-				self._callback("onStart");
-			}
-
-			curTime = self._time;
-			if (curTime >= prevTime) {
-				tween = self._first;
-				while (tween) {
-					next = tween._next; //record it here because the value could change after rendering...
-					if (curTime !== self._time || (self._paused && !prevPaused)) { //in case a tween pauses or seeks the timeline when rendering, like inside of an onUpdate/onComplete
-						break;
-					} else if (tween._active || (tween._startTime <= self._time && !tween._paused && !tween._gc)) {
-						if (pauseTween === tween) {
-							self.pause();
-							self._pauseTime = pauseTime; //so that when we resume(), it's starting from exactly the right spot (the pause() method uses the rawTime for the parent, but that may be a bit too far ahead)
-						}
-						if (!tween._reversed) {
-							tween.render((time - tween._startTime) * tween._timeScale, suppressEvents, force);
-						} else {
-							tween.render(((!tween._dirty) ? tween._totalDuration : tween.totalDuration()) - ((time - tween._startTime) * tween._timeScale), suppressEvents, force);
-						}
-					}
-					tween = next;
-				}
-			} else {
-				tween = self._last;
-				while (tween) {
-					next = tween._prev; //record it here because the value could change after rendering...
-					if (curTime !== self._time || (self._paused && !prevPaused)) { //in case a tween pauses or seeks the timeline when rendering, like inside of an onUpdate/onComplete
-						break;
-					} else if (tween._active || (tween._startTime <= prevTime && !tween._paused && !tween._gc)) {
-						if (pauseTween === tween) {
-							pauseTween = tween._prev; //the linked list is organized by _startTime, thus it's possible that a tween could start BEFORE the pause and end after it, in which case it would be positioned before the pause tween in the linked list, but we should render it before we pause() the timeline and cease rendering. This is only a concern when going in reverse.
-							while (pauseTween && pauseTween.endTime() > self._time) {
-								pauseTween.render( (pauseTween._reversed ? pauseTween.totalDuration() - ((time - pauseTween._startTime) * pauseTween._timeScale) : (time - pauseTween._startTime) * pauseTween._timeScale), suppressEvents, force);
-								pauseTween = pauseTween._prev;
-							}
-							pauseTween = null;
-							self.pause();
-							self._pauseTime = pauseTime; //so that when we resume(), it's starting from exactly the right spot (the pause() method uses the rawTime for the parent, but that may be a bit too far ahead)
-						}
-						if (!tween._reversed) {
-							tween.render((time - tween._startTime) * tween._timeScale, suppressEvents, force);
-						} else {
-							tween.render(((!tween._dirty) ? tween._totalDuration : tween.totalDuration()) - ((time - tween._startTime) * tween._timeScale), suppressEvents, force);
-						}
-					}
-					tween = next;
-				}
-			}
-
-			if (self._onUpdate) if (!suppressEvents) {
-				if (_lazyTweens.length) { //in case rendering caused any tweens to lazy-init, we should render them because typically when a timeline finishes, users expect things to have rendered fully. Imagine an onUpdate on a timeline that reports/checks tweened values.
-					_lazyRender();
-				}
-				self._callback("onUpdate");
-			}
-			if (callback) if (!self._locked) if (!self._gc) if (prevStart === self._startTime || prevTimeScale !== self._timeScale) if (self._time === 0 || totalDur >= self.totalDuration()) { //if one of the tweens that was rendered altered this timeline's startTime (like if an onComplete reversed the timeline), it probably isn't complete. If it is, don't worry, because whatever call altered the startTime would complete if it was necessary at the new time. The only exception is the timeScale property. Also check _gc because there's a chance that kill() could be called in an onUpdate
-				if (isComplete) {
-					if (_lazyTweens.length) { //in case rendering caused any tweens to lazy-init, we should render them because typically when a timeline finishes, users expect things to have rendered fully. Imagine an onComplete on a timeline that reports/checks tweened values.
-						_lazyRender();
-					}
-					if (self._timeline.autoRemoveChildren) {
-						self._enabled(false, false);
-					}
-					self._active = false;
-				}
-				if (!suppressEvents && self.vars[callback]) {
-					self._callback(callback);
-				}
-			}
-		};
-
-		p.getActive = function(nested, tweens, timelines) {
-			var a = [],
-				all = this.getChildren(nested || (nested == null), tweens || (nested == null), !!timelines),
-				cnt = 0,
-				l = all.length,
-				i, tween;
-			for (i = 0; i < l; i++) {
-				tween = all[i];
-				if (tween.isActive()) {
-					a[cnt++] = tween;
-				}
-			}
-			return a;
-		};
-
-
-		p.getLabelAfter = function(time) {
-			if (!time) if (time !== 0) { //faster than isNan()
-				time = this._time;
-			}
-			var labels = this.getLabelsArray(),
-				l = labels.length,
-				i;
-			for (i = 0; i < l; i++) {
-				if (labels[i].time > time) {
-					return labels[i].name;
-				}
-			}
-			return null;
-		};
-
-		p.getLabelBefore = function(time) {
-			if (time == null) {
-				time = this._time;
-			}
-			var labels = this.getLabelsArray(),
-				i = labels.length;
-			while (--i > -1) {
-				if (labels[i].time < time) {
-					return labels[i].name;
-				}
-			}
-			return null;
-		};
-
-		p.getLabelsArray = function() {
-			var a = [],
-				cnt = 0,
-				p;
-			for (p in this._labels) {
-				a[cnt++] = {time:this._labels[p], name:p};
-			}
-			a.sort(function(a,b) {
-				return a.time - b.time;
-			});
-			return a;
-		};
-
-		p.invalidate = function() {
-			this._locked = false; //unlock and set cycle in case invalidate() is called from inside an onRepeat
-			return TimelineLite.prototype.invalidate.call(this);
-		};
-
-
-//---- GETTERS / SETTERS -------------------------------------------------------------------------------------------------------
-
-		p.progress = function(value, suppressEvents) {
-			return (!arguments.length) ? (this._time / this.duration()) || 0 : this.totalTime( this.duration() * ((this._yoyo && (this._cycle & 1) !== 0) ? 1 - value : value) + (this._cycle * (this._duration + this._repeatDelay)), suppressEvents);
-		};
-
-		p.totalProgress = function(value, suppressEvents) {
-			return (!arguments.length) ? (this._totalTime / this.totalDuration()) || 0 : this.totalTime( this.totalDuration() * value, suppressEvents);
-		};
-
-		p.totalDuration = function(value) {
-			if (!arguments.length) {
-				if (this._dirty) {
-					TimelineLite.prototype.totalDuration.call(this); //just forces refresh
-					//Instead of Infinity, we use 999999999999 so that we can accommodate reverses.
-					this._totalDuration = (this._repeat === -1) ? 999999999999 : this._duration * (this._repeat + 1) + (this._repeatDelay * this._repeat);
-				}
-				return this._totalDuration;
-			}
-			return (this._repeat === -1 || !value) ? this : this.timeScale( this.totalDuration() / value );
-		};
-
-		p.time = function(value, suppressEvents) {
-			if (!arguments.length) {
-				return this._time;
-			}
-			if (this._dirty) {
-				this.totalDuration();
-			}
-			var duration = this._duration,
-				cycle = this._cycle,
-				cycleDur = cycle * (duration + this._repeatDelay);
-			if (value > duration) {
-				value = duration;
-			}
-			return this.totalTime((this._yoyo && (cycle & 1)) ? duration - value + cycleDur : this._repeat ? value + cycleDur : value, suppressEvents);
-		};
-
-		p.repeat = function(value) {
-			if (!arguments.length) {
-				return this._repeat;
-			}
-			this._repeat = value;
-			return this._uncache(true);
-		};
-
-		p.repeatDelay = function(value) {
-			if (!arguments.length) {
-				return this._repeatDelay;
-			}
-			this._repeatDelay = value;
-			return this._uncache(true);
-		};
-
-		p.yoyo = function(value) {
-			if (!arguments.length) {
-				return this._yoyo;
-			}
-			this._yoyo = value;
-			return this;
-		};
-
-		p.currentLabel = function(value) {
-			if (!arguments.length) {
-				return this.getLabelBefore(this._time + _tinyNum);
-			}
-			return this.seek(value, true);
-		};
-		
-		return TimelineMax;
-		
-	}, true);
-
-var TimelineMax = globals.TimelineMax;
 
 /*!
  * VERSION: 2.1.3
@@ -7279,492 +6094,6 @@ var Circ = globals.Circ;
 var Expo = globals.Expo;
 var Sine = globals.Sine;
 var ExpoScaleEase = globals.ExpoScaleEase;
-
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
-var evEmitter = createCommonjsModule(function (module) {
-/**
- * EvEmitter v1.1.0
- * Lil' event emitter
- * MIT License
- */
-
-/* jshint unused: true, undef: true, strict: true */
-
-( function( global, factory ) {
-  // universal module definition
-  /* jshint strict: false */ /* globals define, module, window */
-  if (  module.exports ) {
-    // CommonJS - Browserify, Webpack
-    module.exports = factory();
-  } else {
-    // Browser globals
-    global.EvEmitter = factory();
-  }
-
-}( typeof window != 'undefined' ? window : commonjsGlobal, function() {
-
-function EvEmitter() {}
-
-var proto = EvEmitter.prototype;
-
-proto.on = function( eventName, listener ) {
-  if ( !eventName || !listener ) {
-    return;
-  }
-  // set events hash
-  var events = this._events = this._events || {};
-  // set listeners array
-  var listeners = events[ eventName ] = events[ eventName ] || [];
-  // only add once
-  if ( listeners.indexOf( listener ) == -1 ) {
-    listeners.push( listener );
-  }
-
-  return this;
-};
-
-proto.once = function( eventName, listener ) {
-  if ( !eventName || !listener ) {
-    return;
-  }
-  // add event
-  this.on( eventName, listener );
-  // set once flag
-  // set onceEvents hash
-  var onceEvents = this._onceEvents = this._onceEvents || {};
-  // set onceListeners object
-  var onceListeners = onceEvents[ eventName ] = onceEvents[ eventName ] || {};
-  // set flag
-  onceListeners[ listener ] = true;
-
-  return this;
-};
-
-proto.off = function( eventName, listener ) {
-  var listeners = this._events && this._events[ eventName ];
-  if ( !listeners || !listeners.length ) {
-    return;
-  }
-  var index = listeners.indexOf( listener );
-  if ( index != -1 ) {
-    listeners.splice( index, 1 );
-  }
-
-  return this;
-};
-
-proto.emitEvent = function( eventName, args ) {
-  var listeners = this._events && this._events[ eventName ];
-  if ( !listeners || !listeners.length ) {
-    return;
-  }
-  // copy over to avoid interference if .off() in listener
-  listeners = listeners.slice(0);
-  args = args || [];
-  // once stuff
-  var onceListeners = this._onceEvents && this._onceEvents[ eventName ];
-
-  for ( var i=0; i < listeners.length; i++ ) {
-    var listener = listeners[i];
-    var isOnce = onceListeners && onceListeners[ listener ];
-    if ( isOnce ) {
-      // remove listener
-      // remove before trigger to prevent recursion
-      this.off( eventName, listener );
-      // unset once flag
-      delete onceListeners[ listener ];
-    }
-    // trigger listener
-    listener.apply( this, args );
-  }
-
-  return this;
-};
-
-proto.allOff = function() {
-  delete this._events;
-  delete this._onceEvents;
-};
-
-return EvEmitter;
-
-}));
-});
-
-var imagesloaded = createCommonjsModule(function (module) {
-/*!
- * imagesLoaded v4.1.4
- * JavaScript is all like "You images are done yet or what?"
- * MIT License
- */
-
-( function( window, factory ) {  // universal module definition
-
-  /*global define: false, module: false, require: false */
-
-  if (  module.exports ) {
-    // CommonJS
-    module.exports = factory(
-      window,
-      evEmitter
-    );
-  } else {
-    // browser global
-    window.imagesLoaded = factory(
-      window,
-      window.EvEmitter
-    );
-  }
-
-})( typeof window !== 'undefined' ? window : commonjsGlobal,
-
-// --------------------------  factory -------------------------- //
-
-function factory( window, EvEmitter ) {
-
-var $ = window.jQuery;
-var console = window.console;
-
-// -------------------------- helpers -------------------------- //
-
-// extend objects
-function extend( a, b ) {
-  for ( var prop in b ) {
-    a[ prop ] = b[ prop ];
-  }
-  return a;
-}
-
-var arraySlice = Array.prototype.slice;
-
-// turn element or nodeList into an array
-function makeArray( obj ) {
-  if ( Array.isArray( obj ) ) {
-    // use object if already an array
-    return obj;
-  }
-
-  var isArrayLike = typeof obj == 'object' && typeof obj.length == 'number';
-  if ( isArrayLike ) {
-    // convert nodeList to array
-    return arraySlice.call( obj );
-  }
-
-  // array of single index
-  return [ obj ];
-}
-
-// -------------------------- imagesLoaded -------------------------- //
-
-/**
- * @param {Array, Element, NodeList, String} elem
- * @param {Object or Function} options - if function, use as callback
- * @param {Function} onAlways - callback function
- */
-function ImagesLoaded( elem, options, onAlways ) {
-  // coerce ImagesLoaded() without new, to be new ImagesLoaded()
-  if ( !( this instanceof ImagesLoaded ) ) {
-    return new ImagesLoaded( elem, options, onAlways );
-  }
-  // use elem as selector string
-  var queryElem = elem;
-  if ( typeof elem == 'string' ) {
-    queryElem = document.querySelectorAll( elem );
-  }
-  // bail if bad element
-  if ( !queryElem ) {
-    console.error( 'Bad element for imagesLoaded ' + ( queryElem || elem ) );
-    return;
-  }
-
-  this.elements = makeArray( queryElem );
-  this.options = extend( {}, this.options );
-  // shift arguments if no options set
-  if ( typeof options == 'function' ) {
-    onAlways = options;
-  } else {
-    extend( this.options, options );
-  }
-
-  if ( onAlways ) {
-    this.on( 'always', onAlways );
-  }
-
-  this.getImages();
-
-  if ( $ ) {
-    // add jQuery Deferred object
-    this.jqDeferred = new $.Deferred();
-  }
-
-  // HACK check async to allow time to bind listeners
-  setTimeout( this.check.bind( this ) );
-}
-
-ImagesLoaded.prototype = Object.create( EvEmitter.prototype );
-
-ImagesLoaded.prototype.options = {};
-
-ImagesLoaded.prototype.getImages = function() {
-  this.images = [];
-
-  // filter & find items if we have an item selector
-  this.elements.forEach( this.addElementImages, this );
-};
-
-/**
- * @param {Node} element
- */
-ImagesLoaded.prototype.addElementImages = function( elem ) {
-  // filter siblings
-  if ( elem.nodeName == 'IMG' ) {
-    this.addImage( elem );
-  }
-  // get background image on element
-  if ( this.options.background === true ) {
-    this.addElementBackgroundImages( elem );
-  }
-
-  // find children
-  // no non-element nodes, #143
-  var nodeType = elem.nodeType;
-  if ( !nodeType || !elementNodeTypes[ nodeType ] ) {
-    return;
-  }
-  var childImgs = elem.querySelectorAll('img');
-  // concat childElems to filterFound array
-  for ( var i=0; i < childImgs.length; i++ ) {
-    var img = childImgs[i];
-    this.addImage( img );
-  }
-
-  // get child background images
-  if ( typeof this.options.background == 'string' ) {
-    var children = elem.querySelectorAll( this.options.background );
-    for ( i=0; i < children.length; i++ ) {
-      var child = children[i];
-      this.addElementBackgroundImages( child );
-    }
-  }
-};
-
-var elementNodeTypes = {
-  1: true,
-  9: true,
-  11: true
-};
-
-ImagesLoaded.prototype.addElementBackgroundImages = function( elem ) {
-  var style = getComputedStyle( elem );
-  if ( !style ) {
-    // Firefox returns null if in a hidden iframe https://bugzil.la/548397
-    return;
-  }
-  // get url inside url("...")
-  var reURL = /url\((['"])?(.*?)\1\)/gi;
-  var matches = reURL.exec( style.backgroundImage );
-  while ( matches !== null ) {
-    var url = matches && matches[2];
-    if ( url ) {
-      this.addBackground( url, elem );
-    }
-    matches = reURL.exec( style.backgroundImage );
-  }
-};
-
-/**
- * @param {Image} img
- */
-ImagesLoaded.prototype.addImage = function( img ) {
-  var loadingImage = new LoadingImage( img );
-  this.images.push( loadingImage );
-};
-
-ImagesLoaded.prototype.addBackground = function( url, elem ) {
-  var background = new Background( url, elem );
-  this.images.push( background );
-};
-
-ImagesLoaded.prototype.check = function() {
-  var _this = this;
-  this.progressedCount = 0;
-  this.hasAnyBroken = false;
-  // complete if no images
-  if ( !this.images.length ) {
-    this.complete();
-    return;
-  }
-
-  function onProgress( image, elem, message ) {
-    // HACK - Chrome triggers event before object properties have changed. #83
-    setTimeout( function() {
-      _this.progress( image, elem, message );
-    });
-  }
-
-  this.images.forEach( function( loadingImage ) {
-    loadingImage.once( 'progress', onProgress );
-    loadingImage.check();
-  });
-};
-
-ImagesLoaded.prototype.progress = function( image, elem, message ) {
-  this.progressedCount++;
-  this.hasAnyBroken = this.hasAnyBroken || !image.isLoaded;
-  // progress event
-  this.emitEvent( 'progress', [ this, image, elem ] );
-  if ( this.jqDeferred && this.jqDeferred.notify ) {
-    this.jqDeferred.notify( this, image );
-  }
-  // check if completed
-  if ( this.progressedCount == this.images.length ) {
-    this.complete();
-  }
-
-  if ( this.options.debug && console ) {
-    console.log( 'progress: ' + message, image, elem );
-  }
-};
-
-ImagesLoaded.prototype.complete = function() {
-  var eventName = this.hasAnyBroken ? 'fail' : 'done';
-  this.isComplete = true;
-  this.emitEvent( eventName, [ this ] );
-  this.emitEvent( 'always', [ this ] );
-  if ( this.jqDeferred ) {
-    var jqMethod = this.hasAnyBroken ? 'reject' : 'resolve';
-    this.jqDeferred[ jqMethod ]( this );
-  }
-};
-
-// --------------------------  -------------------------- //
-
-function LoadingImage( img ) {
-  this.img = img;
-}
-
-LoadingImage.prototype = Object.create( EvEmitter.prototype );
-
-LoadingImage.prototype.check = function() {
-  // If complete is true and browser supports natural sizes,
-  // try to check for image status manually.
-  var isComplete = this.getIsImageComplete();
-  if ( isComplete ) {
-    // report based on naturalWidth
-    this.confirm( this.img.naturalWidth !== 0, 'naturalWidth' );
-    return;
-  }
-
-  // If none of the checks above matched, simulate loading on detached element.
-  this.proxyImage = new Image();
-  this.proxyImage.addEventListener( 'load', this );
-  this.proxyImage.addEventListener( 'error', this );
-  // bind to image as well for Firefox. #191
-  this.img.addEventListener( 'load', this );
-  this.img.addEventListener( 'error', this );
-  this.proxyImage.src = this.img.src;
-};
-
-LoadingImage.prototype.getIsImageComplete = function() {
-  // check for non-zero, non-undefined naturalWidth
-  // fixes Safari+InfiniteScroll+Masonry bug infinite-scroll#671
-  return this.img.complete && this.img.naturalWidth;
-};
-
-LoadingImage.prototype.confirm = function( isLoaded, message ) {
-  this.isLoaded = isLoaded;
-  this.emitEvent( 'progress', [ this, this.img, message ] );
-};
-
-// ----- events ----- //
-
-// trigger specified handler for event type
-LoadingImage.prototype.handleEvent = function( event ) {
-  var method = 'on' + event.type;
-  if ( this[ method ] ) {
-    this[ method ]( event );
-  }
-};
-
-LoadingImage.prototype.onload = function() {
-  this.confirm( true, 'onload' );
-  this.unbindEvents();
-};
-
-LoadingImage.prototype.onerror = function() {
-  this.confirm( false, 'onerror' );
-  this.unbindEvents();
-};
-
-LoadingImage.prototype.unbindEvents = function() {
-  this.proxyImage.removeEventListener( 'load', this );
-  this.proxyImage.removeEventListener( 'error', this );
-  this.img.removeEventListener( 'load', this );
-  this.img.removeEventListener( 'error', this );
-};
-
-// -------------------------- Background -------------------------- //
-
-function Background( url, element ) {
-  this.url = url;
-  this.element = element;
-  this.img = new Image();
-}
-
-// inherit LoadingImage prototype
-Background.prototype = Object.create( LoadingImage.prototype );
-
-Background.prototype.check = function() {
-  this.img.addEventListener( 'load', this );
-  this.img.addEventListener( 'error', this );
-  this.img.src = this.url;
-  // check if image is already complete
-  var isComplete = this.getIsImageComplete();
-  if ( isComplete ) {
-    this.confirm( this.img.naturalWidth !== 0, 'naturalWidth' );
-    this.unbindEvents();
-  }
-};
-
-Background.prototype.unbindEvents = function() {
-  this.img.removeEventListener( 'load', this );
-  this.img.removeEventListener( 'error', this );
-};
-
-Background.prototype.confirm = function( isLoaded, message ) {
-  this.isLoaded = isLoaded;
-  this.emitEvent( 'progress', [ this, this.element, message ] );
-};
-
-// -------------------------- jQuery -------------------------- //
-
-ImagesLoaded.makeJQueryPlugin = function( jQuery ) {
-  jQuery = jQuery || window.jQuery;
-  if ( !jQuery ) {
-    return;
-  }
-  // set local variable
-  $ = jQuery;
-  // $().imagesLoaded()
-  $.fn.imagesLoaded = function( options, callback ) {
-    var instance = new ImagesLoaded( this, options, callback );
-    return instance.jqDeferred.promise( $(this) );
-  };
-};
-// try making plugin
-ImagesLoaded.makeJQueryPlugin();
-
-// --------------------------  -------------------------- //
-
-return ImagesLoaded;
-
-});
-});
 
 function isElement(el) {
   return el != null && typeof el === 'object' && el.nodeType === 1;
@@ -11085,6 +9414,12 @@ function () {
   return Hammer;
 }();
 
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
 var lodash_defaultsdeep = createCommonjsModule(function (module, exports) {
 /**
  * Lodash (Custom Build) <https://lodash.com/>
@@ -13173,12 +11508,12 @@ const DEFAULT_OPTIONS = {
     fadeIn: () => {
       const fader = document.querySelector('#fader');
 
-      TweenMax.to(fader, 0.65, {
+      TweenLite.to(fader, 0.65, {
         opacity: 0,
         ease: Power1.easeInOut,
         delay: 0.35,
         onComplete: () => {
-          TweenMax.set(fader, { display: 'none' });
+          TweenLite.set(fader, { display: 'none' });
           document.body.classList.remove('unloaded');
         }
       });
@@ -13196,7 +11531,7 @@ class Application {
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion();
 
     if (this.PREFERS_REDUCED_MOTION) {
-      TweenMax.globalTimeScale(200);
+      TweenLite.globalTimeScale(200);
       document.documentElement.classList.add('prefers-reduced-motion');
     }
 
@@ -13212,7 +11547,7 @@ class Application {
     window.addEventListener('scroll', rafCallback(this.onScroll));
     window.addEventListener('resize', rafCallback(this.onResize));
 
-    TweenMax.defaultEase = Sine.easeOut;
+    TweenLite.defaultEase = Sine.easeOut;
   }
 
   /**
@@ -13544,7 +11879,7 @@ class CoverOverlay {
 
 const DEFAULT_EVENTS = {
   onPin: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.35,
       {
@@ -13557,7 +11892,7 @@ const DEFAULT_EVENTS = {
 
   onUnpin: h => {
     h._hiding = true;
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.25,
       {
@@ -13572,7 +11907,7 @@ const DEFAULT_EVENTS = {
   },
 
   onAltBg: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.2,
       {
@@ -13582,7 +11917,7 @@ const DEFAULT_EVENTS = {
   },
 
   onNotAltBg: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       0.4,
       {
@@ -14018,14 +12353,14 @@ class FooterReveal {
     const main = document.querySelector('main');
     const footer = document.querySelector('[data-footer-reveal]');
     // fix footer
-    TweenMax.set(footer, {
+    TweenLite.set(footer, {
       'z-index': -100,
       position: 'fixed',
       bottom: 0
     });
     const footerHeight = footer.offsetHeight;
     // add height as margin
-    TweenMax.set(main, { marginBottom: footerHeight });
+    TweenLite.set(main, { marginBottom: footerHeight });
     if (this.opts.shadow) {
       const shadowStyle = `0 50px 50px -20px ${this.opts.shadowColor}`;
       main.style.mozBoxShadow = shadowStyle;
@@ -14424,7 +12759,7 @@ class HeroSlider {
   initialize () {
     this._addResizeHandler();
     // style the container
-    TweenMax.set(this.el, {
+    TweenLite.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -14442,7 +12777,7 @@ class HeroSlider {
 
     // style the slides
     Array.from(this.slides).forEach(s => {
-      TweenMax.set(s, {
+      TweenLite.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
         top: 0,
@@ -14454,7 +12789,7 @@ class HeroSlider {
       const img = s.querySelector('.hero-slide-img');
 
       if (img) {
-        TweenMax.set(img, {
+        TweenLite.set(img, {
           width: document.body.clientWidth,
           height: '100%',
           top: 0,
@@ -14473,12 +12808,12 @@ class HeroSlider {
 
     const fadeIn = () => {
       if (this.slides.length > 1) {
-        TweenMax.to(this.el, 0.250, {
+        TweenLite.to(this.el, 0.250, {
           opacity: 1,
           onComplete: () => { this.next(); }
         });
       } else {
-        TweenMax.to(this.el, 0.250, {
+        TweenLite.to(this.el, 0.250, {
           opacity: 1
         });
       }
@@ -14639,7 +12974,7 @@ class HeroSlider {
   }
 
   _resizeSlides () {
-    TweenMax.to(this.images, 0.150, {
+    TweenLite.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     });
@@ -14761,7 +13096,26 @@ class Lazyload {
   }
 }
 
-TweenMax.defaultEase = Sine.easeOut;
+function imageIsLoaded (img) {
+  return new Promise(resolve => {
+    if (img.complete) {
+      resolve({ img, status: 'ok' });
+    }
+
+    img.onload = () => resolve({ img, status: 'ok' });
+    img.onerror = () => resolve({ img, status: 'error' });
+  })
+}
+
+function imagesAreLoaded (el) {
+  const imgs = el.querySelectorAll('img');
+  if (imgs.length) {
+    return Promise.all(Array.from(imgs).map(imageIsLoaded))
+  }
+  return new Promise(resolve => { resolve({ imgs, status: 'ok' }); })
+}
+
+TweenLite.defaultEase = Sine.easeOut;
 
 const DEFAULT_OPTIONS$9 = {
   captions: false,
@@ -14787,13 +13141,13 @@ const DEFAULT_OPTIONS$9 = {
 
   onClose: h => {
     if (h.opts.captions) {
-      TweenMax.to(h.caption, 0.45, { opacity: 0 });
+      TweenLite.to(h.caption, 0.45, { opacity: 0 });
     }
 
-    TweenMax.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
+    TweenLite.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenMax.to(h.wrapper, 0.45, {
+        TweenLite.to(h.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
             h.wrapper.parentNode.removeChild(h.wrapper);
@@ -14842,7 +13196,7 @@ class Lightbox {
   showBox (section, idx) {
     this.fader.style.display = 'block';
 
-    TweenMax.to(this.fader, 0.450, {
+    TweenLite.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
         this.buildBox(section, idx);
@@ -14938,8 +13292,8 @@ class Lightbox {
     this.setImg(section, idx, this.getPrevIdx(idx));
     this.attachSwiper(section, this.content, idx);
 
-    imagesloaded(this.wrapper, () => {
-      TweenMax.to(this.wrapper, 0.5, {
+    imagesAreLoaded(this.wrapper).then(() => {
+      TweenLite.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
           this.fader.style.display = 'none';
@@ -14971,7 +13325,7 @@ class Lightbox {
     a.classList.add('active');
 
     if (this.caption) {
-      TweenMax.to(this.caption, 0.5, {
+      TweenLite.to(this.caption, 0.5, {
         opacity: 0,
         onComplete: () => {
           this.caption.innerHTML = this.sections[section][x].alt;
@@ -14979,17 +13333,17 @@ class Lightbox {
       });
     }
 
-    TweenMax.to(this.img, 0.5, {
+    TweenLite.to(this.img, 0.5, {
       opacity: 0,
       onComplete: () => {
         this.img.src = this.sections[section][x].href;
 
-        TweenMax.to(this.img, 0.5, {
+        TweenLite.to(this.img, 0.5, {
           opacity: 1
         });
 
         if (this.caption) {
-          TweenMax.to(this.caption, 0.5, { opacity: 1 });
+          TweenLite.to(this.caption, 0.5, { opacity: 1 });
         }
       }
     });
@@ -15041,12 +13395,12 @@ const DEFAULT_OPTIONS$a = {
     const fader = document.querySelector('#fader');
 
     fader.style.display = 'block';
-    TweenMax.to(main, 0.8, {
+    TweenLite.to(main, 0.8, {
       y: 25,
       ease: Power3.easeOut
     });
 
-    TweenMax.to(fader, 0.2, {
+    TweenLite.to(fader, 0.2, {
       opacity: 1,
       onComplete: () => {
         window.location = href;
@@ -15303,7 +13657,7 @@ class Moonwalk {
 
     return Array.from(sections).map(section => ({
       el: section,
-      timeline: new TimelineMax(),
+      timeline: new TimelineLite(),
       observer: null,
       elements: []
     }))
@@ -15402,16 +13756,9 @@ class Moonwalk {
 
             if (entry.target.tagName === 'IMG') {
               // ensure image is loaded before we tween
-              this.imageIsLoaded(entry.target).then(() => tween());
+              imageIsLoaded(entry.target).then(() => tween());
             } else {
-              const imagesInEntry = entry.target.querySelectorAll('img');
-              if (imagesInEntry.length) {
-                // entry has children elements that are images
-                this.imagesAreLoaded(imagesInEntry).then(() => tween());
-              } else {
-                // regular entry, just tween it
-                tween();
-              }
+              imagesAreLoaded(entry.target).then(() => tween());
             }
 
             self.unobserve(entry.target);
@@ -15428,32 +13775,17 @@ class Moonwalk {
       });
     });
   }
-
-  imageIsLoaded (img) {
-    return new Promise(resolve => {
-      if (img.complete) {
-        resolve({ img, status: 'ok' });
-      }
-
-      img.onload = () => resolve({ img, status: 'ok' });
-      img.onerror = () => resolve({ img, status: 'error' });
-    })
-  }
-
-  imagesAreLoaded (imgs) {
-    return Promise.all(Array.from(imgs).map(this.imageIsLoaded))
-  }
 }
 
 const DEFAULT_OPTIONS$d = {
   backdropColor: '#ffffff',
 
   tweenIn: (el, popup) => {
-    TweenMax.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor });
-    TweenMax.to(popup.backdrop, 0.3, {
+    TweenLite.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor });
+    TweenLite.to(popup.backdrop, 0.3, {
       opacity: 1,
       onComplete: () => {
-        TweenMax.fromTo(el, 0.3, {
+        TweenLite.fromTo(el, 0.3, {
           yPercent: -50,
           x: -5,
           xPercent: -50,
@@ -15471,11 +13803,11 @@ const DEFAULT_OPTIONS$d = {
 
   tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]');
-    TweenMax.to(popups, 0.3, { opacity: 0, display: 'none' });
-    TweenMax.to(popup.backdrop, 0.3, {
+    TweenLite.to(popups, 0.3, { opacity: 0, display: 'none' });
+    TweenLite.to(popup.backdrop, 0.3, {
       opacity: 0,
       onComplete: () => {
-        TweenMax.set(popup.backdrop, { display: 'none' });
+        TweenLite.set(popup.backdrop, { display: 'none' });
       }
     });
   }
@@ -15490,7 +13822,7 @@ class Popup {
   createBackdrop () {
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-popup-backdrop', '');
-    TweenMax.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 });
+    TweenLite.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 });
 
     backdrop.addEventListener('click', e => {
       e.stopPropagation();
@@ -15581,11 +13913,11 @@ class StackedBoxes {
   }
 
   pull (box, amnt) {
-    TweenMax.set(box, { y: amnt * -1, marginBottom: amnt * -1 });
+    TweenLite.set(box, { y: amnt * -1, marginBottom: amnt * -1 });
   }
 
   size (target, src) {
-    TweenMax.set(target, { height: src.clientHeight });
+    TweenLite.set(target, { height: src.clientHeight });
   }
 }
 
@@ -15616,7 +13948,7 @@ class StackedBoxes {
 
 const DEFAULT_EVENTS$1 = {
   onMainVisible: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       3,
       { opacity: 1, delay: 0.5 },
@@ -15624,7 +13956,7 @@ const DEFAULT_EVENTS$1 = {
   },
 
   onMainInvisible: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.el,
       1,
       { opacity: 0 },
@@ -15632,7 +13964,7 @@ const DEFAULT_EVENTS$1 = {
   },
 
   onPin: h => {
-    TweenMax.to(
+    TweenLite.to(
       h.auxEl,
       0.35,
       {
@@ -15645,7 +13977,7 @@ const DEFAULT_EVENTS$1 = {
 
   onUnpin: h => {
     h._hiding = true;
-    TweenMax.to(
+    TweenLite.to(
       h.auxEl,
       0.25,
       {
@@ -16162,4 +14494,4 @@ var loadScript = (url, completeCallback) => {
   head.appendChild(script);
 };
 
-export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TimelineMax, TweenMax, Typography, imagesloaded as imagesLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
+export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenLite, Typography, imageIsLoaded, imagesAreLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };

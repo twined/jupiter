@@ -1,4 +1,4 @@
-import { TweenMax, Sine, Power1 } from 'gsap/all'
+import { TweenLite, Sine, Power1 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
@@ -9,12 +9,12 @@ const DEFAULT_OPTIONS = {
     fadeIn: () => {
       const fader = document.querySelector('#fader')
 
-      TweenMax.to(fader, 0.65, {
+      TweenLite.to(fader, 0.65, {
         opacity: 0,
         ease: Power1.easeInOut,
         delay: 0.35,
         onComplete: () => {
-          TweenMax.set(fader, { display: 'none' })
+          TweenLite.set(fader, { display: 'none' })
           document.body.classList.remove('unloaded')
         }
       })
@@ -32,7 +32,7 @@ export default class Application {
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
 
     if (this.PREFERS_REDUCED_MOTION) {
-      TweenMax.globalTimeScale(200)
+      TweenLite.globalTimeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
 
@@ -48,7 +48,7 @@ export default class Application {
     window.addEventListener('scroll', rafCallback(this.onScroll))
     window.addEventListener('resize', rafCallback(this.onResize))
 
-    TweenMax.defaultEase = Sine.easeOut
+    TweenLite.defaultEase = Sine.easeOut
   }
 
   /**

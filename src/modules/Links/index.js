@@ -1,4 +1,4 @@
-import { TweenMax, Power3 } from 'gsap/all'
+import { TweenLite, Power3 } from 'gsap/all'
 import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
@@ -12,12 +12,12 @@ const DEFAULT_OPTIONS = {
     const fader = document.querySelector('#fader')
 
     fader.style.display = 'block'
-    TweenMax.to(main, 0.8, {
+    TweenLite.to(main, 0.8, {
       y: 25,
       ease: Power3.easeOut
     })
 
-    TweenMax.to(fader, 0.2, {
+    TweenLite.to(fader, 0.2, {
       opacity: 1,
       onComplete: () => {
         window.location = href

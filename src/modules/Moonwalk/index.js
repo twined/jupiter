@@ -1,7 +1,9 @@
-import { TimelineMax } from 'gsap/all'
+import { TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
+import imageIsLoaded from '../../utils/imageIsLoaded'
+import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
 // eslint-disable-next-line no-unused-vars
 // const plugins = [CSSPlugin]
@@ -65,7 +67,7 @@ export default class Moonwalk {
 
     return Array.from(sections).map(section => ({
       el: section,
-      timeline: new TimelineMax(),
+      timeline: new TimelineLite(),
       observer: null,
       elements: []
     }))
@@ -164,16 +166,9 @@ export default class Moonwalk {
 
             if (entry.target.tagName === 'IMG') {
               // ensure image is loaded before we tween
-              this.imageIsLoaded(entry.target).then(() => tween())
+              imageIsLoaded(entry.target).then(() => tween())
             } else {
-              const imagesInEntry = entry.target.querySelectorAll('img')
-              if (imagesInEntry.length) {
-                // entry has children elements that are images
-                this.imagesAreLoaded(imagesInEntry).then(() => tween())
-              } else {
-                // regular entry, just tween it
-                tween()
-              }
+              imagesAreLoaded(entry.target).then(() => tween())
             }
 
             self.unobserve(entry.target)
@@ -189,20 +184,5 @@ export default class Moonwalk {
         section.observer.observe(box)
       })
     })
-  }
-
-  imageIsLoaded (img) {
-    return new Promise(resolve => {
-      if (img.complete) {
-        resolve({ img, status: 'ok' })
-      }
-
-      img.onload = () => resolve({ img, status: 'ok' });
-      img.onerror = () => resolve({ img, status: 'error' });
-    })
-  }
-
-  imagesAreLoaded (imgs) {
-    return Promise.all(Array.from(imgs).map(this.imageIsLoaded))
   }
 }

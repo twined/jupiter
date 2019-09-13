@@ -1,5 +1,8 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import analyze from 'rollup-plugin-analyzer';
+import size from 'rollup-plugin-bundle-size';
+
 import pkg from './package.json';
 
 export default [
@@ -10,7 +13,9 @@ export default [
     ],
     plugins: [
       resolve(),
-      commonjs()
+      commonjs(),
+      analyze({ summaryOnly: true }),
+      size()
     ]
   }
 ];
