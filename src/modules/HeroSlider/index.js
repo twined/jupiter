@@ -272,9 +272,10 @@ export default class HeroSlider {
     this.observer = new IntersectionObserver(entries => {
       const [{ isIntersecting }] = entries
       if (isIntersecting) {
-        window.addEventListener('resize', this._resizeSlides.bind(this))
+        this._resizeSlides()
+        window.addEventListener(Events.APPLICATION_RESIZE, this._resizeSlides.bind(this))
       } else {
-        window.removeEventListener('resize', this._resizeSlides.bind(this))
+        window.removeEventListener(Events.APPLICATION_RESIZE, this._resizeSlides.bind(this))
       }
     })
 

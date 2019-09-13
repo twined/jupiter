@@ -1,6 +1,5 @@
 import { TimelineLite, Power3, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import _debounce from 'lodash.debounce'
 import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
@@ -90,7 +89,7 @@ export default class MobileMenu {
     })
 
     if (this.opts.onResize) {
-      window.addEventListener('resize', _debounce(() => this.opts.onResize(this), 150))
+      window.addEventListener(Events.APPLICATION_RESIZE, this.opts.onResize.bind(this))
     }
   }
 
