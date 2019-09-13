@@ -14634,7 +14634,7 @@ class HeroSlider {
 
 const DEFAULT_OPTIONS$8 = {
   intersectionObserverConfig: {
-    rootMargin: '200px 0px',
+    rootMargin: '350px 0px',
     threshold: 0.0
   },
   useNativeLazyloadIfAvailable: true,

@@ -2,7 +2,7 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
   intersectionObserverConfig: {
-    rootMargin: '200px 0px',
+    rootMargin: '350px 0px',
     threshold: 0.0
   },
   useNativeLazyloadIfAvailable: true,
