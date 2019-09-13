@@ -117,7 +117,7 @@ export default class MobileMenu {
   }
 
   _emitMobileMenuClosedEvent () {
-    const mobileMenuClosedEvent = new window.CustomEvent(Events.APPLICATION_MOBILE_MENU_OPEN)
+    const mobileMenuClosedEvent = new window.CustomEvent(Events.APPLICATION_MOBILE_MENU_CLOSED)
     window.dispatchEvent(mobileMenuClosedEvent)
   }
 }
