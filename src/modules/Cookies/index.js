@@ -42,8 +42,10 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Cookies {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
     this.cc = document.querySelector('.cookie-container')
     this.inner = document.querySelector('.cookie-container-inner')
     this.text = document.querySelector('.cookie-law-text')

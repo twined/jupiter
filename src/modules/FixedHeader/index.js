@@ -118,18 +118,20 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class FixedHeader {
-  constructor (opts = {}) {
-    if (typeof opts.el === 'string') {
-      this.el = document.querySelector(opts.el)
+  constructor (app, opts = {}) {
+    this.app = app
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el)
     } else {
-      this.el = opts.el
+      this.el = this.opts.el
     }
 
     if (!this.el) {
       return
     }
 
-    opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
     const section = document.body.getAttribute('data-script')
     this.opts = this._getOptionsForSection(section, opts)

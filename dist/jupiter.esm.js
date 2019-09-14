@@ -11488,9 +11488,15 @@ const APPLICATION_MOBILE_MENU_CLOSED = 'APPLICATION:MOBILE_MENU:CLOSED';
 const APPLICATION_PRELUDIUM = 'APPLICATION_PRELUDIUM';
 const APPLICATION_INITIALIZED = 'APPLICATION:INITIALIZED';
 const APPLICATION_READY = 'APPLICATION:READY';
+const APPLICATION_REVEALED = 'APPLICATION:REVEALED';
 const APPLICATION_RESIZE = 'APPLICATION:RESIZE';
 const APPLICATION_SCROLL = 'APPLICATION:SCROLL';
+const APPLICATION_SCROLL_LOCKED = 'APPLICATION:SCROLL_LOCKED';
+const APPLICATION_SCROLL_RELEASED = 'APPLICATION:SCROLL_RELEASED';
+
 const APPLICATION_VISIBILITY_CHANGE = 'APPLICATION:VISIBILITY_CHANGE';
+const APPLICATION_HIDDEN = 'APPLICATION:HIDDEN';
+const APPLICATION_VISIBLE = 'APPLICATION:VISIBLE';
 
 var index = /*#__PURE__*/Object.freeze({
 	APPLICATION_MOBILE_MENU_OPEN: APPLICATION_MOBILE_MENU_OPEN,
@@ -11498,135 +11504,17 @@ var index = /*#__PURE__*/Object.freeze({
 	APPLICATION_PRELUDIUM: APPLICATION_PRELUDIUM,
 	APPLICATION_INITIALIZED: APPLICATION_INITIALIZED,
 	APPLICATION_READY: APPLICATION_READY,
+	APPLICATION_REVEALED: APPLICATION_REVEALED,
 	APPLICATION_RESIZE: APPLICATION_RESIZE,
 	APPLICATION_SCROLL: APPLICATION_SCROLL,
-	APPLICATION_VISIBILITY_CHANGE: APPLICATION_VISIBILITY_CHANGE
+	APPLICATION_SCROLL_LOCKED: APPLICATION_SCROLL_LOCKED,
+	APPLICATION_SCROLL_RELEASED: APPLICATION_SCROLL_RELEASED,
+	APPLICATION_VISIBILITY_CHANGE: APPLICATION_VISIBILITY_CHANGE,
+	APPLICATION_HIDDEN: APPLICATION_HIDDEN,
+	APPLICATION_VISIBLE: APPLICATION_VISIBLE
 });
 
 const DEFAULT_OPTIONS = {
-  faderOpts: {
-    fadeIn: () => {
-      const fader = document.querySelector('#fader');
-
-      TweenLite.to(fader, 0.65, {
-        opacity: 0,
-        ease: Power1.easeInOut,
-        delay: 0.35,
-        onComplete: () => {
-          TweenLite.set(fader, { display: 'none' });
-          document.body.classList.remove('unloaded');
-        }
-      });
-    }
-  }
-};
-
-class Application {
-  constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS);
-    this.fader = null;
-    this.callbacks = {};
-
-    this.INITIALIZED = false;
-    this.PREFERS_REDUCED_MOTION = prefersReducedMotion();
-
-    if (this.PREFERS_REDUCED_MOTION) {
-      TweenLite.globalTimeScale(200);
-      document.documentElement.classList.add('prefers-reduced-motion');
-    }
-
-    this.beforeInitializedEvent = new window.CustomEvent(APPLICATION_PRELUDIUM, this);
-    this.initializedEvent = new window.CustomEvent(APPLICATION_INITIALIZED, this);
-    this.readyEvent = new window.CustomEvent(APPLICATION_READY, this);
-
-    /**
-     * Grab common events and defer
-     */
-    document.addEventListener('visibilitychange', this.onVisibilityChange);
-    window.addEventListener('orientationchange', this.onResize);
-    window.addEventListener('scroll', rafCallback(this.onScroll));
-    window.addEventListener('resize', rafCallback(this.onResize));
-
-    TweenLite.defaultEase = Sine.easeOut;
-  }
-
-  /**
-   * Main init. Called from client application on DOMReady.
-   */
-  initialize () {
-    this._emitBeforeInitializedEvent();
-    this.executeCallbacks(APPLICATION_PRELUDIUM);
-    this.setupGridoverlay();
-    this._emitInitializedEvent();
-    this.executeCallbacks(APPLICATION_INITIALIZED);
-    this.ready();
-  }
-
-  ready () {
-    this.fadeIn();
-    this._emitReadyEvent();
-    this.executeCallbacks(APPLICATION_READY);
-  }
-
-  fadeIn () {
-    this.opts.faderOpts.fadeIn();
-  }
-
-  registerCallback (type, callback) {
-    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
-      this.callbacks[type] = [];
-    }
-    this.callbacks[type].push(callback);
-  }
-
-  executeCallbacks (type) {
-    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
-      return
-    }
-    this.callbacks[type].forEach(cb => cb(this));
-  }
-
-  _emitBeforeInitializedEvent () {
-    window.dispatchEvent(this.beforeInitializedEvent);
-  }
-
-  _emitInitializedEvent () {
-    window.dispatchEvent(this.initializedEvent);
-    this.INITIALIZED = true;
-  }
-
-  _emitReadyEvent () {
-    window.dispatchEvent(this.readyEvent);
-  }
-
-  // raf'ed resize event
-  onResize (e) {
-    const evt = new CustomEvent(APPLICATION_RESIZE, e);
-    window.dispatchEvent(evt);
-  }
-
-  onScroll (e) {
-    const evt = new CustomEvent(APPLICATION_SCROLL, e);
-    window.dispatchEvent(evt);
-  }
-
-  onVisibilityChange (e) {
-    const evt = new CustomEvent(APPLICATION_VISIBILITY_CHANGE, e);
-    window.dispatchEvent(evt);
-  }
-
-  setupGridoverlay () {
-    const gridKeyPressed = e => {
-      if (e.keyCode === 71 && e.ctrlKey) {
-        const guides = document.querySelector('.__dbg');
-        guides.classList.toggle('visible');
-      }
-    };
-    document.onkeydown = gridKeyPressed;
-  }
-}
-
-const DEFAULT_OPTIONS$1 = {
   runListenerOnInit: false,
   breakpoints: [
     'xs',
@@ -11638,18 +11526,19 @@ const DEFAULT_OPTIONS$1 = {
   listeners: {
     // xs: (mq) => {
     //   if (mq.matches) {
-    //     console.log('XS NOW!')
+    //     // XS NOW
     //   } else {
-    //     console.log('NOT XS')
+    //     // NOT XS ANYMORE
     //   }
     // }
   }
 };
 
 class Breakpoints {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app;
     this.mediaQueries = {};
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$1);
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS);
     window.addEventListener(APPLICATION_INITIALIZED, this.initialize.bind(this));
   }
 
@@ -11697,6 +11586,241 @@ class Breakpoints {
   }
 }
 
+const DEFAULT_OPTIONS$1 = {
+  faderOpts: {
+    fadeIn: (callback = () => {}) => {
+      const fader = document.querySelector('#fader');
+
+      TweenLite.to(fader, 0.65, {
+        opacity: 0,
+        ease: Power1.easeInOut,
+        delay: 0.35,
+        onComplete: () => {
+          TweenLite.set(fader, { display: 'none' });
+          document.body.classList.remove('unloaded');
+          callback();
+        }
+      });
+    }
+  }
+};
+
+class Application {
+  constructor (opts = {}) {
+    this.size = {
+      width: 0,
+      height: 0
+    };
+
+    this.position = {
+      top: 0,
+      left: 0
+    };
+
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$1);
+    this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig);
+    this.fader = null;
+    this.callbacks = {};
+    this.SCROLLBAR_WIDTH = null;
+    this.getScrollBarWidth();
+    console.log(this.SCROLLBAR_WIDTH);
+    this.INITIALIZED = false;
+
+    this.PREFERS_REDUCED_MOTION = prefersReducedMotion();
+    if (this.PREFERS_REDUCED_MOTION) {
+      // TODO: TweenMax :(
+      // TweenLite.globalTimeScale(200)
+      document.documentElement.classList.add('prefers-reduced-motion');
+    }
+
+    this.beforeInitializedEvent = new window.CustomEvent(APPLICATION_PRELUDIUM, this);
+    this.initializedEvent = new window.CustomEvent(APPLICATION_INITIALIZED, this);
+    this.readyEvent = new window.CustomEvent(APPLICATION_READY, this);
+
+    /**
+     * Grab common events and defer
+     */
+    document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this));
+    window.addEventListener('orientationchange', this.onResize.bind(this));
+    window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)));
+    window.addEventListener('resize', rafCallback(this.onResize.bind(this)));
+
+    TweenLite.defaultEase = Sine.easeOut;
+  }
+
+  /**
+   * Main init. Called from client application on DOMReady.
+   */
+  initialize () {
+    this._emitBeforeInitializedEvent();
+    this.executeCallbacks(APPLICATION_PRELUDIUM);
+    this.setupGridoverlay();
+    this._emitInitializedEvent();
+    this.executeCallbacks(APPLICATION_INITIALIZED);
+    this.ready();
+  }
+
+  /**
+  * Application is initialized and ready.
+  * Fade in, then execute callbacks
+  */
+  ready () {
+    this.fadeIn();
+    this._emitReadyEvent();
+    this.executeCallbacks(APPLICATION_READY);
+  }
+
+  /**
+   * Fade in application, as declared in the `faderOpts`
+   */
+  fadeIn () {
+    this.opts.faderOpts.fadeIn(this._emitRevealedEvent.bind(this));
+  }
+
+  /**
+   * Register callbacks by `type`
+   */
+  registerCallback (type, callback) {
+    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
+      this.callbacks[type] = [];
+    }
+    this.callbacks[type].push(callback);
+  }
+
+  /**
+   * Execute callbacks by `type`
+   */
+  executeCallbacks (type) {
+    if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
+      return
+    }
+    this.callbacks[type].forEach(cb => cb(this));
+  }
+
+  /**
+   * Check if document is scrolled
+   */
+  isScrolled () {
+    return (window.pageYOffset
+      || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0) > 0
+  }
+
+  scrollLock () {
+    const ev = new window.CustomEvent(APPLICATION_SCROLL_LOCKED, this);
+    window.dispatchEvent(ev);
+    this.SCROLL_LOCKED = true;
+    TweenLite.set(document.body, { overflow: 'hidden' });
+    document.addEventListener('touchmove', this.scrollVoid, false);
+  }
+
+  scrollRelease () {
+    const ev = new window.CustomEvent(APPLICATION_SCROLL_RELEASED, this);
+    window.dispatchEvent(ev);
+    this.SCROLL_LOCKED = false;
+    TweenLite.set(document.body, { clearProps: 'overflow' });
+    document.removeEventListener('touchmove', this.scrollVoid, false);
+  }
+
+  scrollVoid (e) {
+    e.preventDefault();
+  }
+
+  getScrollBarWidth () {
+    if (!this.SCROLLBAR_WIDTH) {
+      // Creating invisible container
+      const outer = document.createElement('div');
+      outer.style.visibility = 'hidden';
+      outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+      outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+      document.body.appendChild(outer);
+
+      // Creating inner element and placing it in the container
+      const inner = document.createElement('div');
+      outer.appendChild(inner);
+
+      // Calculating difference between container's full width and the child width
+      this.SCROLLBAR_WIDTH = (outer.offsetWidth - inner.offsetWidth);
+
+      // Removing temporary elements from the DOM
+      outer.parentNode.removeChild(outer);
+    }
+  }
+
+  /**
+   * Event emitters
+   */
+  _emitBeforeInitializedEvent () {
+    window.dispatchEvent(this.beforeInitializedEvent);
+  }
+
+  _emitInitializedEvent () {
+    window.dispatchEvent(this.initializedEvent);
+    this.INITIALIZED = true;
+  }
+
+  _emitReadyEvent () {
+    window.dispatchEvent(this.readyEvent);
+  }
+
+  _emitRevealedEvent () {
+    const ev = new window.CustomEvent(APPLICATION_REVEALED, this);
+    window.dispatchEvent(ev);
+  }
+
+  /**
+   * RAF'ed resize event
+   */
+  onResize (e) {
+    this.size.width = window.innerWidth;
+    this.size.height = window.innerHeight;
+
+    const evt = new CustomEvent(APPLICATION_RESIZE, e);
+    window.dispatchEvent(evt);
+  }
+
+  /**
+  * RAF'ed scroll event
+  */
+  onScroll (e) {
+    if (this.SCROLL_LOCKED) {
+      e.preventDefault();
+      return
+    }
+
+    this.position.top = window.pageYOffset;
+    this.position.left = window.pageXOffset;
+
+    const evt = new CustomEvent(APPLICATION_SCROLL, e);
+    window.dispatchEvent(evt);
+  }
+
+  onVisibilityChange (e) {
+    let evt = new CustomEvent(APPLICATION_VISIBILITY_CHANGE, e);
+    window.dispatchEvent(evt);
+
+    if (document.visibilityState === 'hidden') {
+      evt = new CustomEvent(APPLICATION_HIDDEN, e);
+      window.dispatchEvent(evt);
+    } else if (document.visibilityState === 'visible') {
+      evt = new CustomEvent(APPLICATION_VISIBLE, e);
+      window.dispatchEvent(evt);
+    }
+  }
+
+  /**
+   * CTRL-G to show grid overlay
+   */
+  setupGridoverlay () {
+    const gridKeyPressed = e => {
+      if (e.keyCode === 71 && e.ctrlKey) {
+        const guides = document.querySelector('.__dbg');
+        guides.classList.toggle('visible');
+      }
+    };
+    document.onkeydown = gridKeyPressed;
+  }
+}
+
 const DEFAULT_OPTIONS$2 = {
   onAccept: c => {
     const timeline = new TimelineLite();
@@ -11737,8 +11861,10 @@ const DEFAULT_OPTIONS$2 = {
 };
 
 class Cookies {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$2);
+
     this.cc = document.querySelector('.cookie-container');
     this.inner = document.querySelector('.cookie-container-inner');
     this.text = document.querySelector('.cookie-law-text');
@@ -11811,6 +11937,7 @@ const DEFAULT_OPTIONS$3 = {};
 
 class CoverOverlay {
   constructor (app, opts = {}) {
+    this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$3);
     this.initialize();
   }
@@ -11819,7 +11946,7 @@ class CoverOverlay {
     const coveredModules = document.querySelectorAll('[data-cover-overlay]');
 
     Array.from(coveredModules).forEach(v => {
-      const overlay = v.querySelector('.img-wrapper');
+      const overlay = v.querySelector('.picture-wrapper');
       const btn = v.querySelector('[data-cover-overlay-button]');
       const iframe = v.querySelector('iframe');
       let player;
@@ -11966,18 +12093,20 @@ const DEFAULT_OPTIONS$4 = {
 };
 
 class FixedHeader {
-  constructor (opts = {}) {
-    if (typeof opts.el === 'string') {
-      this.el = document.querySelector(opts.el);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$4);
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el);
     } else {
-      this.el = opts.el;
+      this.el = this.opts.el;
     }
 
     if (!this.el) {
       return
     }
 
-    opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$4);
 
     const section = document.body.getAttribute('data-script');
     this.opts = this._getOptionsForSection(section, opts);
@@ -12347,7 +12476,8 @@ const DEFAULT_OPTIONS$5 = {
 };
 
 class FooterReveal {
-  constructor (opts) {
+  constructor (app, opts) {
+    this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$5);
 
     const main = document.querySelector('main');
@@ -12372,6 +12502,7 @@ class FooterReveal {
 
 // Default Settings
 const DEFAULT_OPTIONS$6 = {
+  el: '[data-parallax]',
   speed: -2,
   center: false,
   wrapper: null,
@@ -12381,8 +12512,10 @@ const DEFAULT_OPTIONS$6 = {
 };
 
 class Parallax {
-  constructor (el, opts) {
+  constructor (app, opts = {}) {
+    this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$6);
+
     this.posY = 0;
     this.screenY = 0;
     this.posX = 0;
@@ -12410,13 +12543,10 @@ class Parallax {
       return 'transform'
     });
 
-    // By default, rellax class
-    if (!el) {
-      el = '[data-parallax]';
-    }
+    this.el = this.opts.el;
 
     // check if el is a className or a node
-    this.elements = typeof el === 'string' ? document.querySelectorAll(el) : [el];
+    this.elements = typeof el === 'string' ? document.querySelectorAll(this.el) : [this.el];
 
     // Now query selector
     if (this.elements.length > 0) {
@@ -12630,7 +12760,6 @@ class Parallax {
 
   // Remove event listeners and loop again
   deferredUpdate () {
-    console.log('removing listeners');
     window.removeEventListener('resize', this.deferredUpdate.bind(this));
     window.removeEventListener('orientationchange', this.deferredUpdate.bind(this));
     window.removeEventListener('scroll', this.deferredUpdate.bind(this), this.supportsPassive ? { passive: true } : false);
@@ -12720,6 +12849,7 @@ if ('objectFit' in document.documentElement.style === false) {
 }
 
 const DEFAULT_OPTIONS$7 = {
+  el: '[data-hero-slider]',
   /* time between slides */
   interval: 4.2,
   /* the slide number we start with */
@@ -12741,18 +12871,20 @@ const DEFAULT_OPTIONS$7 = {
 };
 
 class HeroSlider {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$7);
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el);
     } else {
-      this.el = el;
+      this.el = this.opts.el;
     }
 
     if (!this.el) {
       return
     }
 
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$7);
     this.initialize();
   }
 
@@ -12981,7 +13113,178 @@ class HeroSlider {
   }
 }
 
+/**
+ *
+ * HERO VIDEO
+ *
+ * ## Example
+ *
+ *    const hs = HeroVideo(opts)
+ *
+ */
+
+if ('objectFit' in document.documentElement.style === false) {
+  document.addEventListener('DOMContentLoaded', () => {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-hero-background]'), image => {
+      (image.runtimeStyle || image.style).background = `url("${image.src}") no-repeat 50%/${image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit')}`;
+      image.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${image.width}' height='${image.height}'%3E%3C/svg%3E`;
+    });
+  });
+}
+
 const DEFAULT_OPTIONS$8 = {
+  el: '[data-hero-video]',
+  onFadeIn: hero => {
+    TweenLite.to(hero.el, 1, {
+      opacity: 1
+    });
+  }
+};
+
+class HeroVideo {
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.booting = true;
+    this.playing = false;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$8);
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el);
+    } else {
+      this.el = this.opts.el;
+    }
+
+    if (!this.el) {
+      return
+    }
+
+    this.initialize();
+  }
+
+  initialize () {
+    this._addResizeHandler();
+    // style the container
+    TweenLite.set(this.el, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      opacity: 0
+    });
+
+    this.videoDiv = this.el.querySelector('[data-hero-video-content]');
+    this.video = this.videoDiv.querySelector('video');
+
+    this.addObserver();
+    this.addEvents();
+
+    TweenLite.set(this.videoDiv, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%'
+    });
+
+    if (!this.video) {
+      console.error('==> JUPITER/HEROVIDEO: MISSING <video> INSIDE [data-hero-video-content]');
+      return
+    }
+    this.video.muted = true;
+
+    TweenLite.set(this.video, {
+      width: document.body.clientWidth,
+      height: '100%',
+      top: 0,
+      left: 0,
+      position: 'absolute'
+    });
+
+    window.addEventListener(APPLICATION_INITIALIZED, () => {
+      /* Wait for the video to load, then fade in container element */
+      if (!this.video.playing && !prefersReducedMotion() && this.video.readyState >= 3) {
+        this.play();
+        this.fadeIn();
+        this.booting = false;
+      }
+    });
+  }
+
+  addEvents () {
+    this.video.addEventListener('canplay', () => {
+      if (!this.playing) {
+        if (!prefersReducedMotion()) {
+          this.play();
+          this.fadeIn();
+          this.booting = false;
+        } else {
+          TweenLite.set(this.el, { opacity: 1 });
+        }
+      }
+    });
+  }
+
+  play () {
+    this.video.play();
+    this.playing = true;
+  }
+
+  pause () {
+    this.video.pause();
+    this.playing = false;
+  }
+
+  fadeIn () {
+    this.opts.onFadeIn(this);
+  }
+
+  addObserver () {
+    const observer = new IntersectionObserver(entries => {
+      const [{ isIntersecting }] = entries;
+      if (isIntersecting) {
+        if (!this.booting && !this.playing) {
+          this.play();
+        } else {
+          this.play();
+          this.fadeIn();
+          this.booting = false;
+        }
+      } else if (this.playing) {
+        this.pause();
+      }
+    });
+
+    observer.observe(this.el);
+  }
+
+  /**
+   * Add a window resize handler that resizes video width
+   */
+  _addResizeHandler () {
+    this.observer = new IntersectionObserver(entries => {
+      const [{ isIntersecting }] = entries;
+      if (isIntersecting) {
+        this._resize();
+        window.addEventListener(APPLICATION_RESIZE, this._resize.bind(this));
+      } else {
+        window.removeEventListener(APPLICATION_RESIZE, this._resize.bind(this));
+      }
+    });
+
+    this.observer.observe(this.el);
+  }
+
+  _resize () {
+    TweenLite.to(this.video, 0.150, {
+      width: document.body.clientWidth,
+      overwrite: 'all'
+    });
+  }
+}
+
+const DEFAULT_OPTIONS$9 = {
   intersectionObserverConfig: {
     rootMargin: '350px 0px',
     threshold: 0.0
@@ -12991,8 +13294,9 @@ const DEFAULT_OPTIONS$8 = {
 };
 
 class Lazyload {
-  constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$8);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$9);
     this.initialize();
   }
 
@@ -13082,10 +13386,8 @@ class Lazyload {
       img.removeAttribute('data-ll-blurred');
     }, false);
 
-    if (img.hasAttribute('src')) {
-      img.setAttribute('src', img.dataset.src);
-      img.setAttribute('data-ll-loaded', '');
-    }
+    img.setAttribute('src', img.dataset.src);
+    img.setAttribute('data-ll-loaded', '');
 
     // safari sometimes caches, so force load
     if (img.complete) {
@@ -13100,24 +13402,31 @@ function imageIsLoaded (img) {
   return new Promise(resolve => {
     if (img.complete) {
       resolve({ img, status: 'ok' });
+    } else {
+      img.onload = () => {
+        resolve({ img, status: 'ok' });
+      };
+      img.onerror = () => {
+        resolve({ img, status: 'error' });
+      };
     }
-
-    img.onload = () => resolve({ img, status: 'ok' });
-    img.onerror = () => resolve({ img, status: 'error' });
   })
 }
 
-function imagesAreLoaded (el) {
-  const imgs = el.querySelectorAll('img');
-  if (imgs.length) {
-    return Promise.all(Array.from(imgs).map(imageIsLoaded))
+function imagesAreLoaded (imgs) {
+  const promises = [];
+
+  for (let i = 0; i < imgs.length; i += 1) {
+    const img = imgs[i];
+    promises.push(imageIsLoaded(img));
   }
-  return new Promise(resolve => { resolve({ imgs, status: 'ok' }); })
+
+  return Promise.all(promises)
 }
 
 TweenLite.defaultEase = Sine.easeOut;
 
-const DEFAULT_OPTIONS$9 = {
+const DEFAULT_OPTIONS$a = {
   captions: false,
 
   elements: {
@@ -13159,8 +13468,9 @@ const DEFAULT_OPTIONS$9 = {
 };
 
 class Lightbox {
-  constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$9);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$a);
 
     this.lightboxes = document.querySelectorAll('[data-lightbox]');
     this.fader = document.querySelector('#fader');
@@ -13292,7 +13602,9 @@ class Lightbox {
     this.setImg(section, idx, this.getPrevIdx(idx));
     this.attachSwiper(section, this.content, idx);
 
-    imagesAreLoaded(this.wrapper).then(() => {
+    const imgs = this.wrapper.querySelectorAll('img');
+
+    imagesAreLoaded(imgs).then(() => {
       TweenLite.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
@@ -13385,7 +13697,7 @@ class Lightbox {
   }
 }
 
-const DEFAULT_OPTIONS$a = {
+const DEFAULT_OPTIONS$b = {
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]',
@@ -13411,8 +13723,8 @@ const DEFAULT_OPTIONS$a = {
 
 class Links {
   constructor (app, opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$a);
     this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$b);
 
     const links = document.querySelectorAll(this.opts.linkQuery);
     const anchors = document.querySelectorAll(this.opts.anchorQuery);
@@ -13475,7 +13787,7 @@ class Links {
   }
 }
 
-const DEFAULT_OPTIONS$b = {
+const DEFAULT_OPTIONS$c = {
   logoColor: '#000',
   logoPathSelector: 'svg path',
   contentSelector: 'section',
@@ -13543,10 +13855,11 @@ const DEFAULT_OPTIONS$b = {
 };
 
 class MobileMenu {
-  constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$b);
-    this.header = document.querySelector('header');
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$c);
 
+    this.header = document.querySelector('header');
     this.bg = this.header.querySelector('.mobile-bg');
     this.logo = this.header.querySelector('figure.brand');
     this.logoPath = this.logo ? this.logo.querySelectorAll(this.opts.logoPathSelector) : null;
@@ -13595,11 +13908,7 @@ class MobileMenu {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-// const plugins = [CSSPlugin]
-// CSSPlugin.useSVGTransformAttr = true
-
-const DEFAULT_OPTIONS$c = {
+const DEFAULT_OPTIONS$d = {
   /**
    * if your app needs to do some initialization while the
    * application:ready has been fired, you can set this to
@@ -13626,9 +13935,12 @@ const DEFAULT_OPTIONS$c = {
 };
 
 class Moonwalk {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$d);
+
     document.documentElement.classList.add('moonwalk');
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$c);
+
     this.sections = this.buildSections();
     this.parseChildren();
 
@@ -13758,7 +14070,14 @@ class Moonwalk {
               // ensure image is loaded before we tween
               imageIsLoaded(entry.target).then(() => tween());
             } else {
-              imagesAreLoaded(entry.target).then(() => tween());
+              const imagesInEntry = entry.target.querySelectorAll('img');
+              if (imagesInEntry.length) {
+                // entry has children elements that are images
+                imagesAreLoaded(imagesInEntry).then(() => tween());
+              } else {
+                // regular entry, just tween it
+                tween();
+              }
             }
 
             self.unobserve(entry.target);
@@ -13777,7 +14096,7 @@ class Moonwalk {
   }
 }
 
-const DEFAULT_OPTIONS$d = {
+const DEFAULT_OPTIONS$e = {
   backdropColor: '#ffffff',
 
   tweenIn: (el, popup) => {
@@ -13814,8 +14133,9 @@ const DEFAULT_OPTIONS$d = {
 };
 
 class Popup {
-  constructor (opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$d);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$e);
     this.createBackdrop();
   }
 
@@ -13852,17 +14172,17 @@ class Popup {
 
 // import Headroom from 'headroom.js'
 
-const DEFAULT_OPTIONS$e = {};
+const DEFAULT_OPTIONS$f = {};
 
 class StackedBoxes {
   constructor (app, opts = {}) {
-    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$e);
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$f);
     this.initialize();
   }
 
   initialize () {
     // TODO: ensure images are loaded?
-
     const boxes = document.querySelectorAll('[data-boxes-stacked]');
 
     const observer = new IntersectionObserver(entries => {
@@ -13889,7 +14209,6 @@ class StackedBoxes {
 
     if (pull) {
       const pullAmount = pull.getAttribute('data-boxes-stacked-pull');
-      console.log(pullAmount);
       let pullPx;
 
       switch (pullAmount) {
@@ -13992,7 +14311,9 @@ const DEFAULT_EVENTS$1 = {
   }
 };
 
-const DEFAULT_OPTIONS$f = {
+const DEFAULT_OPTIONS$g = {
+  el: 'header[data-nav]',
+
   default: {
     canvas: window,
     enter: h => {
@@ -14015,18 +14336,20 @@ const DEFAULT_OPTIONS$f = {
 };
 
 class StickyHeader {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el);
+  constructor (app, opts = {}) {
+    this.app = app;
+    this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$g);
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el);
     } else {
-      this.el = el;
+      this.el = this.opts.el;
     }
 
     if (!this.el) {
       return
     }
 
-    opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$f);
 
     const section = document.body.getAttribute('data-script');
     this.opts = this._getOptionsForSection(section, opts);
@@ -14494,4 +14817,4 @@ var loadScript = (url, completeCallback) => {
   head.appendChild(script);
 };
 
-export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, FixedHeader, FooterReveal, Hammer, HeroSlider, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenLite, Typography, imageIsLoaded, imagesAreLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
+export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, Expo, FixedHeader, FooterReveal, Hammer, HeroSlider, HeroVideo, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power1, Power2, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenLite, Typography, imageIsLoaded, imagesAreLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };

@@ -2,7 +2,10 @@ import {
   Back,
   CSSPlugin,
   Linear,
+  Power1,
+  Power2,
   Power3,
+  Expo,
   Sine,
   TweenLite,
   TimelineLite
@@ -20,6 +23,7 @@ import FixedHeader from './modules/FixedHeader'
 import FooterReveal from './modules/FooterReveal'
 import Parallax from './modules/Parallax'
 import HeroSlider from './modules/HeroSlider'
+import HeroVideo from './modules/HeroVideo'
 import Lazyload from './modules/Lazyload'
 import Lightbox from './modules/Lightbox'
 import Links from './modules/Links'
@@ -45,6 +49,7 @@ export {
   FooterReveal,
   Parallax,
   HeroSlider,
+  HeroVideo,
   Lazyload,
   Lightbox,
   Links,
@@ -67,7 +72,10 @@ export {
   CSSPlugin,
   Hammer,
   Linear,
+  Power1,
+  Power2,
   Power3,
+  Expo,
   scrollIntoView,
   Sine,
   TweenLite,

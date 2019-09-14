@@ -13,16 +13,17 @@ const DEFAULT_OPTIONS = {
   listeners: {
     // xs: (mq) => {
     //   if (mq.matches) {
-    //     console.log('XS NOW!')
+    //     // XS NOW
     //   } else {
-    //     console.log('NOT XS')
+    //     // NOT XS ANYMORE
     //   }
     // }
   }
 }
 
 export default class Breakpoints {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.mediaQueries = {}
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     window.addEventListener(Events.APPLICATION_INITIALIZED, this.initialize.bind(this))

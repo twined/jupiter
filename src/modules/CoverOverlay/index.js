@@ -6,6 +6,7 @@ const DEFAULT_OPTIONS = {}
 
 export default class CoverOverlay {
   constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
@@ -14,7 +15,7 @@ export default class CoverOverlay {
     const coveredModules = document.querySelectorAll('[data-cover-overlay]')
 
     Array.from(coveredModules).forEach(v => {
-      const overlay = v.querySelector('.img-wrapper')
+      const overlay = v.querySelector('.picture-wrapper')
       const btn = v.querySelector('[data-cover-overlay-button]')
       const iframe = v.querySelector('iframe')
       let player

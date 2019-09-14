@@ -5,10 +5,6 @@ import * as Events from '../../events'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
-// eslint-disable-next-line no-unused-vars
-// const plugins = [CSSPlugin]
-// CSSPlugin.useSVGTransformAttr = true
-
 const DEFAULT_OPTIONS = {
   /**
    * if your app needs to do some initialization while the
@@ -36,9 +32,12 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Moonwalk {
-  constructor (opts = {}) {
-    document.documentElement.classList.add('moonwalk')
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    document.documentElement.classList.add('moonwalk')
+
     this.sections = this.buildSections()
     this.parseChildren()
 
@@ -168,7 +167,14 @@ export default class Moonwalk {
               // ensure image is loaded before we tween
               imageIsLoaded(entry.target).then(() => tween())
             } else {
-              imagesAreLoaded(entry.target).then(() => tween())
+              const imagesInEntry = entry.target.querySelectorAll('img')
+              if (imagesInEntry.length) {
+                // entry has children elements that are images
+                imagesAreLoaded(imagesInEntry).then(() => tween())
+              } else {
+                // regular entry, just tween it
+                tween()
+              }
             }
 
             self.unobserve(entry.target)

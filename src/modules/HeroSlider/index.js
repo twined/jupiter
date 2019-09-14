@@ -29,6 +29,7 @@ if ('objectFit' in document.documentElement.style === false) {
 }
 
 const DEFAULT_OPTIONS = {
+  el: '[data-hero-slider]',
   /* time between slides */
   interval: 4.2,
   /* the slide number we start with */
@@ -50,18 +51,20 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class HeroSlider {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el)
+  constructor (app, opts = {}) {
+    this.app = app
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el)
     } else {
-      this.el = el
+      this.el = this.opts.el
     }
 
     if (!this.el) {
       return
     }
 
-    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
 

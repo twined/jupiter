@@ -28,8 +28,8 @@ const DEFAULT_OPTIONS = {
 
 export default class Links {
   constructor (app, opts = {}) {
-    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.app = app
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
     const links = document.querySelectorAll(this.opts.linkQuery)
     const anchors = document.querySelectorAll(this.opts.anchorQuery)

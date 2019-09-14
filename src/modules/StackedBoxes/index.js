@@ -6,13 +6,13 @@ const DEFAULT_OPTIONS = {}
 
 export default class StackedBoxes {
   constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
 
   initialize () {
     // TODO: ensure images are loaded?
-
     const boxes = document.querySelectorAll('[data-boxes-stacked]')
 
     const observer = new IntersectionObserver(entries => {
@@ -39,7 +39,6 @@ export default class StackedBoxes {
 
     if (pull) {
       const pullAmount = pull.getAttribute('data-boxes-stacked-pull')
-      console.log(pullAmount)
       let pullPx
 
       switch (pullAmount) {

@@ -47,7 +47,8 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Lightbox {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
     this.lightboxes = document.querySelectorAll('[data-lightbox]')
@@ -180,7 +181,9 @@ export default class Lightbox {
     this.setImg(section, idx, this.getPrevIdx(idx))
     this.attachSwiper(section, this.content, idx)
 
-    imagesAreLoaded(this.wrapper).then(() => {
+    const imgs = this.wrapper.querySelectorAll('img')
+
+    imagesAreLoaded(imgs).then(() => {
       TweenLite.to(this.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {

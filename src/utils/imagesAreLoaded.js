@@ -1,9 +1,12 @@
 import imageIsLoaded from './imageIsLoaded';
 
-export default function imagesAreLoaded (el) {
-  const imgs = el.querySelectorAll('img')
-  if (imgs.length) {
-    return Promise.all(Array.from(imgs).map(imageIsLoaded))
+export default function imagesAreLoaded (imgs) {
+  const promises = []
+
+  for (let i = 0; i < imgs.length; i += 1) {
+    const img = imgs[i];
+    promises.push(imageIsLoaded(img))
   }
-  return new Promise(resolve => { resolve({ imgs, status: 'ok' }) })
+
+  return Promise.all(promises)
 }

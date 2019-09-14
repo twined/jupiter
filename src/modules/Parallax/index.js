@@ -2,6 +2,7 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 
 // Default Settings
 const DEFAULT_OPTIONS = {
+  el: '[data-parallax]',
   speed: -2,
   center: false,
   wrapper: null,
@@ -11,8 +12,10 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Parallax {
-  constructor (el, opts) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
     this.posY = 0
     this.screenY = 0
     this.posX = 0
@@ -40,13 +43,10 @@ export default class Parallax {
       return 'transform'
     })
 
-    // By default, rellax class
-    if (!el) {
-      el = '[data-parallax]'
-    }
+    this.el = this.opts.el
 
     // check if el is a className or a node
-    this.elements = typeof el === 'string' ? document.querySelectorAll(el) : [el]
+    this.elements = typeof el === 'string' ? document.querySelectorAll(this.el) : [this.el]
 
     // Now query selector
     if (this.elements.length > 0) {
@@ -260,7 +260,6 @@ export default class Parallax {
 
   // Remove event listeners and loop again
   deferredUpdate () {
-    console.log('removing listeners')
     window.removeEventListener('resize', this.deferredUpdate.bind(this))
     window.removeEventListener('orientationchange', this.deferredUpdate.bind(this))
     window.removeEventListener('scroll', this.deferredUpdate.bind(this), this.supportsPassive ? { passive: true } : false)

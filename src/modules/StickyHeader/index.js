@@ -76,6 +76,8 @@ const DEFAULT_EVENTS = {
 }
 
 const DEFAULT_OPTIONS = {
+  el: 'header[data-nav]',
+
   default: {
     canvas: window,
     enter: h => {
@@ -98,18 +100,20 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class StickyHeader {
-  constructor (el, opts = {}) {
-    if (typeof el === 'string') {
-      this.el = document.querySelector(el)
+  constructor (app, opts = {}) {
+    this.app = app
+    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    if (typeof this.opts.el === 'string') {
+      this.el = document.querySelector(this.opts.el)
     } else {
-      this.el = el
+      this.el = this.opts.el
     }
 
     if (!this.el) {
       return
     }
 
-    opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
     const section = document.body.getAttribute('data-script')
     this.opts = this._getOptionsForSection(section, opts)

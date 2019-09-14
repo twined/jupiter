@@ -10,7 +10,8 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Lazyload {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.initialize()
   }
@@ -101,10 +102,8 @@ export default class Lazyload {
       img.removeAttribute('data-ll-blurred')
     }, false)
 
-    if (img.hasAttribute('src')) {
-      img.setAttribute('src', img.dataset.src)
-      img.setAttribute('data-ll-loaded', '')
-    }
+    img.setAttribute('src', img.dataset.src)
+    img.setAttribute('data-ll-loaded', '')
 
     // safari sometimes caches, so force load
     if (img.complete) {

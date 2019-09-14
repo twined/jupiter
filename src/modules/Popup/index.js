@@ -38,7 +38,8 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class Popup {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.createBackdrop()
   }

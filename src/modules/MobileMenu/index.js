@@ -70,10 +70,11 @@ const DEFAULT_OPTIONS = {
 }
 
 export default class MobileMenu {
-  constructor (opts = {}) {
+  constructor (app, opts = {}) {
+    this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-    this.header = document.querySelector('header')
 
+    this.header = document.querySelector('header')
     this.bg = this.header.querySelector('.mobile-bg')
     this.logo = this.header.querySelector('figure.brand')
     this.logoPath = this.logo ? this.logo.querySelectorAll(this.opts.logoPathSelector) : null

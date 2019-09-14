@@ -3,10 +3,11 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
+import Breakpoints from '../Breakpoints'
 
 const DEFAULT_OPTIONS = {
   faderOpts: {
-    fadeIn: () => {
+    fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
 
       TweenLite.to(fader, 0.65, {
@@ -16,6 +17,7 @@ const DEFAULT_OPTIONS = {
         onComplete: () => {
           TweenLite.set(fader, { display: 'none' })
           document.body.classList.remove('unloaded')
+          callback()
         }
       })
     }
@@ -24,15 +26,30 @@ const DEFAULT_OPTIONS = {
 
 export default class Application {
   constructor (opts = {}) {
+    this.size = {
+      width: 0,
+      height: 0
+    }
+
+    this.position = {
+      top: 0,
+      left: 0
+    }
+
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig)
     this.fader = null
     this.callbacks = {}
 
-    this.INITIALIZED = false
-    this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
+    this.SCROLLBAR_WIDTH = null
+    this.getScrollBarWidth()
 
+    this.INITIALIZED = false
+
+    this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
     if (this.PREFERS_REDUCED_MOTION) {
-      TweenLite.globalTimeScale(200)
+      // TODO: TweenMax :(
+      // TweenLite.globalTimeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
 
@@ -43,10 +60,10 @@ export default class Application {
     /**
      * Grab common events and defer
      */
-    document.addEventListener('visibilitychange', this.onVisibilityChange)
-    window.addEventListener('orientationchange', this.onResize)
-    window.addEventListener('scroll', rafCallback(this.onScroll))
-    window.addEventListener('resize', rafCallback(this.onResize))
+    document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this))
+    window.addEventListener('orientationchange', this.onResize.bind(this))
+    window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
+    window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
 
     TweenLite.defaultEase = Sine.easeOut
   }
@@ -63,16 +80,26 @@ export default class Application {
     this.ready()
   }
 
+  /**
+  * Application is initialized and ready.
+  * Fade in, then execute callbacks
+  */
   ready () {
     this.fadeIn()
     this._emitReadyEvent()
     this.executeCallbacks(Events.APPLICATION_READY)
   }
 
+  /**
+   * Fade in application, as declared in the `faderOpts`
+   */
   fadeIn () {
-    this.opts.faderOpts.fadeIn()
+    this.opts.faderOpts.fadeIn(this._emitRevealedEvent.bind(this))
   }
 
+  /**
+   * Register callbacks by `type`
+   */
   registerCallback (type, callback) {
     if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
       this.callbacks[type] = []
@@ -80,6 +107,9 @@ export default class Application {
     this.callbacks[type].push(callback)
   }
 
+  /**
+   * Execute callbacks by `type`
+   */
   executeCallbacks (type) {
     if (!Object.prototype.hasOwnProperty.call(this.callbacks, type)) {
       return
@@ -87,6 +117,58 @@ export default class Application {
     this.callbacks[type].forEach(cb => cb(this))
   }
 
+  /**
+   * Check if document is scrolled
+   */
+  isScrolled () {
+    return (window.pageYOffset
+      || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0) > 0
+  }
+
+  scrollLock () {
+    const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_LOCKED, this)
+    window.dispatchEvent(ev)
+    this.SCROLL_LOCKED = true
+    TweenLite.set(document.body, { overflow: 'hidden' })
+    document.addEventListener('touchmove', this.scrollVoid, false)
+  }
+
+  scrollRelease () {
+    const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_RELEASED, this)
+    window.dispatchEvent(ev)
+    this.SCROLL_LOCKED = false
+    TweenLite.set(document.body, { clearProps: 'overflow' })
+    document.removeEventListener('touchmove', this.scrollVoid, false)
+  }
+
+  scrollVoid (e) {
+    e.preventDefault()
+  }
+
+  getScrollBarWidth () {
+    if (!this.SCROLLBAR_WIDTH) {
+      // Creating invisible container
+      const outer = document.createElement('div')
+      outer.style.visibility = 'hidden'
+      outer.style.overflow = 'scroll' // forcing scrollbar to appear
+      outer.style.msOverflowStyle = 'scrollbar' // needed for WinJS apps
+      document.body.appendChild(outer)
+
+      // Creating inner element and placing it in the container
+      const inner = document.createElement('div')
+      outer.appendChild(inner)
+
+      // Calculating difference between container's full width and the child width
+      this.SCROLLBAR_WIDTH = (outer.offsetWidth - inner.offsetWidth)
+
+      // Removing temporary elements from the DOM
+      outer.parentNode.removeChild(outer)
+    }
+  }
+
+  /**
+   * Event emitters
+   */
   _emitBeforeInitializedEvent () {
     window.dispatchEvent(this.beforeInitializedEvent)
   }
@@ -100,22 +182,54 @@ export default class Application {
     window.dispatchEvent(this.readyEvent)
   }
 
-  // raf'ed resize event
+  _emitRevealedEvent () {
+    const ev = new window.CustomEvent(Events.APPLICATION_REVEALED, this)
+    window.dispatchEvent(ev)
+  }
+
+  /**
+   * RAF'ed resize event
+   */
   onResize (e) {
+    this.size.width = window.innerWidth
+    this.size.height = window.innerHeight
+
     const evt = new CustomEvent(Events.APPLICATION_RESIZE, e)
     window.dispatchEvent(evt)
   }
 
+  /**
+  * RAF'ed scroll event
+  */
   onScroll (e) {
+    if (this.SCROLL_LOCKED) {
+      e.preventDefault()
+      return
+    }
+
+    this.position.top = window.pageYOffset
+    this.position.left = window.pageXOffset
+
     const evt = new CustomEvent(Events.APPLICATION_SCROLL, e)
     window.dispatchEvent(evt)
   }
 
   onVisibilityChange (e) {
-    const evt = new CustomEvent(Events.APPLICATION_VISIBILITY_CHANGE, e)
+    let evt = new CustomEvent(Events.APPLICATION_VISIBILITY_CHANGE, e)
     window.dispatchEvent(evt)
+
+    if (document.visibilityState === 'hidden') {
+      evt = new CustomEvent(Events.APPLICATION_HIDDEN, e)
+      window.dispatchEvent(evt)
+    } else if (document.visibilityState === 'visible') {
+      evt = new CustomEvent(Events.APPLICATION_VISIBLE, e)
+      window.dispatchEvent(evt)
+    }
   }
 
+  /**
+   * CTRL-G to show grid overlay
+   */
   setupGridoverlay () {
     const gridKeyPressed = e => {
       if (e.keyCode === 71 && e.ctrlKey) {
