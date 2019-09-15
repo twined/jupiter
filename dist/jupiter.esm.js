@@ -13962,8 +13962,11 @@ const DEFAULT_OPTIONS$d = {
 
   walks: {
     default: {
+      /* How long between multiple entries in a moonwalk-section */
       interval: 0.1,
+      /* How long each tween is */
       duration: 0.65,
+      /* The transitions that will be tweened */
       transition: {
         from: {
           autoAlpha: 0,
@@ -13971,9 +13974,9 @@ const DEFAULT_OPTIONS$d = {
         },
         to: {
           autoAlpha: 1,
-          ease: Sine.easeOut,
-          force3D: true,
-          y: 0
+          y: 0,
+          ease: Sine.easeInOut,
+          force3D: true /* if there are SVGs, we need this for Safari :( */
         }
       }
     }
@@ -14117,14 +14120,11 @@ class Moonwalk {
               };
             } else {
               // css class animation
-              console.log('css animate it');
               tween = () => {
                 section.timeline.to(
                   entry.target,
                   duration,
-                  {
-                    css: { className: '+=moonwalked' }
-                  },
+                  { css: { className: '+=moonwalked' } },
                   overlap
                 );
               };
