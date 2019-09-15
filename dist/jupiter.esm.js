@@ -11621,9 +11621,10 @@ class Application {
     this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig);
     this.fader = null;
     this.callbacks = {};
+
     this.SCROLLBAR_WIDTH = null;
     this.getScrollBarWidth();
-    console.log(this.SCROLLBAR_WIDTH);
+
     this.INITIALIZED = false;
 
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion();
@@ -13450,16 +13451,22 @@ const DEFAULT_OPTIONS$a = {
 
   onClose: h => {
     if (h.opts.captions) {
-      TweenLite.to(h.caption, 0.45, { opacity: 0 });
+      TweenLite.to(h.elements.caption, 0.45, { opacity: 0 });
     }
 
-    TweenLite.to([h.imgWrapper, h.nextArrow, h.prevArrow, h.close, h.dots], 0.50, {
+    TweenLite.to([
+      h.elements.imgWrapper,
+      h.elements.nextArrow,
+      h.elements.prevArrow,
+      h.elements.close,
+      h.elements.dots
+    ], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.to(h.wrapper, 0.45, {
+        TweenLite.to(h.elements.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
-            h.wrapper.parentNode.removeChild(h.wrapper);
+            h.destroy();
           }
         });
       }
@@ -13472,17 +13479,18 @@ class Lightbox {
     this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$a);
 
-    this.lightboxes = document.querySelectorAll('[data-lightbox]');
     this.fader = document.querySelector('#fader');
+    this.lightboxes = document.querySelectorAll('[data-lightbox]');
+    this.elements = {};
     this.imgs = [];
     this.imgAlts = [];
     this.sections = {};
-    this.currentIdx = null;
+    this.currentIndex = null;
 
     this.lightboxes.forEach(lightbox => {
       const href = lightbox.getAttribute('data-lightbox');
-      const imgInLightbox = lightbox.querySelector('img');
-      const alt = imgInLightbox.getAttribute('alt');
+      const originalImage = lightbox.querySelector('img');
+      const alt = originalImage.getAttribute('alt');
       const section = lightbox.getAttribute('data-lightbox-section') || 'general';
 
       if (!Object.prototype.hasOwnProperty.call(this.sections, section)) {
@@ -13494,68 +13502,70 @@ class Lightbox {
         alt
       };
 
-      const idx = this.sections[section].push(image) - 1;
+      const index = this.sections[section].push(image) - 1;
 
       lightbox.addEventListener('click', e => {
         e.preventDefault();
-        this.showBox(section, idx);
+        this.showBox(section, index);
       });
     });
   }
 
-  showBox (section, idx) {
+  showBox (section, index) {
     this.fader.style.display = 'block';
+
+    document.addEventListener('keyup', this.onKeyup.bind(this));
 
     TweenLite.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
-        this.buildBox(section, idx);
+        this.buildBox(section, index);
       }
     });
   }
 
-  buildBox (section, idx) {
-    this.wrapper = document.createElement('div');
-    this.content = document.createElement('div');
-    this.imgWrapper = document.createElement('div');
-    this.img = document.createElement('img');
-    this.dots = document.createElement('div');
-    this.nextArrow = document.createElement('a');
-    this.prevArrow = document.createElement('a');
-    this.close = document.createElement('a');
+  buildBox (section, index) {
+    this.elements.wrapper = document.createElement('div');
+    this.elements.content = document.createElement('div');
+    this.elements.imgWrapper = document.createElement('div');
+    this.elements.img = document.createElement('img');
+    this.elements.dots = document.createElement('div');
+    this.elements.nextArrow = document.createElement('a');
+    this.elements.prevArrow = document.createElement('a');
+    this.elements.close = document.createElement('a');
 
-    this.content.setAttribute('data-current-idx', idx);
+    this.elements.content.setAttribute('data-current-idx', index);
 
-    this.content.classList.add('lightbox-content');
-    this.nextArrow.classList.add('lightbox-next');
-    this.prevArrow.classList.add('lightbox-prev');
-    this.close.classList.add('lightbox-close');
-    this.dots.classList.add('lightbox-dots');
-    this.wrapper.classList.add('lightbox-backdrop');
-    this.wrapper.setAttribute('data-lightbox-wrapper-section', section);
-    this.imgWrapper.classList.add('lightbox-image-wrapper');
-    this.img.classList.add('lightbox-image', 'm-lg');
+    this.elements.content.classList.add('lightbox-content');
+    this.elements.nextArrow.classList.add('lightbox-next');
+    this.elements.prevArrow.classList.add('lightbox-prev');
+    this.elements.close.classList.add('lightbox-close');
+    this.elements.dots.classList.add('lightbox-dots');
+    this.elements.wrapper.classList.add('lightbox-backdrop');
+    this.elements.wrapper.setAttribute('data-lightbox-wrapper-section', section);
+    this.elements.imgWrapper.classList.add('lightbox-image-wrapper');
+    this.elements.img.classList.add('lightbox-image', 'm-lg');
 
-    this.close.appendChild(this.opts.elements.close());
-    this.close.href = '#';
+    this.elements.close.appendChild(this.opts.elements.close());
+    this.elements.close.href = '#';
 
-    this.nextArrow.appendChild(this.opts.elements.arrowRight());
-    this.nextArrow.href = '#';
+    this.elements.nextArrow.appendChild(this.opts.elements.arrowRight());
+    this.elements.nextArrow.href = '#';
 
-    this.nextArrow.addEventListener('click', e => {
+    this.elements.nextArrow.addEventListener('click', e => {
       e.stopPropagation();
       e.preventDefault();
       this.setImg(section, this.getNextIdx(section));
     });
 
-    this.prevArrow.addEventListener('click', e => {
+    this.elements.prevArrow.addEventListener('click', e => {
       e.stopPropagation();
       e.preventDefault();
       this.setImg(section, this.getPrevIdx(section));
     });
 
-    this.prevArrow.appendChild(this.opts.elements.arrowLeft());
-    this.prevArrow.href = '#';
+    this.elements.prevArrow.appendChild(this.opts.elements.arrowLeft());
+    this.elements.prevArrow.href = '#';
 
     // add dot links
     let activeLink;
@@ -13565,7 +13575,7 @@ class Lightbox {
       a.setAttribute('href', '#');
       a.setAttribute('data-idx', x);
 
-      if (x === idx) {
+      if (x === index) {
         a.classList.add('active');
         activeLink = a;
       }
@@ -13580,32 +13590,32 @@ class Lightbox {
       });
 
       a.appendChild(this.opts.elements.dot());
-      this.dots.appendChild(a);
+      this.elements.dots.appendChild(a);
     });
 
-    this.imgWrapper.appendChild(this.img);
-    this.imgWrapper.appendChild(this.close);
-    this.content.appendChild(this.imgWrapper);
-    this.content.appendChild(this.nextArrow);
-    this.content.appendChild(this.prevArrow);
-    this.content.appendChild(this.dots);
+    this.elements.imgWrapper.appendChild(this.elements.img);
+    this.elements.imgWrapper.appendChild(this.elements.close);
+    this.elements.content.appendChild(this.elements.imgWrapper);
+    this.elements.content.appendChild(this.elements.nextArrow);
+    this.elements.content.appendChild(this.elements.prevArrow);
+    this.elements.content.appendChild(this.elements.dots);
 
     if (this.opts.captions) {
-      this.caption = document.createElement('div');
-      this.caption.classList.add('lightbox-caption');
-      this.content.appendChild(this.caption);
+      this.elements.caption = document.createElement('div');
+      this.elements.caption.classList.add('lightbox-caption');
+      this.elements.content.appendChild(this.elements.caption);
     }
 
-    this.wrapper.appendChild(this.content);
-    document.body.appendChild(this.wrapper);
+    this.elements.wrapper.appendChild(this.elements.content);
+    document.body.appendChild(this.elements.wrapper);
 
-    this.setImg(section, idx, this.getPrevIdx(idx));
-    this.attachSwiper(section, this.content, idx);
+    this.setImg(section, index, this.getPrevIdx(index));
+    this.attachSwiper(section, this.elements.content, index);
 
-    const imgs = this.wrapper.querySelectorAll('img');
+    const imgs = this.elements.wrapper.querySelectorAll('img');
 
     imagesAreLoaded(imgs).then(() => {
-      TweenLite.to(this.wrapper, 0.5, {
+      TweenLite.to(this.elements.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
           this.fader.style.display = 'none';
@@ -13614,85 +13624,102 @@ class Lightbox {
       });
     });
 
-    this.close.addEventListener('click', e => {
+    this.elements.close.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
 
-      this.opts.onClose(this);
-      this.currentIdx = null;
+      this.close();
     });
   }
 
-  setImg (section, x) {
-    this.currentIdx = x;
-    this.content.setAttribute('data-current-idx', x);
+  close () {
+    document.removeEventListener('keyup', this.onKeyup.bind(this));
+    this.opts.onClose(this);
+    this.currentIndex = null;
+  }
 
-    let a = document.querySelector('.lightbox-dots a.active');
+  destroy () {
+    this.elements.wrapper.parentNode.removeChild(this.elements.wrapper);
+  }
 
-    if (a) {
-      a.classList.remove('active');
+  setImg (section, index) {
+    this.currentIndex = index;
+    this.elements.content.setAttribute('data-current-idx', index);
+
+    let activeDot = document.querySelector('.lightbox-dots a.active');
+
+    if (activeDot) {
+      activeDot.classList.remove('active');
     }
 
-    a = document.querySelector(`.lightbox-dots a[data-idx="${x}"]`);
-    a.classList.add('active');
+    activeDot = document.querySelector(`.lightbox-dots a[data-idx="${index}"]`);
+    activeDot.classList.add('active');
 
-    if (this.caption) {
-      TweenLite.to(this.caption, 0.5, {
+    if (this.elements.caption) {
+      TweenLite.to(this.elements.caption, 0.5, {
         opacity: 0,
         onComplete: () => {
-          this.caption.innerHTML = this.sections[section][x].alt;
+          this.elements.caption.innerHTML = this.sections[section][index].alt;
         }
       });
     }
 
-    TweenLite.to(this.img, 0.5, {
+    TweenLite.to(this.elements.img, 0.5, {
       opacity: 0,
       onComplete: () => {
-        this.img.src = this.sections[section][x].href;
+        this.elements.img.src = this.sections[section][index].href;
 
-        TweenLite.to(this.img, 0.5, {
+        TweenLite.to(this.elements.img, 0.5, {
           opacity: 1
         });
 
-        if (this.caption) {
-          TweenLite.to(this.caption, 0.5, { opacity: 1 });
+        if (this.elements.caption) {
+          TweenLite.to(this.elements.caption, 0.5, { opacity: 1 });
         }
       }
     });
   }
 
   getNextIdx (section) {
-    const idx = this.currentIdx;
-    if (idx === this.sections[section].length - 1) {
+    const index = this.currentIndex;
+    if (index === this.sections[section].length - 1) {
       return 0
     }
-    return idx + 1
+    return index + 1
   }
 
   getPrevIdx (section) {
-    const idx = this.currentIdx;
-    if (idx === 0) {
+    const index = this.currentIndex;
+    if (index === 0) {
       return this.sections[section].length - 1
     }
-    return idx - 1
+    return index - 1
+  }
+
+  onKeyup (e) {
+    const key = e.keyCode || e.which;
+
+    if (key === 27) {
+      this.close();
+    }
   }
 
   attachSwiper (section, el, initialIdx) {
     const hammerManager = new Manager(el);
     const swipeHandler = new SwipeRecognizer();
 
-    this.content.setAttribute('data-current-idx', initialIdx);
+    this.elements.content.setAttribute('data-current-idx', initialIdx);
 
     hammerManager.add(swipeHandler);
 
     hammerManager.on('swipeleft', () => {
-      const idx = this.getNextIdx(section);
-      this.setImg(section, idx);
+      const index = this.getNextIdx(section);
+      this.setImg(section, index);
     });
 
     hammerManager.on('swiperight', () => {
-      const idx = this.getPrevIdx(section);
-      this.setImg(section, idx);
+      const index = this.getPrevIdx(section);
+      this.setImg(section, index);
     });
   }
 }
