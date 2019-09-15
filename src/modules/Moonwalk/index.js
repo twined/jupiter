@@ -1,31 +1,53 @@
-import { TimelineLite } from 'gsap/all'
+import { TimelineLite, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
+import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
 const DEFAULT_OPTIONS = {
   /**
-   * if your app needs to do some initialization while the
+   * If your app needs to do some initialization before the
    * application:ready has been fired, you can set this to
    * false. You will then have to call `this.ready()`
    * to start the reveals
    */
 
   fireOnReady: true,
+
+  /**
+   * Clear out all `data-ll-srcset` from moonwalk elements
+   */
   clearLazyload: false,
 
+  /**
+   * Determines how early the IntersectionObserver triggers
+   */
   rootMargin: '-15%',
+
+  /**
+   * How much of the element must be visible before IO trigger
+   */
   threshold: 0,
 
   walks: {
     default: {
-      overlap: '-=0.3',
-      duration: 800,
+      /* How long between multiple entries in a moonwalk-section */
+      interval: 0.1,
+      /* How long each tween is */
+      duration: 0.65,
+      /* The transitions that will be tweened */
       transition: {
-        from: {},
-        to: {}
+        from: {
+          autoAlpha: 0,
+          y: 5
+        },
+        to: {
+          autoAlpha: 1,
+          y: 0,
+          ease: Sine.easeInOut,
+          force3D: true /* if there are SVGs, we need this for Safari :( */
+        }
       }
     }
   }
@@ -153,14 +175,29 @@ export default class Moonwalk {
               overlap = '+=0'
             }
 
-            const tween = () => {
-              section.timeline.fromTo(
-                entry.target,
-                duration,
-                transition.from,
-                transition.to,
-                overlap
-              )
+            let tween
+
+            if (transition) {
+              // js tween
+              tween = () => {
+                section.timeline.fromTo(
+                  entry.target,
+                  duration,
+                  transition.from,
+                  transition.to,
+                  overlap
+                )
+              }
+            } else {
+              // css class animation
+              tween = () => {
+                section.timeline.to(
+                  entry.target,
+                  duration,
+                  { css: { className: '+=moonwalked' } },
+                  overlap
+                )
+              }
             }
 
             if (entry.target.tagName === 'IMG') {

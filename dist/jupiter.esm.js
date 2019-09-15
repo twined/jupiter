@@ -13937,25 +13937,44 @@ class MobileMenu {
 
 const DEFAULT_OPTIONS$d = {
   /**
-   * if your app needs to do some initialization while the
+   * If your app needs to do some initialization before the
    * application:ready has been fired, you can set this to
    * false. You will then have to call `this.ready()`
    * to start the reveals
    */
 
   fireOnReady: true,
+
+  /**
+   * Clear out all `data-ll-srcset` from moonwalk elements
+   */
   clearLazyload: false,
 
+  /**
+   * Determines how early the IntersectionObserver triggers
+   */
   rootMargin: '-15%',
+
+  /**
+   * How much of the element must be visible before IO trigger
+   */
   threshold: 0,
 
   walks: {
     default: {
-      overlap: '-=0.3',
-      duration: 800,
+      interval: 0.1,
+      duration: 0.65,
       transition: {
-        from: {},
-        to: {}
+        from: {
+          autoAlpha: 0,
+          y: 5
+        },
+        to: {
+          autoAlpha: 1,
+          ease: Sine.easeOut,
+          force3D: true,
+          y: 0
+        }
       }
     }
   }
@@ -14083,15 +14102,33 @@ class Moonwalk {
               overlap = '+=0';
             }
 
-            const tween = () => {
-              section.timeline.fromTo(
-                entry.target,
-                duration,
-                transition.from,
-                transition.to,
-                overlap
-              );
-            };
+            let tween;
+
+            if (transition) {
+              // js tween
+              tween = () => {
+                section.timeline.fromTo(
+                  entry.target,
+                  duration,
+                  transition.from,
+                  transition.to,
+                  overlap
+                );
+              };
+            } else {
+              // css class animation
+              console.log('css animate it');
+              tween = () => {
+                section.timeline.to(
+                  entry.target,
+                  duration,
+                  {
+                    css: { className: '+=moonwalked' }
+                  },
+                  overlap
+                );
+              };
+            }
 
             if (entry.target.tagName === 'IMG') {
               // ensure image is loaded before we tween
