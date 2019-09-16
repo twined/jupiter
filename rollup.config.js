@@ -16,6 +16,9 @@ export default [
       commonjs(),
       analyze({ summaryOnly: true }),
       size()
-    ]
+    ],
+    moduleContext: {
+      'node_modules/gsap/TweenLite.js': 'window'
+    }
   }
 ];
