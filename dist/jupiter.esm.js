@@ -19,9 +19,9 @@
 	- pass in _gsScope as the first parameter of the main function (which is actually at the bottom)
 	- remove the "export to multiple environments" in Definition().
  */
-var _gsScope = (typeof(window) !== "undefined") ? window : (typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : undefined || {};
+var _gsScope = (typeof(window) !== "undefined") ? window : (typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : window || {};
 
-var TweenLite = (function(window) {
+var TweenLite$1 = (function(window) {
 		var _exports = {},
 			_doc = window.document,
 			_globals = window.GreenSockGlobals = window.GreenSockGlobals || window;
@@ -2003,7 +2003,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 				}
 			},
 			_tinyNum = 0.00000001,
-			TweenLiteInternals = TweenLite._internals,
+			TweenLiteInternals = TweenLite$1._internals,
 			_internals = TimelineLite._internals = {},
 			_isSelector = TweenLiteInternals.isSelector,
 			_isArray = TweenLiteInternals.isArray,
@@ -2120,16 +2120,16 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 		*/
 
 		p.to = function(target, duration, vars, position) {
-			var Engine = (vars.repeat && _globals.TweenMax) || TweenLite;
+			var Engine = (vars.repeat && _globals.TweenMax) || TweenLite$1;
 			return duration ? this.add( new Engine(target, duration, vars), position) : this.set(target, vars, position);
 		};
 
 		p.from = function(target, duration, vars, position) {
-			return this.add( ((vars.repeat && _globals.TweenMax) || TweenLite).from(target, duration, _defaultImmediateRender(this, vars)), position);
+			return this.add( ((vars.repeat && _globals.TweenMax) || TweenLite$1).from(target, duration, _defaultImmediateRender(this, vars)), position);
 		};
 
 		p.fromTo = function(target, duration, fromVars, toVars, position) {
-			var Engine = (toVars.repeat && _globals.TweenMax) || TweenLite;
+			var Engine = (toVars.repeat && _globals.TweenMax) || TweenLite$1;
 			toVars = _defaultImmediateRender(this, toVars, fromVars);
 			return duration ? this.add( Engine.fromTo(target, duration, fromVars, toVars), position) : this.set(target, toVars, position);
 		};
@@ -2141,7 +2141,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 				cycle = vars.cycle,
 				copy, i;
 			if (typeof(targets) === "string") {
-				targets = TweenLite.selector(targets) || targets;
+				targets = TweenLite$1.selector(targets) || targets;
 			}
 			targets = targets || [];
 			if (_isSelector(targets)) { //if the targets object is a selector, translate it into an array.
@@ -2178,11 +2178,11 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 		};
 
 		p.call = function(callback, params, scope, position) {
-			return this.add( TweenLite.delayedCall(0, callback, params, scope), position);
+			return this.add( TweenLite$1.delayedCall(0, callback, params, scope), position);
 		};
 
 		p.set = function(target, vars, position) {
-			return this.add( new TweenLite(target, 0, _defaultImmediateRender(this, vars, null, true)), position);
+			return this.add( new TweenLite$1(target, 0, _defaultImmediateRender(this, vars, null, true)), position);
 		};
 
 		TimelineLite.exportRoot = function(vars, ignoreDelayedCalls) {
@@ -2202,7 +2202,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 			tween = root._first;
 			while (tween) {
 				next = tween._next;
-				if (!ignoreDelayedCalls || !(tween instanceof TweenLite && tween.target === tween.vars.onComplete)) {
+				if (!ignoreDelayedCalls || !(tween instanceof TweenLite$1 && tween.target === tween.vars.onComplete)) {
 					time = tween._startTime - tween._delay;
 					if (time < 0) {
 						hasNegativeStart = 1;
@@ -2248,7 +2248,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 				} else if (typeof(value) === "string") {
 					return self.addLabel(value, position);
 				} else if (typeof(value) === "function") {
-					value = TweenLite.delayedCall(0, value);
+					value = TweenLite$1.delayedCall(0, value);
 				} else {
 					throw("Cannot add " + value + " into the timeline; it is not a tween, timeline, function, or string.");
 				}
@@ -2329,7 +2329,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 		};
 
 		p.addPause = function(position, callback, params, scope) {
-			var t = TweenLite.delayedCall(0, _pauseCallback, params, scope || this);
+			var t = TweenLite$1.delayedCall(0, _pauseCallback, params, scope || this);
 			t.vars.onComplete = t.vars.onReverseComplete = callback;
 			t.data = "isPause";
 			this._hasPause = true;
@@ -2587,7 +2587,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 				tween = this._first,
 				cnt = 0;
 			while (tween) {
-				if (tween._startTime < ignoreBeforeTime) ; else if (tween instanceof TweenLite) {
+				if (tween._startTime < ignoreBeforeTime) ; else if (tween instanceof TweenLite$1) {
 					if (tweens !== false) {
 						a[cnt++] = tween;
 					}
@@ -2613,7 +2613,7 @@ _gsScope._gsDefine("TimelineLite", ["core.Animation","core.SimpleTimeline","Twee
 			if (disabled) {
 				this._enabled(true, true); //getTweensOf() filters out disabled tweens, and we have to mark them as _gc = true when the timeline completes in order to allow clean garbage collection, so temporarily re-enable the timeline here.
 			}
-			tweens = TweenLite.getTweensOf(target);
+			tweens = TweenLite$1.getTweensOf(target);
 			i = tweens.length;
 			while (--i > -1) {
 				if (tweens[i].timeline === this || (nested && this._contains(tweens[i]))) {
@@ -3001,7 +3001,7 @@ var TimelineLite = globals.TimelineLite;
 							style.position = "absolute";
 						}
 						cache = node._gsCache;
-						time = TweenLite.ticker.frame;
+						time = TweenLite$1.ticker.frame;
 						if (cache && horiz && cache.time === time) { //performance optimization: we record the width of elements along with the ticker frame so that we can quickly get it again on the same tick (seems relatively safe to assume it wouldn't change on the same tick)
 							return cache.width * v / 100;
 						}
@@ -3387,8 +3387,8 @@ var TimelineLite = globals.TimelineLite;
 			_colorExp.lastIndex = 0;
 		};
 
-		if (!TweenLite.defaultStringFilter) {
-			TweenLite.defaultStringFilter = CSSPlugin.colorStringFilter;
+		if (!TweenLite$1.defaultStringFilter) {
+			TweenLite$1.defaultStringFilter = CSSPlugin.colorStringFilter;
 		}
 
 		/**
@@ -4406,11 +4406,11 @@ var TimelineLite = globals.TimelineLite;
 					t._gsTransform = tm; //record to the object's _gsTransform which we use so that tweens can control individual properties independently (we need all the properties to accurately recompose the matrix in the setRatio() method)
 					if (tm.svg) { //if we're supposed to apply transforms to the SVG element's "transform" attribute, make sure there aren't any CSS transforms applied or they'll override the attribute ones. Also clear the transform attribute if we're using CSS, just to be clean.
 						if (_useSVGTransformAttr && t.style[_transformProp]) {
-							TweenLite.delayedCall(0.001, function(){ //if we apply this right away (before anything has rendered), we risk there being no transforms for a brief moment and it also interferes with adjusting the transformOrigin in a tween with immediateRender:true (it'd try reading the matrix and it wouldn't have the appropriate data in place because we just removed it).
+							TweenLite$1.delayedCall(0.001, function(){ //if we apply this right away (before anything has rendered), we risk there being no transforms for a brief moment and it also interferes with adjusting the transformOrigin in a tween with immediateRender:true (it'd try reading the matrix and it wouldn't have the appropriate data in place because we just removed it).
 								_removeProp(t.style, _transformProp);
 							});
 						} else if (!_useSVGTransformAttr && t.getAttribute("transform")) {
-							TweenLite.delayedCall(0.001, function(){
+							TweenLite$1.delayedCall(0.001, function(){
 								t.removeAttribute("transform");
 							});
 						}
@@ -5683,12 +5683,12 @@ var TimelineLite = globals.TimelineLite;
 		 * @return {Array} An array of TweenLite instances
 		 */
 		CSSPlugin.cascadeTo = function(target, duration, vars) {
-			var tween = TweenLite.to(target, duration, vars),
+			var tween = TweenLite$1.to(target, duration, vars),
 				results = [tween],
 				b = [],
 				e = [],
 				targets = [],
-				_reservedProps = TweenLite._internals.reservedProps,
+				_reservedProps = TweenLite$1._internals.reservedProps,
 				i, difs, p, from;
 			target = tween._targets || tween.target;
 			_getChildStyles(target, b, targets);
@@ -5710,7 +5710,7 @@ var TimelineLite = globals.TimelineLite;
 					for (p in difs) {
 						from[p] = b[i][p];
 					}
-					results.push(TweenLite.fromTo(targets[i], duration, from, difs));
+					results.push(TweenLite$1.fromTo(targets[i], duration, from, difs));
 				}
 			}
 			return results;
@@ -5722,6 +5722,183 @@ var TimelineLite = globals.TimelineLite;
 	}, true);
 
 var CSSPlugin = globals.CSSPlugin;
+
+/*!
+ * VERSION: 1.9.2
+ * DATE: 2019-02-07
+ * UPDATES AND DOCS AT: http://greensock.com
+ *
+ * @license Copyright (c) 2008-2019, GreenSock. All rights reserved.
+ * This work is subject to the terms at http://greensock.com/standard-license or for
+ * Club GreenSock members, the software agreement that was issued with your membership.
+ * 
+ * @author: Jack Doyle, jack@greensock.com
+ **/
+
+
+var _doc = (_gsScope.document || {}).documentElement,
+		_window = _gsScope,
+		_max = function(element, axis) {
+			var dim = (axis === "x") ? "Width" : "Height",
+				scroll = "scroll" + dim,
+				client = "client" + dim,
+				body = document.body;
+			return (element === _window || element === _doc || element === body) ? Math.max(_doc[scroll], body[scroll]) - (_window["inner" + dim] || _doc[client] || body[client]) : element[scroll] - element["offset" + dim];
+		},
+		_unwrapElement = function(value) {
+			if (typeof(value) === "string") {
+				value = TweenLite.selector(value);
+			}
+			if (value.length && value !== _window && value[0] && value[0].style && !value.nodeType) {
+				value = value[0];
+			}
+			return (value === _window || (value.nodeType && value.style)) ? value : null;
+		},
+		_buildGetter = function(e, axis) { //pass in an element and an axis ("x" or "y") and it'll return a getter function for the scroll position of that element (like scrollTop or scrollLeft, although if the element is the window, it'll use the pageXOffset/pageYOffset or the documentElement's scrollTop/scrollLeft or document.body's. Basically this streamlines things and makes a very fast getter across browsers.
+			var p = "scroll" + ((axis === "x") ? "Left" : "Top");
+			if (e === _window) {
+				if (e.pageXOffset != null) {
+					p = "page" + axis.toUpperCase() + "Offset";
+				} else if (_doc[p] != null) {
+					e = _doc;
+				} else {
+					e = document.body;
+				}
+			}
+			return function() {
+				return e[p];
+			};
+		},
+		_getOffset = function(element, container) {
+			var rect = _unwrapElement(element).getBoundingClientRect(),
+				b = document.body,
+				isRoot = (!container || container === _window || container === b),
+				cRect = isRoot ? {top:_doc.clientTop - (window.pageYOffset || _doc.scrollTop || b.scrollTop || 0), left:_doc.clientLeft - (window.pageXOffset || _doc.scrollLeft || b.scrollLeft || 0)} : container.getBoundingClientRect(),
+				offsets = {x: rect.left - cRect.left, y: rect.top - cRect.top};
+			if (!isRoot && container) { //only add the current scroll position if it's not the window/body.
+				offsets.x += _buildGetter(container, "x")();
+				offsets.y += _buildGetter(container, "y")();
+			}
+			return offsets;
+			/*	PREVIOUS
+			var rect = _unwrapElement(element).getBoundingClientRect(),
+				isRoot = (!container || container === _window || container === document.body),
+				cRect = (isRoot ? _doc : container).getBoundingClientRect(),
+				offsets = {x: rect.left - cRect.left, y: rect.top - cRect.top};
+			if (!isRoot && container) { //only add the current scroll position if it's not the window/body.
+				offsets.x += _buildGetter(container, "x")();
+				offsets.y += _buildGetter(container, "y")();
+			}
+			return offsets;
+			*/
+		},
+		_parseVal = function(value, target, axis, currentVal) {
+			var type = typeof(value);
+			return !isNaN(value) ? parseFloat(value) : (type === "string" && value.charAt(1) === "=") ? parseInt(value.charAt(0) + "1", 10) * parseFloat(value.substr(2)) + currentVal : (value === "max") ? _max(target, axis) : Math.min(_max(target, axis), _getOffset(value, target)[axis]);
+		},
+
+		ScrollToPlugin = _gsScope._gsDefine.plugin({
+			propName: "scrollTo",
+			API: 2,
+			global: true,
+			version:"1.9.2",
+
+			//called when the tween renders for the first time. This is where initial values should be recorded and any setup routines should run.
+			init: function(target, value, tween) {
+				this._wdw = (target === _window);
+				this._target = target;
+				this._tween = tween;
+				if (typeof(value) !== "object") {
+					value = {y:value}; //if we don't receive an object as the parameter, assume the user intends "y".
+					if (typeof(value.y) === "string" && value.y !== "max" && value.y.charAt(1) !== "=") {
+						value.x = value.y;
+					}
+				} else if (value.nodeType) {
+					value = {y:value, x:value};
+				}
+				this.vars = value;
+				this._autoKill = (value.autoKill !== false);
+				this.getX = _buildGetter(target, "x");
+				this.getY = _buildGetter(target, "y");
+				this.x = this.xPrev = this.getX();
+				this.y = this.yPrev = this.getY();
+				if (value.x != null) {
+					this._addTween(this, "x", this.x, _parseVal(value.x, target, "x", this.x) - (value.offsetX || 0), "scrollTo_x", true);
+					this._overwriteProps.push("scrollTo_x");
+				} else {
+					this.skipX = true;
+				}
+				if (value.y != null) {
+					this._addTween(this, "y", this.y, _parseVal(value.y, target, "y", this.y) - (value.offsetY || 0), "scrollTo_y", true);
+					this._overwriteProps.push("scrollTo_y");
+				} else {
+					this.skipY = true;
+				}
+				return true;
+			},
+
+			//called each time the values should be updated, and the ratio gets passed as the only parameter (typically it's a value between 0 and 1, but it can exceed those when using an ease like Elastic.easeOut or Back.easeOut, etc.)
+			set: function(v) {
+				this._super.setRatio.call(this, v);
+
+				var x = (this._wdw || !this.skipX) ? this.getX() : this.xPrev,
+					y = (this._wdw || !this.skipY) ? this.getY() : this.yPrev,
+					yDif = y - this.yPrev,
+					xDif = x - this.xPrev,
+					threshold = ScrollToPlugin.autoKillThreshold;
+
+				if (this.x < 0) { //can't scroll to a position less than 0! Might happen if someone uses a Back.easeOut or Elastic.easeOut when scrolling back to the top of the page (for example)
+					this.x = 0;
+				}
+				if (this.y < 0) {
+					this.y = 0;
+				}
+				if (this._autoKill) {
+					//note: iOS has a bug that throws off the scroll by several pixels, so we need to check if it's within 7 pixels of the previous one that we set instead of just looking for an exact match.
+					if (!this.skipX && (xDif > threshold || xDif < -threshold) && x < _max(this._target, "x")) {
+						this.skipX = true; //if the user scrolls separately, we should stop tweening!
+					}
+					if (!this.skipY && (yDif > threshold || yDif < -threshold) && y < _max(this._target, "y")) {
+						this.skipY = true; //if the user scrolls separately, we should stop tweening!
+					}
+					if (this.skipX && this.skipY) {
+						this._tween.kill();
+						if (this.vars.onAutoKill) {
+							this.vars.onAutoKill.apply(this.vars.onAutoKillScope || this._tween, this.vars.onAutoKillParams || []);
+						}
+					}
+				}
+				if (this._wdw) {
+					_window.scrollTo((!this.skipX) ? this.x : x, (!this.skipY) ? this.y : y);
+				} else {
+					if (!this.skipY) {
+						this._target.scrollTop = this.y;
+					}
+					if (!this.skipX) {
+						this._target.scrollLeft = this.x;
+					}
+				}
+				this.xPrev = this.x;
+				this.yPrev = this.y;
+			}
+
+		}),
+		p = ScrollToPlugin.prototype;
+
+	ScrollToPlugin.max = _max;
+	ScrollToPlugin.getOffset = _getOffset;
+	ScrollToPlugin.buildGetter = _buildGetter;
+	ScrollToPlugin.autoKillThreshold = 7;
+
+	p._kill = function(lookup) {
+		if (lookup.scrollTo_x) {
+			this.skipX = true;
+		}
+		if (lookup.scrollTo_y) {
+			this.skipY = true;
+		}
+		return this._super._kill.call(this, lookup);
+	};
 
 /*!
  * VERSION: 1.16.1
@@ -6095,352 +6272,6 @@ var Expo = globals.Expo;
 var Sine = globals.Sine;
 var ExpoScaleEase = globals.ExpoScaleEase;
 
-function isElement(el) {
-  return el != null && typeof el === 'object' && el.nodeType === 1;
-}
-
-function canOverflow(overflow, skipOverflowHiddenElements) {
-  if (skipOverflowHiddenElements && overflow === 'hidden') {
-    return false;
-  }
-
-  return overflow !== 'visible' && overflow !== 'clip';
-}
-
-function isScrollable(el, skipOverflowHiddenElements) {
-  if (el.clientHeight < el.scrollHeight || el.clientWidth < el.scrollWidth) {
-    var style = getComputedStyle(el, null);
-    return canOverflow(style.overflowY, skipOverflowHiddenElements) || canOverflow(style.overflowX, skipOverflowHiddenElements);
-  }
-
-  return false;
-}
-
-function alignNearest(scrollingEdgeStart, scrollingEdgeEnd, scrollingSize, scrollingBorderStart, scrollingBorderEnd, elementEdgeStart, elementEdgeEnd, elementSize) {
-  if (elementEdgeStart < scrollingEdgeStart && elementEdgeEnd > scrollingEdgeEnd || elementEdgeStart > scrollingEdgeStart && elementEdgeEnd < scrollingEdgeEnd) {
-    return 0;
-  }
-
-  if (elementEdgeStart <= scrollingEdgeStart && elementSize <= scrollingSize || elementEdgeEnd >= scrollingEdgeEnd && elementSize >= scrollingSize) {
-    return elementEdgeStart - scrollingEdgeStart - scrollingBorderStart;
-  }
-
-  if (elementEdgeEnd > scrollingEdgeEnd && elementSize < scrollingSize || elementEdgeStart < scrollingEdgeStart && elementSize > scrollingSize) {
-    return elementEdgeEnd - scrollingEdgeEnd + scrollingBorderEnd;
-  }
-
-  return 0;
-}
-
-var compute = (function (target, options) {
-  var scrollMode = options.scrollMode,
-      block = options.block,
-      inline = options.inline,
-      boundary = options.boundary,
-      skipOverflowHiddenElements = options.skipOverflowHiddenElements;
-  var checkBoundary = typeof boundary === 'function' ? boundary : function (node) {
-    return node !== boundary;
-  };
-
-  if (!isElement(target)) {
-    throw new TypeError('Invalid target');
-  }
-
-  var scrollingElement = document.scrollingElement || document.documentElement;
-  var frames = [];
-  var cursor = target;
-
-  while (isElement(cursor) && checkBoundary(cursor)) {
-    cursor = cursor.parentNode;
-
-    if (cursor === scrollingElement) {
-      frames.push(cursor);
-      break;
-    }
-
-    if (cursor === document.body && isScrollable(cursor) && !isScrollable(document.documentElement)) {
-      continue;
-    }
-
-    if (isScrollable(cursor, skipOverflowHiddenElements)) {
-      frames.push(cursor);
-    }
-  }
-
-  var viewportWidth = window.visualViewport ? visualViewport.width : innerWidth;
-  var viewportHeight = window.visualViewport ? visualViewport.height : innerHeight;
-  var viewportX = window.scrollX || pageXOffset;
-  var viewportY = window.scrollY || pageYOffset;
-
-  var _target$getBoundingCl = target.getBoundingClientRect(),
-      targetHeight = _target$getBoundingCl.height,
-      targetWidth = _target$getBoundingCl.width,
-      targetTop = _target$getBoundingCl.top,
-      targetRight = _target$getBoundingCl.right,
-      targetBottom = _target$getBoundingCl.bottom,
-      targetLeft = _target$getBoundingCl.left;
-
-  var targetBlock = block === 'start' || block === 'nearest' ? targetTop : block === 'end' ? targetBottom : targetTop + targetHeight / 2;
-  var targetInline = inline === 'center' ? targetLeft + targetWidth / 2 : inline === 'end' ? targetRight : targetLeft;
-  var computations = [];
-
-  for (var index = 0; index < frames.length; index++) {
-    var frame = frames[index];
-
-    var _frame$getBoundingCli = frame.getBoundingClientRect(),
-        _height = _frame$getBoundingCli.height,
-        _width = _frame$getBoundingCli.width,
-        _top = _frame$getBoundingCli.top,
-        right = _frame$getBoundingCli.right,
-        bottom = _frame$getBoundingCli.bottom,
-        _left = _frame$getBoundingCli.left;
-
-    if (scrollMode === 'if-needed' && targetTop >= 0 && targetLeft >= 0 && targetBottom <= viewportHeight && targetRight <= viewportWidth && targetTop >= _top && targetBottom <= bottom && targetLeft >= _left && targetRight <= right) {
-      return computations;
-    }
-
-    var frameStyle = getComputedStyle(frame);
-    var borderLeft = parseInt(frameStyle.borderLeftWidth, 10);
-    var borderTop = parseInt(frameStyle.borderTopWidth, 10);
-    var borderRight = parseInt(frameStyle.borderRightWidth, 10);
-    var borderBottom = parseInt(frameStyle.borderBottomWidth, 10);
-    var blockScroll = 0;
-    var inlineScroll = 0;
-    var scrollbarWidth = 'offsetWidth' in frame ? frame.offsetWidth - frame.clientWidth - borderLeft - borderRight : 0;
-    var scrollbarHeight = 'offsetHeight' in frame ? frame.offsetHeight - frame.clientHeight - borderTop - borderBottom : 0;
-
-    if (scrollingElement === frame) {
-      if (block === 'start') {
-        blockScroll = targetBlock;
-      } else if (block === 'end') {
-        blockScroll = targetBlock - viewportHeight;
-      } else if (block === 'nearest') {
-        blockScroll = alignNearest(viewportY, viewportY + viewportHeight, viewportHeight, borderTop, borderBottom, viewportY + targetBlock, viewportY + targetBlock + targetHeight, targetHeight);
-      } else {
-        blockScroll = targetBlock - viewportHeight / 2;
-      }
-
-      if (inline === 'start') {
-        inlineScroll = targetInline;
-      } else if (inline === 'center') {
-        inlineScroll = targetInline - viewportWidth / 2;
-      } else if (inline === 'end') {
-        inlineScroll = targetInline - viewportWidth;
-      } else {
-        inlineScroll = alignNearest(viewportX, viewportX + viewportWidth, viewportWidth, borderLeft, borderRight, viewportX + targetInline, viewportX + targetInline + targetWidth, targetWidth);
-      }
-
-      blockScroll = Math.max(0, blockScroll + viewportY);
-      inlineScroll = Math.max(0, inlineScroll + viewportX);
-    } else {
-      if (block === 'start') {
-        blockScroll = targetBlock - _top - borderTop;
-      } else if (block === 'end') {
-        blockScroll = targetBlock - bottom + borderBottom + scrollbarHeight;
-      } else if (block === 'nearest') {
-        blockScroll = alignNearest(_top, bottom, _height, borderTop, borderBottom + scrollbarHeight, targetBlock, targetBlock + targetHeight, targetHeight);
-      } else {
-        blockScroll = targetBlock - (_top + _height / 2) + scrollbarHeight / 2;
-      }
-
-      if (inline === 'start') {
-        inlineScroll = targetInline - _left - borderLeft;
-      } else if (inline === 'center') {
-        inlineScroll = targetInline - (_left + _width / 2) + scrollbarWidth / 2;
-      } else if (inline === 'end') {
-        inlineScroll = targetInline - right + borderRight + scrollbarWidth;
-      } else {
-        inlineScroll = alignNearest(_left, right, _width, borderLeft, borderRight + scrollbarWidth, targetInline, targetInline + targetWidth, targetWidth);
-      }
-
-      var scrollLeft = frame.scrollLeft,
-          scrollTop = frame.scrollTop;
-      blockScroll = Math.max(0, Math.min(scrollTop + blockScroll, frame.scrollHeight - _height + scrollbarHeight));
-      inlineScroll = Math.max(0, Math.min(scrollLeft + inlineScroll, frame.scrollWidth - _width + scrollbarWidth));
-      targetBlock += scrollTop - blockScroll;
-      targetInline += scrollLeft - inlineScroll;
-    }
-
-    computations.push({
-      el: frame,
-      top: blockScroll,
-      left: inlineScroll
-    });
-  }
-
-  return computations;
-});
-
-function isOptionsObject(options) {
-  return options === Object(options) && Object.keys(options).length !== 0;
-}
-
-function defaultBehavior(actions, behavior) {
-  if (behavior === void 0) {
-    behavior = 'auto';
-  }
-
-  var canSmoothScroll = 'scrollBehavior' in document.body.style;
-  actions.forEach(function (_ref) {
-    var el = _ref.el,
-        top = _ref.top,
-        left = _ref.left;
-
-    if (el.scroll && canSmoothScroll) {
-      el.scroll({
-        top: top,
-        left: left,
-        behavior: behavior
-      });
-    } else {
-      el.scrollTop = top;
-      el.scrollLeft = left;
-    }
-  });
-}
-
-function getOptions(options) {
-  if (options === false) {
-    return {
-      block: 'end',
-      inline: 'nearest'
-    };
-  }
-
-  if (isOptionsObject(options)) {
-    return options;
-  }
-
-  return {
-    block: 'start',
-    inline: 'nearest'
-  };
-}
-
-function scrollIntoView(target, options) {
-  var targetIsDetached = !target.ownerDocument.documentElement.contains(target);
-
-  if (isOptionsObject(options) && typeof options.behavior === 'function') {
-    return options.behavior(targetIsDetached ? [] : compute(target, options));
-  }
-
-  if (targetIsDetached) {
-    return;
-  }
-
-  var computeOptions = getOptions(options);
-  return defaultBehavior(compute(target, computeOptions), computeOptions.behavior);
-}
-
-var memoizedNow;
-
-var now = function now() {
-  if (!memoizedNow) {
-    memoizedNow = 'performance' in window ? performance.now.bind(performance) : Date.now;
-  }
-
-  return memoizedNow();
-};
-
-function step(context) {
-  var time = now();
-  var elapsed = Math.min((time - context.startTime) / context.duration, 1);
-  var value = context.ease(elapsed);
-  var currentX = context.startX + (context.x - context.startX) * value;
-  var currentY = context.startY + (context.y - context.startY) * value;
-  context.method(currentX, currentY);
-
-  if (currentX !== context.x || currentY !== context.y) {
-    requestAnimationFrame(function () {
-      return step(context);
-    });
-  } else {
-    context.cb();
-  }
-}
-
-function smoothScroll(el, x, y, duration, ease, cb) {
-  if (duration === void 0) {
-    duration = 600;
-  }
-
-  if (ease === void 0) {
-    ease = function ease(t) {
-      return 1 + --t * t * t * t * t;
-    };
-  }
-
-  var scrollable;
-  var startX;
-  var startY;
-  var method;
-  scrollable = el;
-  startX = el.scrollLeft;
-  startY = el.scrollTop;
-
-  method = function method(x, y) {
-    el.scrollLeft = x;
-    el.scrollTop = y;
-  };
-
-  step({
-    scrollable: scrollable,
-    method: method,
-    startTime: now(),
-    startX: startX,
-    startY: startY,
-    x: x,
-    y: y,
-    duration: duration,
-    ease: ease,
-    cb: cb
-  });
-}
-
-var shouldSmoothScroll = function shouldSmoothScroll(options) {
-  return options && !options.behavior || options.behavior === 'smooth';
-};
-
-function scroll(target, options) {
-  var overrides = options || {};
-
-  if (shouldSmoothScroll(overrides)) {
-    return scrollIntoView(target, {
-      block: overrides.block,
-      inline: overrides.inline,
-      scrollMode: overrides.scrollMode,
-      boundary: overrides.boundary,
-      behavior: function behavior(actions) {
-        return Promise.all(actions.reduce(function (results, _ref) {
-          var el = _ref.el,
-              left = _ref.left,
-              top = _ref.top;
-          var startLeft = el.scrollLeft;
-          var startTop = el.scrollTop;
-
-          if (startLeft === left && startTop === top) {
-            return results;
-          }
-
-          return results.concat([new Promise(function (resolve) {
-            return smoothScroll(el, left, top, overrides.duration, overrides.ease, function () {
-              return resolve({
-                el: el,
-                left: [startLeft, left],
-                top: [startTop, top]
-              });
-            });
-          })]);
-        }, []));
-      }
-    });
-  }
-
-  return Promise.resolve(scrollIntoView(target, options));
-}
-
-var smoothScrollIntoView = scroll;
-
 /*! Hammer.JS - v2.0.15 - 2019-04-04
  * http://naver.github.io/egjs
  *
@@ -6524,7 +6355,7 @@ var TEST_ELEMENT = typeof document === "undefined" ? {
 var TYPE_FUNCTION = 'function';
 var round = Math.round,
     abs = Math.abs;
-var now$1 = Date.now;
+var now = Date.now;
 
 /**
  * @private
@@ -6901,7 +6732,7 @@ function simpleCloneInputData(input) {
   }
 
   return {
-    timeStamp: now$1(),
+    timeStamp: now(),
     pointers: pointers,
     center: getCenter(pointers),
     deltaX: input.deltaX,
@@ -7095,7 +6926,7 @@ function computeInputData(manager, input) {
       firstMultiple = session.firstMultiple;
   var offsetCenter = firstMultiple ? firstMultiple.center : firstInput.center;
   var center = input.center = getCenter(pointers);
-  input.timeStamp = now$1();
+  input.timeStamp = now();
   input.deltaTime = input.timeStamp - firstInput.timeStamp;
   input.angle = getAngle(offsetCenter, center);
   input.distance = getDistance(offsetCenter, center);
@@ -9215,7 +9046,7 @@ function (_Recognizer) {
     if (input && input.eventType & INPUT_END) {
       this.manager.emit(this.options.event + "up", input);
     } else {
-      this._input.timeStamp = now$1();
+      this._input.timeStamp = now();
       this.manager.emit(this.options.event, this._input);
     }
   };
@@ -11591,12 +11422,12 @@ const DEFAULT_OPTIONS$1 = {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader');
 
-      TweenLite.to(fader, 0.65, {
+      TweenLite$1.to(fader, 0.65, {
         opacity: 0,
         ease: Power1.easeInOut,
         delay: 0.35,
         onComplete: () => {
-          TweenLite.set(fader, { display: 'none' });
+          TweenLite$1.set(fader, { display: 'none' });
           document.body.classList.remove('unloaded');
           callback();
         }
@@ -11646,7 +11477,7 @@ class Application {
     window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)));
     window.addEventListener('resize', rafCallback(this.onResize.bind(this)));
 
-    TweenLite.defaultEase = Sine.easeOut;
+    TweenLite$1.defaultEase = Sine.easeOut;
   }
 
   /**
@@ -11710,7 +11541,7 @@ class Application {
     const ev = new window.CustomEvent(APPLICATION_SCROLL_LOCKED, this);
     window.dispatchEvent(ev);
     this.SCROLL_LOCKED = true;
-    TweenLite.set(document.body, { overflow: 'hidden' });
+    TweenLite$1.set(document.body, { overflow: 'hidden' });
     document.addEventListener('touchmove', this.scrollVoid, false);
   }
 
@@ -11718,7 +11549,7 @@ class Application {
     const ev = new window.CustomEvent(APPLICATION_SCROLL_RELEASED, this);
     window.dispatchEvent(ev);
     this.SCROLL_LOCKED = false;
-    TweenLite.set(document.body, { clearProps: 'overflow' });
+    TweenLite$1.set(document.body, { clearProps: 'overflow' });
     document.removeEventListener('touchmove', this.scrollVoid, false);
   }
 
@@ -12007,7 +11838,7 @@ class CoverOverlay {
 
 const DEFAULT_EVENTS = {
   onPin: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       0.35,
       {
@@ -12020,7 +11851,7 @@ const DEFAULT_EVENTS = {
 
   onUnpin: h => {
     h._hiding = true;
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       0.25,
       {
@@ -12035,7 +11866,7 @@ const DEFAULT_EVENTS = {
   },
 
   onAltBg: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       0.2,
       {
@@ -12045,7 +11876,7 @@ const DEFAULT_EVENTS = {
   },
 
   onNotAltBg: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       0.4,
       {
@@ -12484,14 +12315,14 @@ class FooterReveal {
     const main = document.querySelector('main');
     const footer = document.querySelector('[data-footer-reveal]');
     // fix footer
-    TweenLite.set(footer, {
+    TweenLite$1.set(footer, {
       'z-index': -100,
       position: 'fixed',
       bottom: 0
     });
     const footerHeight = footer.offsetHeight;
     // add height as margin
-    TweenLite.set(main, { marginBottom: footerHeight });
+    TweenLite$1.set(main, { marginBottom: footerHeight });
     if (this.opts.shadow) {
       const shadowStyle = `0 50px 50px -20px ${this.opts.shadowColor}`;
       main.style.mozBoxShadow = shadowStyle;
@@ -12892,7 +12723,7 @@ class HeroSlider {
   initialize () {
     this._addResizeHandler();
     // style the container
-    TweenLite.set(this.el, {
+    TweenLite$1.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -12910,7 +12741,7 @@ class HeroSlider {
 
     // style the slides
     Array.from(this.slides).forEach(s => {
-      TweenLite.set(s, {
+      TweenLite$1.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
         top: 0,
@@ -12922,7 +12753,7 @@ class HeroSlider {
       const img = s.querySelector('.hero-slide-img');
 
       if (img) {
-        TweenLite.set(img, {
+        TweenLite$1.set(img, {
           width: document.body.clientWidth,
           height: '100%',
           top: 0,
@@ -12941,12 +12772,12 @@ class HeroSlider {
 
     const fadeIn = () => {
       if (this.slides.length > 1) {
-        TweenLite.to(this.el, 0.250, {
+        TweenLite$1.to(this.el, 0.250, {
           opacity: 1,
           onComplete: () => { this.next(); }
         });
       } else {
-        TweenLite.to(this.el, 0.250, {
+        TweenLite$1.to(this.el, 0.250, {
           opacity: 1
         });
       }
@@ -13107,7 +12938,7 @@ class HeroSlider {
   }
 
   _resizeSlides () {
-    TweenLite.to(this.images, 0.150, {
+    TweenLite$1.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     });
@@ -13136,7 +12967,7 @@ if ('objectFit' in document.documentElement.style === false) {
 const DEFAULT_OPTIONS$8 = {
   el: '[data-hero-video]',
   onFadeIn: hero => {
-    TweenLite.to(hero.el, 1, {
+    TweenLite$1.to(hero.el, 1, {
       opacity: 1
     });
   }
@@ -13165,7 +12996,7 @@ class HeroVideo {
   initialize () {
     this._addResizeHandler();
     // style the container
-    TweenLite.set(this.el, {
+    TweenLite$1.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -13181,7 +13012,7 @@ class HeroVideo {
     this.addObserver();
     this.addEvents();
 
-    TweenLite.set(this.videoDiv, {
+    TweenLite$1.set(this.videoDiv, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -13195,7 +13026,7 @@ class HeroVideo {
     }
     this.video.muted = true;
 
-    TweenLite.set(this.video, {
+    TweenLite$1.set(this.video, {
       width: document.body.clientWidth,
       height: '100%',
       top: 0,
@@ -13221,7 +13052,7 @@ class HeroVideo {
           this.fadeIn();
           this.booting = false;
         } else {
-          TweenLite.set(this.el, { opacity: 1 });
+          TweenLite$1.set(this.el, { opacity: 1 });
         }
       }
     });
@@ -13278,7 +13109,7 @@ class HeroVideo {
   }
 
   _resize () {
-    TweenLite.to(this.video, 0.150, {
+    TweenLite$1.to(this.video, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     });
@@ -13425,7 +13256,7 @@ function imagesAreLoaded (imgs) {
   return Promise.all(promises)
 }
 
-TweenLite.defaultEase = Sine.easeOut;
+TweenLite$1.defaultEase = Sine.easeOut;
 
 const DEFAULT_OPTIONS$a = {
   captions: false,
@@ -13451,10 +13282,10 @@ const DEFAULT_OPTIONS$a = {
 
   onClose: h => {
     if (h.opts.captions) {
-      TweenLite.to(h.elements.caption, 0.45, { opacity: 0 });
+      TweenLite$1.to(h.elements.caption, 0.45, { opacity: 0 });
     }
 
-    TweenLite.to([
+    TweenLite$1.to([
       h.elements.imgWrapper,
       h.elements.nextArrow,
       h.elements.prevArrow,
@@ -13463,7 +13294,7 @@ const DEFAULT_OPTIONS$a = {
     ], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.to(h.elements.wrapper, 0.45, {
+        TweenLite$1.to(h.elements.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
             h.destroy();
@@ -13516,7 +13347,7 @@ class Lightbox {
 
     document.addEventListener('keyup', this.onKeyup.bind(this));
 
-    TweenLite.to(this.fader, 0.450, {
+    TweenLite$1.to(this.fader, 0.450, {
       opacity: 1,
       onComplete: () => {
         this.buildBox(section, index);
@@ -13615,7 +13446,7 @@ class Lightbox {
     const imgs = this.elements.wrapper.querySelectorAll('img');
 
     imagesAreLoaded(imgs).then(() => {
-      TweenLite.to(this.elements.wrapper, 0.5, {
+      TweenLite$1.to(this.elements.wrapper, 0.5, {
         opacity: 1,
         onComplete: () => {
           this.fader.style.display = 'none';
@@ -13656,7 +13487,7 @@ class Lightbox {
     activeDot.classList.add('active');
 
     if (this.elements.caption) {
-      TweenLite.to(this.elements.caption, 0.5, {
+      TweenLite$1.to(this.elements.caption, 0.5, {
         opacity: 0,
         onComplete: () => {
           this.elements.caption.innerHTML = this.sections[section][index].alt;
@@ -13664,17 +13495,17 @@ class Lightbox {
       });
     }
 
-    TweenLite.to(this.elements.img, 0.5, {
+    TweenLite$1.to(this.elements.img, 0.5, {
       opacity: 0,
       onComplete: () => {
         this.elements.img.src = this.sections[section][index].href;
 
-        TweenLite.to(this.elements.img, 0.5, {
+        TweenLite$1.to(this.elements.img, 0.5, {
           opacity: 1
         });
 
         if (this.elements.caption) {
-          TweenLite.to(this.elements.caption, 0.5, { opacity: 1 });
+          TweenLite$1.to(this.elements.caption, 0.5, { opacity: 1 });
         }
       }
     });
@@ -13729,17 +13560,22 @@ const DEFAULT_OPTIONS$b = {
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]',
 
+  onAnchor: target => {
+    TweenLite$1.to(window, 0.8, { scrollTo: target, ease: Sine.easeInOut });
+  },
+
   onTransition: href => {
     const main = document.querySelector('main');
     const fader = document.querySelector('#fader');
 
     fader.style.display = 'block';
-    TweenLite.to(main, 0.8, {
+
+    TweenLite$1.to(main, 0.8, {
       y: 25,
       ease: Power3.easeOut
     });
 
-    TweenLite.to(fader, 0.2, {
+    TweenLite$1.to(fader, 0.2, {
       opacity: 1,
       onComplete: () => {
         window.location = href;
@@ -13756,8 +13592,22 @@ class Links {
     const links = document.querySelectorAll(this.opts.linkQuery);
     const anchors = document.querySelectorAll(this.opts.anchorQuery);
 
+    this.bindHeroLink();
     this.bindAnchors(anchors);
     this.bindLinks(links);
+  }
+
+  bindHeroLink () {
+    const el = document.querySelector('[data-link-to-content]');
+    if (el) {
+      el.addEventListener('click', e => {
+        const dataTarget = document.querySelector('main');
+        e.preventDefault();
+        if (dataTarget) {
+          this.opts.onAnchor(dataTarget);
+        }
+      });
+    }
   }
 
   bindAnchors (anchors) {
@@ -13777,7 +13627,7 @@ class Links {
           const dataTarget = document.querySelector(dataID);
           e.preventDefault();
           if (dataTarget) {
-            smoothScrollIntoView(dataTarget, { block: 'start', behavior: 'smooth' });
+            this.opts.onAnchor(dataTarget);
           }
 
           if (this.app.header && dataTarget.id !== 'top') {
@@ -13960,24 +13810,28 @@ const DEFAULT_OPTIONS$d = {
    */
   threshold: 0,
 
+  /**
+   * Create unique `id` prop for each moonwalk element
+   */
+  uniqueIds: false,
+
+  /**
+   * Create indexes inside of each section per key
+   */
+  addIndexes: false,
+
   walks: {
     default: {
       /* How long between multiple entries in a moonwalk-section */
       interval: 0.1,
       /* How long each tween is */
       duration: 0.65,
+      /* */
+      alphaTween: false,
       /* The transitions that will be tweened */
       transition: {
-        from: {
-          autoAlpha: 0,
-          y: 5
-        },
-        to: {
-          autoAlpha: 1,
-          y: 0,
-          ease: Sine.easeInOut,
-          force3D: true /* if there are SVGs, we need this for Safari :( */
-        }
+        from: {},
+        to: {}
       }
     }
   }
@@ -13991,7 +13845,6 @@ class Moonwalk {
     document.documentElement.classList.add('moonwalk');
 
     this.sections = this.buildSections();
-    this.parseChildren();
 
     if (this.opts.clearLazyload) {
       this.clearLazyloads();
@@ -14013,12 +13866,50 @@ class Moonwalk {
     Array.from(elems).forEach(el => el.removeAttribute(key));
   }
 
+  addIds (section) {
+    Array.from(section.querySelectorAll('[data-moonwalk]')).forEach(el => {
+      el.setAttribute('data-moonwalk-id', Math.random().toString(36).substring(7));
+    });
+  }
+
+  addIndexes (section) {
+    Object.keys(this.opts.walks).forEach(key => {
+      let searchAttr;
+
+      if (key === 'default') {
+        searchAttr = '[data-moonwalk=""]';
+      } else {
+        searchAttr = `[data-moonwalk="${key}"]`;
+      }
+
+      const elements = section.querySelectorAll(searchAttr);
+
+      Array.from(elements).forEach((element, index) => {
+        element.setAttribute('data-moonwalk-idx', index + 1);
+      });
+    }, this);
+  }
+
   buildSections () {
     const sections = document.querySelectorAll('[data-moonwalk-section]');
 
+    Array.from(sections).forEach(section => {
+      this.parseChildren(section);
+      if (this.opts.uniqueIds) {
+        this.addIds(section);
+      }
+      if (this.opts.addIndexes) {
+        this.addIndexes(section);
+      }
+    });
+
     return Array.from(sections).map(section => ({
+      id: Math.random().toString(36).substring(7),
       el: section,
-      timeline: new TimelineLite(),
+      timeline: new TimelineLite({
+        // autoRemoveChildren: true
+        // smoothChildTiming: true
+      }),
       observer: null,
       elements: []
     }))
@@ -14029,13 +13920,13 @@ class Moonwalk {
     Array.from(srcsets).forEach(srcset => srcset.removeAttribute('data-moonwalk'));
   }
 
-  parseChildren () {
+  parseChildren (section) {
     Object.keys(this.opts.walks).forEach(key => {
-      this.findElementsByKey(key);
+      this.findChildElementsByKey(section, key);
     }, this);
   }
 
-  findElementsByKey (key) {
+  findChildElementsByKey (section, key) {
     let searchAttr = '';
     let attr = '';
     let val = '';
@@ -14050,7 +13941,7 @@ class Moonwalk {
       val = key;
     }
 
-    const elements = document.querySelectorAll(searchAttr);
+    const elements = section.querySelectorAll(searchAttr);
     return this.setAttrs(elements, attr, val)
   }
 
@@ -14082,81 +13973,125 @@ class Moonwalk {
         rootMargin = opts.rootMargin;
       }
 
-      section.observer = new IntersectionObserver(((entries, self) => {
+      section.observer = new IntersectionObserver((entries, self) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            let cfg;
             const walkName = entry.target.getAttribute('data-moonwalk');
-
-            if (!walkName.length) {
-              cfg = opts.walks.default;
-            } else {
-              cfg = opts.walks[walkName];
-            }
+            const cfg = !walkName.length ? opts.walks.default : opts.walks[walkName];
 
             const {
-              duration, transition, interval
+              duration,
+              transition,
+              interval
             } = cfg;
 
-            const overlapNumber = duration - interval;
-            let overlap = `-=${overlapNumber}`;
+            let { alphaTween } = cfg;
+            const overlap = duration - interval;
 
-            if (!section.timeline.isActive()) {
-              overlap = '+=0';
-            }
-
-            let tween;
-
-            if (transition) {
-              // js tween
-              tween = () => {
-                section.timeline.fromTo(
-                  entry.target,
-                  duration,
-                  transition.from,
-                  transition.to,
-                  overlap
-                );
-              };
-            } else {
-              // css class animation
-              tween = () => {
-                section.timeline.to(
-                  entry.target,
-                  duration,
-                  { css: { className: '+=moonwalked' } },
-                  overlap
-                );
+            if (typeof alphaTween === 'object' && alphaTween !== null) {
+              alphaTween.duration = alphaTween.duration ? alphaTween.duration : duration;
+            } else if (alphaTween === true) {
+              alphaTween = {
+                duration,
+                ease: Sine.easeIn
               };
             }
+
+            const tween = transition ? this.tweenJS : this.tweenCSS;
 
             if (entry.target.tagName === 'IMG') {
               // ensure image is loaded before we tween
-              imageIsLoaded(entry.target).then(() => tween());
+              imageIsLoaded(entry.target).then(() => tween(
+                section,
+                entry.target,
+                duration,
+                transition,
+                overlap,
+                alphaTween
+              ));
             } else {
               const imagesInEntry = entry.target.querySelectorAll('img');
               if (imagesInEntry.length) {
                 // entry has children elements that are images
-                imagesAreLoaded(imagesInEntry).then(() => tween());
+                imagesAreLoaded(imagesInEntry).then(() => tween(
+                  section,
+                  entry.target,
+                  duration,
+                  transition,
+                  overlap,
+                  alphaTween
+                ));
               } else {
                 // regular entry, just tween it
-                tween();
+                tween(
+                  section,
+                  entry.target,
+                  duration,
+                  transition,
+                  overlap,
+                  alphaTween
+                );
               }
             }
-
             self.unobserve(entry.target);
           }
         });
-      }), {
+      }, {
         rootMargin,
         threshold: opts.threshold
       });
-
       section.elements = section.el.querySelectorAll('[data-moonwalk]');
-      section.elements.forEach(box => {
-        section.observer.observe(box);
-      });
+      section.elements.forEach(box => section.observer.observe(box));
     });
+  }
+
+  tweenJS (section, target, tweenDuration, tweenTransition, tweenOverlap, alphaTween) {
+    let tweenPosition;
+    let alphaPosition;
+    const startingPoint = tweenDuration - tweenOverlap;
+
+    if (section.timeline.isActive() && section.timeline.recent()) {
+      // console.log('[ ', id, ' ] - active and recent')
+      if (section.timeline.recent().time() > startingPoint) {
+        // We're late for this tween if it was supposed to be sequential.
+        // Insert at current time
+        tweenPosition = () => section.timeline.time();
+        alphaPosition = () => section.timeline.time();
+      } else {
+        // Still time, add as normal overlap at the end
+        tweenPosition = () => `-=${tweenOverlap}`;
+        alphaPosition = () => `-=${tweenDuration}`;
+      }
+    } else {
+      tweenPosition = () => '+=0';
+      alphaPosition = () => `-=${tweenDuration}`;
+    }
+
+    TweenLite$1.set(target, tweenTransition.from);
+    section.timeline.to(
+      target,
+      tweenDuration,
+      tweenTransition.to,
+      tweenPosition(),
+    );
+
+    if (alphaTween) {
+      section.timeline.to(
+        target,
+        alphaTween.duration,
+        { autoAlpha: 1, ease: alphaTween.ease },
+        alphaPosition()
+      );
+    }
+  }
+
+  tweenCSS (section, target, duration, transition, overlap) {
+    section.timeline.to(
+      target,
+      duration,
+      { css: { className: '+=moonwalked' } },
+      overlap
+    );
   }
 }
 
@@ -14164,11 +14099,11 @@ const DEFAULT_OPTIONS$e = {
   backdropColor: '#ffffff',
 
   tweenIn: (el, popup) => {
-    TweenLite.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor });
-    TweenLite.to(popup.backdrop, 0.3, {
+    TweenLite$1.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor });
+    TweenLite$1.to(popup.backdrop, 0.3, {
       opacity: 1,
       onComplete: () => {
-        TweenLite.fromTo(el, 0.3, {
+        TweenLite$1.fromTo(el, 0.3, {
           yPercent: -50,
           x: -5,
           xPercent: -50,
@@ -14186,11 +14121,11 @@ const DEFAULT_OPTIONS$e = {
 
   tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]');
-    TweenLite.to(popups, 0.3, { opacity: 0, display: 'none' });
-    TweenLite.to(popup.backdrop, 0.3, {
+    TweenLite$1.to(popups, 0.3, { opacity: 0, display: 'none' });
+    TweenLite$1.to(popup.backdrop, 0.3, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.set(popup.backdrop, { display: 'none' });
+        TweenLite$1.set(popup.backdrop, { display: 'none' });
       }
     });
   }
@@ -14206,7 +14141,7 @@ class Popup {
   createBackdrop () {
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-popup-backdrop', '');
-    TweenLite.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 });
+    TweenLite$1.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 });
 
     backdrop.addEventListener('click', e => {
       e.stopPropagation();
@@ -14296,11 +14231,11 @@ class StackedBoxes {
   }
 
   pull (box, amnt) {
-    TweenLite.set(box, { y: amnt * -1, marginBottom: amnt * -1 });
+    TweenLite$1.set(box, { y: amnt * -1, marginBottom: amnt * -1 });
   }
 
   size (target, src) {
-    TweenLite.set(target, { height: src.clientHeight });
+    TweenLite$1.set(target, { height: src.clientHeight });
   }
 }
 
@@ -14331,7 +14266,7 @@ class StackedBoxes {
 
 const DEFAULT_EVENTS$1 = {
   onMainVisible: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       3,
       { opacity: 1, delay: 0.5 },
@@ -14339,7 +14274,7 @@ const DEFAULT_EVENTS$1 = {
   },
 
   onMainInvisible: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.el,
       1,
       { opacity: 0 },
@@ -14347,7 +14282,7 @@ const DEFAULT_EVENTS$1 = {
   },
 
   onPin: h => {
-    TweenLite.to(
+    TweenLite$1.to(
       h.auxEl,
       0.35,
       {
@@ -14360,7 +14295,7 @@ const DEFAULT_EVENTS$1 = {
 
   onUnpin: h => {
     h._hiding = true;
-    TweenLite.to(
+    TweenLite$1.to(
       h.auxEl,
       0.25,
       {
@@ -14881,4 +14816,4 @@ var loadScript = (url, completeCallback) => {
   head.appendChild(script);
 };
 
-export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, Expo, FixedHeader, FooterReveal, Hammer, HeroSlider, HeroVideo, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power1, Power2, Power3, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenLite, Typography, imageIsLoaded, imagesAreLoaded, loadScript, prefersReducedMotion, smoothScrollIntoView as scrollIntoView };
+export { Application, Back, Breakpoints, CSSPlugin, Cookies, CoverOverlay, index as Events, Expo, FixedHeader, FooterReveal, Hammer, HeroSlider, HeroVideo, Lazyload, Lightbox, Linear, Links, MobileMenu, Moonwalk, Parallax, Popup, Power1, Power2, Power3, ScrollToPlugin, Sine, StackedBoxes, StickyHeader, TimelineLite, TweenLite$1 as TweenLite, Typography, imageIsLoaded, imagesAreLoaded, loadScript, prefersReducedMotion };
