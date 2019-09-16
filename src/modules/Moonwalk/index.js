@@ -113,26 +113,33 @@ export default class Moonwalk {
   buildSections () {
     const sections = document.querySelectorAll('[data-moonwalk-section]')
 
-    Array.from(sections).forEach(section => {
+    return Array.from(sections).map(section => {
       this.parseChildren(section)
+
       if (this.opts.uniqueIds) {
         this.addIds(section)
       }
+
       if (this.opts.addIndexes) {
         this.addIndexes(section)
       }
-    })
 
-    return Array.from(sections).map(section => ({
-      id: Math.random().toString(36).substring(7),
-      el: section,
-      timeline: new TimelineLite({
-        // autoRemoveChildren: true
-        // smoothChildTiming: true
-      }),
-      observer: null,
-      elements: []
-    }))
+      return {
+        id: Math.random().toString(36).substring(7),
+        el: section,
+        timeline: new TimelineLite({
+          // autoRemoveChildren: true
+          // smoothChildTiming: true
+        }),
+        observer: null,
+        stage: {
+          name: section.getAttribute('data-moonwalk-stage') || null,
+          running: false,
+          firstTween: false
+        },
+        elements: []
+      }
+    })
   }
 
   clearLazyloads () {
@@ -142,7 +149,8 @@ export default class Moonwalk {
 
   parseChildren (section) {
     Object.keys(this.opts.walks).forEach(key => {
-      this.findChildElementsByKey(section, key)
+      const { elements, attr, val } = this.findChildElementsByKey(section, key)
+      this.setAttrs(elements, attr, val)
     }, this)
   }
 
@@ -154,15 +162,17 @@ export default class Moonwalk {
     if (key === 'default') {
       searchAttr = '[data-moonwalk-children]'
       attr = 'data-moonwalk'
-      val = ''
     } else {
       searchAttr = `[data-moonwalk-${key}-children]`
       attr = 'data-moonwalk'
       val = key
     }
 
-    const elements = section.querySelectorAll(searchAttr)
-    return this.setAttrs(elements, attr, val)
+    return {
+      elements: section.querySelectorAll(searchAttr),
+      attr,
+      val
+    }
   }
 
   setAttrs (elements, attr, val) {
@@ -180,12 +190,46 @@ export default class Moonwalk {
     return affectedElements
   }
 
+  buildStageObserver (section) {
+    if (!section.stage.name) {
+      return
+    }
+
+    const { opts: { walks } } = this
+    const observer = new IntersectionObserver((entries, self) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (!section.stage.running) {
+            // we have a stage and the section is not running.
+            // run stage tween
+            const stageTween = walks[section.stage.name]
+
+            section.timeline.fromTo(
+              entry.target,
+              stageTween.duration,
+              stageTween.transition.from,
+              stageTween.transition.to,
+              0
+            )
+
+            section.stage.firstTween = true
+          }
+
+          self.unobserve(entry.target)
+        }
+      })
+    }, { rootMargin: '0px' })
+
+    observer.observe(section.el)
+  }
+
   ready () {
     const { opts } = this
 
     this.sections.forEach((section, idx) => {
       // if this is the last section, set rootMargin to 0
       let rootMargin
+      this.buildStageObserver(section)
 
       if (idx === this.sections.length - 1) {
         rootMargin = '0px'
@@ -196,6 +240,8 @@ export default class Moonwalk {
       section.observer = new IntersectionObserver((entries, self) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
+            section.running = true
+
             const walkName = entry.target.getAttribute('data-moonwalk')
             const cfg = !walkName.length ? opts.walks.default : opts.walks[walkName]
 
@@ -206,7 +252,12 @@ export default class Moonwalk {
             } = cfg
 
             let { alphaTween } = cfg
-            const overlap = duration - interval
+            let overlap = duration - interval
+
+            if (section.stage.firstTween) {
+              overlap = 0
+              section.stage.firstTween = false
+            }
 
             if (typeof alphaTween === 'object' && alphaTween !== null) {
               alphaTween.duration = alphaTween.duration ? alphaTween.duration : duration
