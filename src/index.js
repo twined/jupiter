@@ -6,12 +6,12 @@ import {
   Power2,
   Power3,
   Expo,
+  ScrollToPlugin,
   Sine,
   TweenLite,
   TimelineLite
 } from 'gsap/all'
 
-import scrollIntoView from 'smooth-scroll-into-view-if-needed'
 import Hammer from '@egjs/hammerjs'
 
 import Application from './modules/Application'
@@ -70,13 +70,13 @@ export {
   // that can also be used in the main frontend.
   Back,
   CSSPlugin,
+  ScrollToPlugin,
   Hammer,
   Linear,
   Power1,
   Power2,
   Power3,
   Expo,
-  scrollIntoView,
   Sine,
   TweenLite,
   TimelineLite

@@ -1,17 +1,26 @@
-import { TweenLite, Power3 } from 'gsap/all'
-import scrollIntoView from 'smooth-scroll-into-view-if-needed'
+import {
+  TweenLite, Power3, ScrollToPlugin, Sine
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+
+// eslint-disable-next-line no-unused-vars
+const plugins = [ScrollToPlugin]
 
 const DEFAULT_OPTIONS = {
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]',
 
+  onAnchor: target => {
+    TweenLite.to(window, 0.8, { scrollTo: target, ease: Sine.easeInOut })
+  },
+
   onTransition: href => {
     const main = document.querySelector('main')
     const fader = document.querySelector('#fader')
 
     fader.style.display = 'block'
+
     TweenLite.to(main, 0.8, {
       y: 25,
       ease: Power3.easeOut
@@ -34,8 +43,22 @@ export default class Links {
     const links = document.querySelectorAll(this.opts.linkQuery)
     const anchors = document.querySelectorAll(this.opts.anchorQuery)
 
+    this.bindHeroLink()
     this.bindAnchors(anchors)
     this.bindLinks(links)
+  }
+
+  bindHeroLink () {
+    const el = document.querySelector('[data-link-to-content]')
+    if (el) {
+      el.addEventListener('click', e => {
+        const dataTarget = document.querySelector('main')
+        e.preventDefault()
+        if (dataTarget) {
+          this.opts.onAnchor(dataTarget)
+        }
+      })
+    }
   }
 
   bindAnchors (anchors) {
@@ -55,7 +78,7 @@ export default class Links {
           const dataTarget = document.querySelector(dataID)
           e.preventDefault()
           if (dataTarget) {
-            scrollIntoView(dataTarget, { block: 'start', behavior: 'smooth' })
+            this.opts.onAnchor(dataTarget)
           }
 
           if (this.app.header && dataTarget.id !== 'top') {
