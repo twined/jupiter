@@ -4,8 +4,13 @@ import rafCallback from '../../utils/rafCallback'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
 import Breakpoints from '../Breakpoints'
+import FeatureTests from '../FeatureTests'
 
 const DEFAULT_OPTIONS = {
+  featureTests: {
+    touch: true
+  },
+
   faderOpts: {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
@@ -37,7 +42,14 @@ export default class Application {
     }
 
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-    this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig)
+
+    this.featureTests = new FeatureTests(this, this.opts.featureTests)
+    if (typeof this.opts.breakpointConfig === 'object') {
+      this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig)
+    } else {
+      this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig(this))
+    }
+
     this.fader = null
     this.callbacks = {}
 
