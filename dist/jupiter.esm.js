@@ -14005,6 +14005,7 @@ class Moonwalk {
       return {
         id: Math.random().toString(36).substring(7),
         el: section,
+        name: section.getAttribute('data-moonwalk-section') || null,
         timeline: new TimelineLite({
           // autoRemoveChildren: true
           // smoothChildTiming: true
@@ -14068,8 +14069,8 @@ class Moonwalk {
     return affectedElements
   }
 
-  buildStageObserver (section) {
-    if (!section.stage.name) {
+  buildSectionObserver (section) {
+    if (!section.stage.name && !section.name) {
       return
     }
 
@@ -14077,20 +14078,67 @@ class Moonwalk {
     const observer = new IntersectionObserver((entries, self) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          if (!section.stage.running) {
-            // we have a stage and the section is not running.
-            // run stage tween
-            const stageTween = walks[section.stage.name];
+          /* stage section */
+          if (section.stage.name) {
+            if (!section.stage.running) {
+              // we have a stage and the section is not running.
+              // run stage tween
+              const stageTween = walks[section.stage.name];
 
-            section.timeline.fromTo(
-              entry.target,
-              stageTween.duration,
-              stageTween.transition.from,
-              stageTween.transition.to,
+              // TODO: Set the FROM transition when we first go through sections,
+              // and change this to a `from` method, so that they are completely minimized on run!
+
+              section.timeline.fromTo(
+                entry.target,
+                stageTween.duration,
+                stageTween.transition.from,
+                stageTween.transition.to,
+                0
+              );
+
+              section.stage.firstTween = true;
+            }
+          }
+
+          /* named section. stagger reveal children */
+          if (section.name) {
+            const tween = walks[section.name];
+
+            if (!tween) {
+              console.error(`==> JUPITER: Walk [${section.name}] not found in config`);
+            }
+
+
+            if (typeof tween.alphaTween === 'object') {
+              tween.alphaTween.duration = tween.alphaTween.duration
+                ? tween.alphaTween.duration : tween.duration;
+            } else if (tween.alphaTween === true) {
+              tween.alphaTween = {
+                duration: tween.duration,
+                ease: Sine.easeIn
+              };
+            }
+
+            section.timeline.staggerTo(
+              section.children,
+              tween.duration,
+              tween.transition.to,
+              tween.interval,
               0
             );
 
-            section.stage.firstTween = true;
+            if (tween.alphaTween) {
+              section.timeline.staggerTo(
+                section.children,
+                tween.alphaTween.duration,
+                {
+                  autoAlpha: 1,
+                  ease: tween.alphaTween.ease
+                },
+                tween.interval,
+                0
+              );
+            }
           }
 
           self.unobserve(entry.target);
@@ -14107,7 +14155,6 @@ class Moonwalk {
     this.sections.forEach((section, idx) => {
       // if this is the last section, set rootMargin to 0
       let rootMargin;
-      this.buildStageObserver(section);
 
       if (idx === this.sections.length - 1) {
         rootMargin = '0px';
@@ -14115,54 +14162,52 @@ class Moonwalk {
         rootMargin = opts.rootMargin;
       }
 
-      section.observer = new IntersectionObserver((entries, self) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            section.running = true;
+      if (section.name) {
+        // set initial tweens
+        const sectionWalk = opts.walks[section.name];
+        section.children = section.el.querySelectorAll(sectionWalk.sectionTargets);
+        TweenLite$1.set(section.children, sectionWalk.transition.from);
+      }
 
-            const walkName = entry.target.getAttribute('data-moonwalk');
-            const cfg = !walkName.length ? opts.walks.default : opts.walks[walkName];
+      this.buildSectionObserver(section);
 
-            const {
-              duration,
-              transition,
-              interval
-            } = cfg;
+      if (!section.name) {
+        section.observer = new IntersectionObserver((entries, self) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              section.running = true;
 
-            let { alphaTween } = cfg;
-            let overlap = duration - interval;
+              const walkName = entry.target.getAttribute('data-moonwalk');
+              const cfg = !walkName.length ? opts.walks.default : opts.walks[walkName];
 
-            if (section.stage.firstTween) {
-              overlap = 0;
-              section.stage.firstTween = false;
-            }
-
-            if (typeof alphaTween === 'object' && alphaTween !== null) {
-              alphaTween.duration = alphaTween.duration ? alphaTween.duration : duration;
-            } else if (alphaTween === true) {
-              alphaTween = {
-                duration,
-                ease: Sine.easeIn
-              };
-            }
-
-            const tween = transition ? this.tweenJS : this.tweenCSS;
-
-            if (entry.target.tagName === 'IMG') {
-              // ensure image is loaded before we tween
-              imageIsLoaded(entry.target).then(() => tween(
-                section,
-                entry.target,
+              const {
                 duration,
                 transition,
-                overlap,
-                alphaTween
-              ));
-            } else {
-              const imagesInEntry = entry.target.querySelectorAll('img');
-              if (imagesInEntry.length) {
-                // entry has children elements that are images
-                imagesAreLoaded(imagesInEntry).then(() => tween(
+                interval
+              } = cfg;
+
+              let { alphaTween } = cfg;
+              let overlap = duration - interval;
+
+              if (section.stage.firstTween) {
+                overlap = 0;
+                section.stage.firstTween = false;
+              }
+
+              if (typeof alphaTween === 'object' && alphaTween !== null) {
+                alphaTween.duration = alphaTween.duration ? alphaTween.duration : duration;
+              } else if (alphaTween === true) {
+                alphaTween = {
+                  duration,
+                  ease: Sine.easeIn
+                };
+              }
+
+              const tween = transition ? this.tweenJS : this.tweenCSS;
+
+              if (entry.target.tagName === 'IMG') {
+                // ensure image is loaded before we tween
+                imageIsLoaded(entry.target).then(() => tween(
                   section,
                   entry.target,
                   duration,
@@ -14171,24 +14216,38 @@ class Moonwalk {
                   alphaTween
                 ));
               } else {
-                // regular entry, just tween it
-                tween(
-                  section,
-                  entry.target,
-                  duration,
-                  transition,
-                  overlap,
-                  alphaTween
-                );
+                const imagesInEntry = entry.target.querySelectorAll('img');
+                if (imagesInEntry.length) {
+                  // entry has children elements that are images
+                  imagesAreLoaded(imagesInEntry).then(() => tween(
+                    section,
+                    entry.target,
+                    duration,
+                    transition,
+                    overlap,
+                    alphaTween
+                  ));
+                } else {
+                  // regular entry, just tween it
+                  tween(
+                    section,
+                    entry.target,
+                    duration,
+                    transition,
+                    overlap,
+                    alphaTween
+                  );
+                }
               }
+              self.unobserve(entry.target);
             }
-            self.unobserve(entry.target);
-          }
+          });
+        }, {
+          rootMargin,
+          threshold: opts.threshold
         });
-      }, {
-        rootMargin,
-        threshold: opts.threshold
-      });
+      }
+
       section.elements = section.el.querySelectorAll('[data-moonwalk]');
       section.elements.forEach(box => section.observer.observe(box));
     });
