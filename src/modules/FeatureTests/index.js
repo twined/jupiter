@@ -60,20 +60,26 @@ export default class FeatureTests {
         this.results.mouse = false
         this.testFor('touch', true)
         this.testFor('mouse', false)
+        this.deviceLastTouched = Date.now()
       }
-      document.removeEventListener('touchstart', onTouchStart, false)
     }
+
+    const onTouchEnd = () => {
+      this.deviceLastTouched = Date.now()
+    }
+
     document.addEventListener('touchstart', onTouchStart, false)
+    document.addEventListener('touchend', onTouchEnd, false)
 
     const onMouseMove = () => {
       if (!this.results.mouse) {
-        this.results.touch = false
-        this.results.mouse = true
-        this.testFor('touch', false)
-        this.testFor('mouse', true)
+        if ((Date.now() - this.devicelastTouched) > 300) {
+          this.results.touch = false
+          this.results.mouse = true
+          this.testFor('touch', false)
+          this.testFor('mouse', true)
+        }
       }
-
-      document.removeEventListener('mousemove', onMouseMove, false)
     }
 
     document.addEventListener('mousemove', onMouseMove, false)
