@@ -94,6 +94,8 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
+  pinOnOutline: true,
+
   default: {
     canvas: window,
     enter: h => {
@@ -121,6 +123,13 @@ export default class FixedHeader {
   constructor (app, opts = {}) {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    if (this.opts.pinOnOutline) {
+      window.addEventListener(Events.APPLICATION_OUTLINE, () => {
+        this.stayPinned = true
+        this.pin()
+      })
+    }
 
     if (typeof this.opts.el === 'string') {
       this.el = document.querySelector(this.opts.el)
@@ -343,6 +352,9 @@ export default class FixedHeader {
   }
 
   unpin () {
+    if (this.stayPinned) {
+      return
+    }
     this._pinned = false
     this.el.setAttribute('data-header-unpinned', '')
     this.el.removeAttribute('data-header-pinned')

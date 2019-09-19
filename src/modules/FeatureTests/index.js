@@ -1,3 +1,5 @@
+import * as Events from '../../events'
+
 export default class FeatureTests {
   constructor (app, tests) {
     this.app = app
@@ -35,12 +37,14 @@ export default class FeatureTests {
    */
   testOutlineEvents () {
     document.addEventListener('mousedown', () => {
-      this.testFor('outline', false);
+      this.testFor('outline', false)
     })
 
     document.addEventListener('keydown', e => {
       if (e.keyCode === 9 || e.which === 9) {
-        this.testFor('outline', true);
+        this.testFor('outline', true)
+        const outlineEvent = new window.CustomEvent(Events.APPLICATION_OUTLINE)
+        window.dispatchEvent(outlineEvent)
       }
     })
   }

@@ -3,7 +3,7 @@
  *
  * You can pass different configs for different sections:
  *
- *  this.header = new FixedHeader(
+ *  this.header = new StickyHeader(
       document.querySelector('header'),
       {
         default: {
@@ -77,7 +77,6 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
-
   default: {
     canvas: window,
     enter: h => {

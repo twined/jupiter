@@ -11325,6 +11325,8 @@ const APPLICATION_SCROLL = 'APPLICATION:SCROLL';
 const APPLICATION_SCROLL_LOCKED = 'APPLICATION:SCROLL_LOCKED';
 const APPLICATION_SCROLL_RELEASED = 'APPLICATION:SCROLL_RELEASED';
 
+const APPLICATION_OUTLINE = 'APPLICATION:OUTLINE';
+
 const APPLICATION_VISIBILITY_CHANGE = 'APPLICATION:VISIBILITY_CHANGE';
 const APPLICATION_HIDDEN = 'APPLICATION:HIDDEN';
 const APPLICATION_VISIBLE = 'APPLICATION:VISIBLE';
@@ -11340,6 +11342,7 @@ var index = /*#__PURE__*/Object.freeze({
 	APPLICATION_SCROLL: APPLICATION_SCROLL,
 	APPLICATION_SCROLL_LOCKED: APPLICATION_SCROLL_LOCKED,
 	APPLICATION_SCROLL_RELEASED: APPLICATION_SCROLL_RELEASED,
+	APPLICATION_OUTLINE: APPLICATION_OUTLINE,
 	APPLICATION_VISIBILITY_CHANGE: APPLICATION_VISIBILITY_CHANGE,
 	APPLICATION_HIDDEN: APPLICATION_HIDDEN,
 	APPLICATION_VISIBLE: APPLICATION_VISIBLE
@@ -11460,6 +11463,8 @@ class FeatureTests {
     document.addEventListener('keydown', e => {
       if (e.keyCode === 9 || e.which === 9) {
         this.testFor('outline', true);
+        const outlineEvent = new window.CustomEvent(APPLICATION_OUTLINE);
+        window.dispatchEvent(outlineEvent);
       }
     });
   }
@@ -11999,6 +12004,8 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS$4 = {
   el: 'header[data-nav]',
+  pinOnOutline: true,
+
   default: {
     canvas: window,
     enter: h => {
@@ -12026,6 +12033,13 @@ class FixedHeader {
   constructor (app, opts = {}) {
     this.app = app;
     this.opts = lodash_defaultsdeep(opts, DEFAULT_OPTIONS$4);
+
+    if (this.opts.pinOnOutline) {
+      window.addEventListener(APPLICATION_OUTLINE, () => {
+        this.stayPinned = true;
+        this.pin();
+      });
+    }
 
     if (typeof this.opts.el === 'string') {
       this.el = document.querySelector(this.opts.el);
@@ -12248,6 +12262,9 @@ class FixedHeader {
   }
 
   unpin () {
+    if (this.stayPinned) {
+      return
+    }
     this._pinned = false;
     this.el.setAttribute('data-header-unpinned', '');
     this.el.removeAttribute('data-header-pinned');
@@ -14452,7 +14469,7 @@ class StackedBoxes {
  *
  * You can pass different configs for different sections:
  *
- *  this.header = new FixedHeader(
+ *  this.header = new StickyHeader(
       document.querySelector('header'),
       {
         default: {
@@ -14520,7 +14537,6 @@ const DEFAULT_EVENTS$1 = {
 
 const DEFAULT_OPTIONS$g = {
   el: 'header[data-nav]',
-
   default: {
     canvas: window,
     enter: h => {
