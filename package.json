@@ -11,11 +11,11 @@
     "bugs": {
         "url": "https://github.com/univers-agency/jupiter/issues"
     },
-    "main": "dist/jupiter.esm.js",
-    "module": "dist/jupiter.esm.js",
-    "browser": "dist/jupiter.esm.js",
+    "main": "src/index.js",
+    "module": "src/index.js",
+    "browser": "src/index.js",
     "files": [
-        "dist"
+        "src"
     ],
     "homepage": "https://github.com/univers-agency/jupiter#readme",
     "sideEffects": false,

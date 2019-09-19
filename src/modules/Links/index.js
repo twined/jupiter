@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = {
   anchorQuery: 'a[href^="#"]',
 
   onAnchor: target => {
-    TweenLite.to(window, 0.8, { scrollTo: target, ease: Sine.easeInOut })
+    TweenLite.to(window, 0.8, { scrollTo: { y: target, autoKill: false }, ease: Sine.easeInOut })
   },
 
   onTransition: href => {
