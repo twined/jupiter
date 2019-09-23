@@ -11,22 +11,13 @@
 import {
   TweenLite, CSSPlugin
 } from 'gsap/all'
+import objectFitPolyfill from 'objectFitPolyfill'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import 'objectFitPolyfill'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 
 // eslint-disable-next-line no-unused-vars
-const plugins = [CSSPlugin]
-
-// if ('objectFit' in document.documentElement.style === false) {
-//   document.addEventListener('DOMContentLoaded', () => {
-//     Array.prototype.forEach.call(document.querySelectorAll('[data-hero-background]'), image => {
-//       (image.runtimeStyle || image.style).background = `url("${image.src}") no-repeat 50%/${image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit')}`
-//       image.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${image.width}' height='${image.height}'%3E%3C/svg%3E`
-//     })
-//   })
-// }
+const plugins = [CSSPlugin, objectFitPolyfill]
 
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
