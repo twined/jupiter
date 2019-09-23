@@ -64,7 +64,7 @@ export default class Moonwalk {
 
     document.documentElement.classList.add('moonwalk')
 
-    this.sections = this.buildSections()
+    this.sections = this.initializeSections()
 
     if (this.opts.clearLazyload) {
       this.clearLazyloads()
@@ -110,7 +110,7 @@ export default class Moonwalk {
     }, this)
   }
 
-  buildSections () {
+  initializeSections () {
     const sections = document.querySelectorAll('[data-moonwalk-section]')
 
     return Array.from(sections).map(section => {
@@ -156,8 +156,8 @@ export default class Moonwalk {
   }
 
   findChildElementsByKey (section, key) {
-    let searchAttr = ''
-    let attr = ''
+    let searchAttr
+    let attr
     let val = ''
 
     if (key === 'default') {
@@ -191,12 +191,32 @@ export default class Moonwalk {
     return affectedElements
   }
 
-  buildSectionObserver (section) {
+  /**
+   * If we have advanced sections, either named sections or section stages.
+   * Resets the entry's `from` state, then ties up an observer.
+   *
+   * @param {*} section
+   */
+  setupNamesAndStages (section) {
     if (!section.stage.name && !section.name) {
       return
     }
 
     const { opts: { walks } } = this
+
+    if (section.name) {
+      // set initial tweens
+      const sectionWalk = walks[section.name]
+      section.children = section.el.querySelectorAll(sectionWalk.sectionTargets)
+      TweenLite.set(section.children, sectionWalk.transition.from)
+    }
+
+    if (section.stage.name) {
+      // reset the element to its `from` state.
+      const stageTween = walks[section.stage.name]
+      TweenLite.set(section.el, stageTween.transition.from)
+    }
+
     const observer = new IntersectionObserver((entries, self) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -207,13 +227,9 @@ export default class Moonwalk {
               // run stage tween
               const stageTween = walks[section.stage.name]
 
-              // TODO: Set the FROM transition when we first go through sections,
-              // and change this to a `from` method, so that they are completely minimized on run!
-
-              section.timeline.fromTo(
+              section.timeline.to(
                 entry.target,
                 stageTween.duration,
-                stageTween.transition.from,
                 stageTween.transition.to,
                 0
               )
@@ -284,14 +300,7 @@ export default class Moonwalk {
         rootMargin = opts.rootMargin
       }
 
-      if (section.name) {
-        // set initial tweens
-        const sectionWalk = opts.walks[section.name]
-        section.children = section.el.querySelectorAll(sectionWalk.sectionTargets)
-        TweenLite.set(section.children, sectionWalk.transition.from)
-      }
-
-      this.buildSectionObserver(section)
+      this.setupNamesAndStages(section)
 
       if (!section.name) {
         section.observer = new IntersectionObserver((entries, self) => {

@@ -1,4 +1,7 @@
 import _defaultsDeep from 'lodash.defaultsdeep'
+import { IMAGE_LAZYLOADED, SECTION_LAZYLOADED } from '../../events'
+import dispatchElementEvent from '../../utils/dispatchElementEvent'
+import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
 const DEFAULT_OPTIONS = {
   intersectionObserverConfig: {
@@ -17,6 +20,10 @@ export default class Lazyload {
   }
 
   initialize () {
+    // look for lazyload sections. if we find, add an observer that triggers
+    // lazyload for all images within.
+    this.initializeSections()
+
     // if we have native lazyload, use it.
     if ('loading' in HTMLImageElement.prototype && this.opts.useNativeLazyloadIfAvailable) {
       const lazyImages = document.querySelectorAll('[data-ll-image]')
@@ -53,6 +60,35 @@ export default class Lazyload {
       this.lazyPictures.forEach(picture => {
         picture.querySelectorAll('img').forEach(img => { img.setAttribute('data-ll-blurred', '') })
         this.pictureObserver.observe(picture)
+      })
+    }
+  }
+
+  initializeSections () {
+    const sections = document.querySelectorAll('[data-lazyload-section]')
+    if (sections) {
+      const sectionObserver = (section, children) => new IntersectionObserver((entries, self) => {
+        const [{ isIntersecting }] = entries
+        if (isIntersecting) {
+          children.forEach(image => {
+            this.swapImage(image)
+            this.imgObserver.unobserve(image)
+          })
+          imagesAreLoaded(children, true).then(() => {
+            dispatchElementEvent(section, SECTION_LAZYLOADED)
+          })
+          self.unobserve(section)
+        }
+      },
+      {
+        rootMargin: '350px 0px',
+        threshold: 0.0
+      })
+
+      sections.forEach(section => {
+        const children = section.querySelectorAll('img')
+        const obs = sectionObserver(section, children)
+        obs.observe(section)
       })
     }
   }
@@ -104,6 +140,7 @@ export default class Lazyload {
 
     img.setAttribute('src', img.dataset.src)
     img.setAttribute('data-ll-loaded', '')
+    dispatchElementEvent(img, IMAGE_LAZYLOADED)
 
     // safari sometimes caches, so force load
     if (img.complete) {

@@ -126,7 +126,7 @@ export default class FixedHeader {
 
     if (this.opts.pinOnOutline) {
       window.addEventListener(Events.APPLICATION_OUTLINE, () => {
-        this.stayPinned = true
+        this.preventUnpin = true
         this.pin()
       })
     }
@@ -141,12 +141,13 @@ export default class FixedHeader {
       return
     }
 
-
     const section = document.body.getAttribute('data-script')
-    this.opts = this._getOptionsForSection(section, opts)
 
+    this.opts = this._getOptionsForSection(section, opts)
     this.lis = this.el.querySelectorAll('li')
 
+    this.preventPin = false
+    this.preventUnpin = false
     this._firstLoad = true
     this._pinned = true
     this._top = false
@@ -175,6 +176,8 @@ export default class FixedHeader {
       this.opts.offsetBg = elm.offsetTop
     }
 
+    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
+    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
     window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
     window.addEventListener(Events.APPLICATION_READY, this.unpinIfScrolled.bind(this))
@@ -352,7 +355,7 @@ export default class FixedHeader {
   }
 
   unpin () {
-    if (this.stayPinned) {
+    if (this.preventUnpin) {
       return
     }
     this._pinned = false

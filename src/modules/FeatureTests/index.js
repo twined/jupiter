@@ -13,6 +13,10 @@ export default class FeatureTests {
 
     this.results = {}
 
+    if (this.testIE11()) {
+      this.testFor('ie11', true)
+    }
+
     const testKeys = Object.keys(tests)
     const wantedTests = testKeys.filter(t => tests[t])
 
@@ -92,5 +96,9 @@ export default class FeatureTests {
 
   testTouch () {
     return ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0)
+  }
+
+  testIE11 () {
+    return '-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style
   }
 }

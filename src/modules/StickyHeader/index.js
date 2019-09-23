@@ -77,6 +77,7 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
+  pinOnOutline: false,
   default: {
     canvas: window,
     enter: h => {
@@ -103,6 +104,13 @@ export default class StickyHeader {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
+    if (this.opts.pinOnOutline) {
+      window.addEventListener(Events.APPLICATION_OUTLINE, () => {
+        this.preventUnpin = true
+        this.pin()
+      })
+    }
+
     if (typeof this.opts.el === 'string') {
       this.el = document.querySelector(this.opts.el)
     } else {
@@ -128,6 +136,9 @@ export default class StickyHeader {
     this.unpin()
 
     this.lis = this.el.querySelectorAll('li')
+    this.preventPin = false
+    this.preventUnpin = false
+    this._isResizing = false
     this._firstLoad = true
     this._pinned = true
     this._top = false
@@ -138,6 +149,7 @@ export default class StickyHeader {
     this.currentScrollY = 0
     this.mobileMenuOpen = false
     this.timer = null
+    this.resetResizeTimer = null
 
     this.initialize()
   }
@@ -177,7 +189,37 @@ export default class StickyHeader {
     })
 
     this.observer.observe(this.el)
+
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
+    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, () => {
+      this.preventUnpin = false
+      this.unpin()
+      this.preventPin = true
+    })
+    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, () => {
+      this.preventPin = false
+      this.pin()
+      this.preventUnpin = false
+    }, false)
+    window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
+  }
+
+  setResizeTimer () {
+    this._isResizing = true
+
+    if (this._pinned) {
+      // unpin if resizing to prevent visual clutter
+      this.unpin()
+    }
+
+    if (this.resetResizeTimer) {
+      clearTimeout(this.resetResizeTimer)
+    }
+    this.resetResizeTimer = setTimeout(() => {
+      this._isResizing = false
+      clearTimeout(this.resetResizeTimer)
+      this.resetResizeTimer = null
+    }, 500)
   }
 
   _hideAlt () {
@@ -298,14 +340,18 @@ export default class StickyHeader {
   }
 
   unpin () {
-    this._pinned = false
-    this.opts.onUnpin(this)
+    if (!this.preventUnpin) {
+      this._pinned = false
+      this.opts.onUnpin(this)
+    }
   }
 
   pin () {
-    this._pinned = true
-    this.opts.onSmall(this)
-    this.opts.onPin(this)
+    if (!this.preventPin) {
+      this._pinned = true
+      this.opts.onSmall(this)
+      this.opts.onPin(this)
+    }
   }
 
   notSmall () {
@@ -333,6 +379,9 @@ export default class StickyHeader {
   }
 
   shouldPin (toleranceExceeded) {
+    if (this._isResizing) {
+      return false
+    }
     const scrollingUp = this.currentScrollY < this.lastKnownScrollY
     const pastOffset = this.currentScrollY <= this.opts.offset
     return (scrollingUp && toleranceExceeded) || pastOffset

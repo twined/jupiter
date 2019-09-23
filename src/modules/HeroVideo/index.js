@@ -12,20 +12,21 @@ import {
   TweenLite, CSSPlugin
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import 'objectFitPolyfill'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
 
-if ('objectFit' in document.documentElement.style === false) {
-  document.addEventListener('DOMContentLoaded', () => {
-    Array.prototype.forEach.call(document.querySelectorAll('[data-hero-background]'), image => {
-      (image.runtimeStyle || image.style).background = `url("${image.src}") no-repeat 50%/${image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit')}`
-      image.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${image.width}' height='${image.height}'%3E%3C/svg%3E`
-    })
-  })
-}
+// if ('objectFit' in document.documentElement.style === false) {
+//   document.addEventListener('DOMContentLoaded', () => {
+//     Array.prototype.forEach.call(document.querySelectorAll('[data-hero-background]'), image => {
+//       (image.runtimeStyle || image.style).background = `url("${image.src}") no-repeat 50%/${image.currentStyle ? image.currentStyle['object-fit'] : image.getAttribute('data-object-fit')}`
+//       image.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${image.width}' height='${image.height}'%3E%3C/svg%3E`
+//     })
+//   })
+// }
 
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
@@ -97,13 +98,14 @@ export default class HeroVideo {
       position: 'absolute'
     })
 
-    window.addEventListener(Events.APPLICATION_INITIALIZED, () => {
+    window.addEventListener(Events.APPLICATION_READY, () => {
       /* Wait for the video to load, then fade in container element */
       if (!this.video.playing && !prefersReducedMotion() && this.video.readyState >= 3) {
         this.play()
         this.fadeIn()
         this.booting = false
       }
+      window.objectFitPolyfill()
     })
   }
 

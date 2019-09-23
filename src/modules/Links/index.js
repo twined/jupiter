@@ -2,6 +2,7 @@ import {
   TweenLite, Power3, ScrollToPlugin, Sine
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
+import { APPLICATION_FORCED_SCROLL_START, APPLICATION_FORCED_SCROLL_END } from '../../events'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [ScrollToPlugin]
@@ -12,7 +13,16 @@ const DEFAULT_OPTIONS = {
   anchorQuery: 'a[href^="#"]',
 
   onAnchor: target => {
-    TweenLite.to(window, 0.8, { scrollTo: { y: target, autoKill: false }, ease: Sine.easeInOut })
+    const forcedScrollEventStart = new window.CustomEvent(APPLICATION_FORCED_SCROLL_START)
+    window.dispatchEvent(forcedScrollEventStart)
+    TweenLite.to(window, 0.8, {
+      scrollTo: { y: target, autoKill: false },
+      onComplete: () => {
+        const forcedScrollEventEnd = new window.CustomEvent(APPLICATION_FORCED_SCROLL_END)
+        window.dispatchEvent(forcedScrollEventEnd)
+      },
+      ease: Sine.easeInOut
+    })
   },
 
   onTransition: href => {

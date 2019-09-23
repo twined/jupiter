@@ -1,4 +1,6 @@
-import { TweenLite, Sine, Power1 } from 'gsap/all'
+import {
+  TweenLite, Sine, Power1, TimelineLite
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
@@ -31,6 +33,10 @@ const DEFAULT_OPTIONS = {
 
 export default class Application {
   constructor (opts = {}) {
+    this.debugType = 1
+    this.debugOverlay = null
+    this.userAgent = navigator.userAgent
+
     this.size = {
       width: 0,
       height: 0
@@ -86,7 +92,7 @@ export default class Application {
   initialize () {
     this._emitBeforeInitializedEvent()
     this.executeCallbacks(Events.APPLICATION_PRELUDIUM)
-    this.setupGridoverlay()
+    this.setupDebug()
     this._emitInitializedEvent()
     this.executeCallbacks(Events.APPLICATION_INITIALIZED)
     this.ready()
@@ -239,13 +245,82 @@ export default class Application {
     }
   }
 
+  setupDebug () {
+    this.debugOverlay = document.querySelector('.dbg-breakpoints')
+    if (!this.debugOverlay) {
+      return
+    }
+    this.debugOverlay.addEventListener('click', this.toggleDebug.bind(this))
+
+    const userAgent = this.debugOverlay.querySelector('.user-agent')
+    TweenLite.set(userAgent, { display: 'none' })
+    userAgent.innerHTML = `<b>&rarr; ${this.userAgent}</b> >> <span>KOPIER</span>`
+    const span = userAgent.querySelector('span')
+    span.addEventListener('click', e => {
+      const copyText = userAgent.querySelector('b')
+      const textArea = document.createElement('textarea')
+      textArea.value = copyText.textContent
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('Copy')
+      textArea.remove()
+      span.innerHTML = 'OK!'
+      setTimeout(() => {
+        span.innerHTML = 'KOPIER'
+      }, 1500)
+    })
+
+    this.setupGridoverlay()
+  }
+
+  toggleDebug () {
+    const tl = new TimelineLite()
+    const breakpoint = this.debugOverlay.querySelector('.breakpoint')
+    const userAgent = this.debugOverlay.querySelector('.user-agent')
+
+    if (this.debugType >= 2) {
+      this.debugType = 0
+    } else {
+      this.debugType += 1
+    }
+
+    switch (this.debugType) {
+      case 0:
+        // hide all except branding
+        tl.to([breakpoint, userAgent], 0.3, { autoAlpha: 0 })
+          .to([breakpoint, userAgent], 0.7, { width: 0 })
+          .call(() => { TweenLite.set([breakpoint, userAgent], { display: 'none' }) })
+        break
+
+      case 1:
+        //
+        TweenLite.set(breakpoint, { width: 'auto', display: 'block' })
+        tl.from(breakpoint, 0.7, { width: 0 })
+          .to(breakpoint, 0.3, { autoAlpha: 1 })
+        break
+
+      case 2:
+        //
+        TweenLite.set(userAgent, { width: 'auto', display: 'block' })
+        tl.from(userAgent, 0.7, { width: 0 })
+          .to(userAgent, 0.3, { autoAlpha: 1 })
+        break
+
+      default:
+        break
+    }
+  }
+
   /**
    * CTRL-G to show grid overlay
    */
   setupGridoverlay () {
     const gridKeyPressed = e => {
       if (e.keyCode === 71 && e.ctrlKey) {
-        const guides = document.querySelector('.__dbg')
+        const guides = document.querySelector('.dbg-grid')
+        if (!guides) {
+          return
+        }
         guides.classList.toggle('visible')
       }
     }
