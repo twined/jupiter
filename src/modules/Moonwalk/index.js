@@ -1,9 +1,14 @@
-import { TimelineLite, Sine, TweenLite } from 'gsap/all'
+import {
+  TimelineLite, Sine, TweenLite, CSSPlugin
+} from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
+
+// eslint-disable-next-line no-unused-vars
+const plugins = [CSSPlugin]
 
 const DEFAULT_OPTIONS = {
   /**
