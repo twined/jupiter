@@ -1,5 +1,153 @@
-README
-======
+<p align="center">
+  <sup><em>«Earth people, I was born on»</em></sup>
+</p>
+
+![](http://univers.agency/jupiter.svg)
+
+<p align="center">
+  <a href="https://travis-ci.org/univers-agency/jupiter"><img src="https://img.shields.io/travis/univers-agency/jupiter/master.svg" alt="Build Status"></a>
+</p>
+
+------
+
+## NOTICE
+
+This package is not compiled with Babel, which means that your build step should babelify it.
+Meaning, if your bundler's babel config excludes `node_modules`, you should add `jupiter` as an exception.
+In your webpack babel loader config:
+
+```es6
+exclude: [
+  /node_modules([\\]+|\/)+(?!@univers-agency\/jupiter)/
+]
+```
+
+
+## Application
+
+```es6
+
+const app = new Application()
+
+app.registerCallback(Events.APPLICATION_PRELUDIUM, () => { ... })
+app.registerCallback(Events.APPLICATION_INITIALIZED, () => { ... })
+app.registerCallback(Events.APPLICATION_READY, () => { ... })
+
+```
+
+## Moonwalk
+
+Moonwalks are divided into sections that are run in a timeline. Multiple
+timelines can run at the same time.
+
+You reference the configured `walks` by the `data-moonwalk="walkname"`
+syntax. If no value is provided, we run the `default` walk.
+
+Sample code
+```
+<div data-moonwalk-section>
+  <div data-moonwalk>
+    Default walk
+  </div>
+  <div data-moonwalk="fast">
+    `Fast` walk
+  </div>
+</div>
+```
+
+### Stages
+
+A stage will run a transition on itself before introducing the rest
+of the moonwalks. For instance, if a section should be animated to
+"open" by scaling Y from 0 to 100. When the stage's tween is finished,
+the rest are called as they intersect.
+
+Sample code
+
+```html
+<div class="slideshow" data-moonwalk-section data-moonwalk-stage="scaleup">
+  <div data-moonwalk="slow">...</div>
+  <div data-moonwalk>...</div>
+  <div data-moonwalk="slow">...</div>
+</div>
+```
+
+Sample config
+
+```es6
+walks: {
+  scaleup: {
+    interval: 0,
+    duration: 1,
+    transition: {
+      from: {
+        scaleY: 0,
+        transformOrigin: '50% 50%'
+      },
+
+      to: {
+        scaleY: 1,
+        ease: Sine.easeOut
+      }
+    }
+  }
+}
+```
+
+### Named sections
+
+A named section will autoplay its children when intersecting with the viewport.
+Needs the `sectionTargets` key in config. If `sectionTargets` is not provided,
+the section's immediate children are used instead.
+
+You can force a custom order of the staggered reveal by adding `data-moonwalk-order="1"` etc
+to the targeted elements.
+
+Sample code
+
+```html
+<div class="slideshow" data-moonwalk-section="slider">
+  <div class="slides-wrapper">
+    <picture class="image">
+      ...
+    </picture>
+    <picture class="image">
+      ...
+    </picture>
+  </div>
+</div>
+```
+
+Sample config:
+
+```es6
+slider: {
+  sectionTargets: '.image',
+  interval: 0.2,
+  duration: 1.2,
+  alphaTween: true,
+  transition: {
+    from: {
+      autoAlpha: 0,
+      y: 21
+    },
+    to: {
+      ease: Sine.easeOut,
+      y: 0
+    }
+  }
+}
+
+```
+
+## Events
+
+`APPLICATION:INITIALIZED`
+`APPLICATION:READY`
+`APPLICATION:SCROLL`
+`APPLICATION:RESIZE`
+`APPLICATION:MOBILE_MENU:OPEN`
+`APPLICATION:MOBILE_MENU:CLOSE`
 
 
 ## StackedBoxes
