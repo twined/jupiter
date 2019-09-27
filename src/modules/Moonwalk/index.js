@@ -212,7 +212,34 @@ export default class Moonwalk {
     if (section.name) {
       // set initial tweens
       const sectionWalk = walks[section.name]
-      section.children = section.el.querySelectorAll(sectionWalk.sectionTargets)
+      if (sectionWalk.sectionTargets) {
+        section.children = section.el.querySelectorAll(sectionWalk.sectionTargets)
+      } else {
+        section.children = section.el.children
+      }
+
+      // if the children are ordered with `data-moonwalk-order`, we sort them here
+      section.children = Array.from(section.children).sort((a, b) => {
+        const orderA = a.getAttribute('data-moonwalk-order') ? parseInt(a.getAttribute('data-moonwalk-order')) : null
+        const orderB = a.getAttribute('data-moonwalk-order') ? parseInt(b.getAttribute('data-moonwalk-order')) : null
+
+        if (!orderA && !orderB) {
+          return 0
+        }
+
+        if (orderA && !orderB) {
+          return -1
+        }
+
+        if (!orderA && orderB) {
+          return 1
+        }
+
+        return orderA - orderB
+      })
+
+      console.log(Array.from(section.children).map(c => c.querySelector('a').href))
+
       TweenLite.set(section.children, sectionWalk.transition.from)
     }
 

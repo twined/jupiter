@@ -68,17 +68,18 @@ export default class Lazyload {
     const sections = document.querySelectorAll('[data-lazyload-section]')
     if (sections) {
       const sectionObserver = (section, children) => new IntersectionObserver((entries, self) => {
-        const [{ isIntersecting }] = entries
-        if (isIntersecting) {
-          children.forEach(image => {
-            this.swapImage(image)
-            this.imgObserver.unobserve(image)
-          })
-          imagesAreLoaded(children, true).then(() => {
-            dispatchElementEvent(section, SECTION_LAZYLOADED)
-          })
-          self.unobserve(section)
-        }
+        entries.forEach(entry => {
+          if (entry.isIntersecting || entry.intersectionRatio > 0) {
+            children.forEach(image => {
+              this.swapImage(image)
+              this.imgObserver.unobserve(image)
+            })
+            imagesAreLoaded(children, true).then(() => {
+              dispatchElementEvent(section, SECTION_LAZYLOADED)
+            })
+            self.unobserve(section)
+          }
+        })
       },
       {
         rootMargin: '350px 0px',
@@ -95,7 +96,7 @@ export default class Lazyload {
 
   lazyloadImages (elements) {
     elements.forEach(item => {
-      if (item.intersectionRatio > 0) {
+      if (item.isIntersecting || item.intersectionRatio > 0) {
         const image = item.target
         this.swapImage(image)
         this.imgObserver.unobserve(image)
@@ -105,7 +106,7 @@ export default class Lazyload {
 
   lazyloadPictures (elements) {
     elements.forEach(item => {
-      if (item.intersectionRatio > 0) {
+      if (item.isIntersecting || item.intersectionRatio > 0) {
         const picture = item.target
         this.swapPicture(picture)
         this.pictureObserver.unobserve(picture)
@@ -140,6 +141,7 @@ export default class Lazyload {
 
     img.setAttribute('src', img.dataset.src)
     img.setAttribute('data-ll-loaded', '')
+
     dispatchElementEvent(img, IMAGE_LAZYLOADED)
 
     // safari sometimes caches, so force load

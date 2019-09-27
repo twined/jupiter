@@ -10,6 +10,19 @@
 
 ------
 
+## NOTICE
+
+This package is not compiled with Babel, which means that your build step should babelify it.
+Meaning, if your bundler's babel config excludes `node_modules`, you should add `jupiter` as an exception.
+In your webpack babel loader config:
+
+```es6
+exclude: [
+  /node_modules([\\]+|\/)+(?!@univers-agency\/jupiter)/
+]
+```
+
+
 ## Application
 
 ```es6
@@ -83,7 +96,12 @@ walks: {
 
 ### Named sections
 
-A named section will autoplay its children when intersecting with the viewport. Needs the `sectionTargets` key in config.
+A named section will autoplay its children when intersecting with the viewport.
+Needs the `sectionTargets` key in config. If `sectionTargets` is not provided,
+the section's immediate children are used instead.
+
+You can force a custom order of the staggered reveal by adding `data-moonwalk-order="1"` etc
+to the targeted elements.
 
 Sample code
 
