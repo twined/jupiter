@@ -15,6 +15,8 @@ export default class FeatureTests {
 
     if (this.testIE11()) {
       this.testFor('ie11', true)
+    } else {
+      this.results.ie11 = false
     }
 
     const testKeys = Object.keys(tests)
