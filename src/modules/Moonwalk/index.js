@@ -203,7 +203,6 @@ export default class Moonwalk {
    * @param {*} key
    */
   findChildElementsByKey (section, key) {
-    console.log('key', key)
     const [searchAttr, attr, val] = key === 'default'
       ? ['[data-moonwalk-children]', 'data-moonwalk', '']
       : [`[data-moonwalk-${key}-children]`, 'data-moonwalk', key]
