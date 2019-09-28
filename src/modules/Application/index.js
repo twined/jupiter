@@ -49,6 +49,8 @@ export default class Application {
 
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
+    this.setDims()
+
     this.featureTests = new FeatureTests(this, this.opts.featureTests)
     if (typeof this.opts.breakpointConfig === 'object') {
       this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig)
@@ -205,6 +207,13 @@ export default class Application {
     window.dispatchEvent(ev)
   }
 
+  setDims () {
+    this.size.width = window.innerWidth
+    this.size.height = window.innerHeight
+    this.position.top = window.pageYOffset
+    this.position.left = window.pageXOffset
+  }
+
   /**
    * RAF'ed resize event
    */
@@ -255,11 +264,24 @@ export default class Application {
     const userAgent = this.debugOverlay.querySelector('.user-agent')
     TweenLite.set(userAgent, { display: 'none' })
     userAgent.innerHTML = `<b>&rarr; ${this.userAgent}</b> >> <span>KOPIER</span>`
+
     const span = userAgent.querySelector('span')
-    span.addEventListener('click', e => {
+    const windowWidth = window.innerWidth || document.documentElement.clientWidth
+      || document.body.clientWidth
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight
+      || document.body.clientHeight
+
+    span.addEventListener('click', () => {
       const copyText = userAgent.querySelector('b')
       const textArea = document.createElement('textarea')
-      textArea.value = copyText.textContent
+      textArea.value = `
+${copyText.textContent}
+SCREEN >> ${window.screen.width}x${window.screen.height}
+WINDOW >> ${windowWidth}x${windowHeight}
+
+FEATURES >>
+${JSON.stringify(this.featureTests.results, undefined, 2)}
+      `
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('Copy')
