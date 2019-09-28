@@ -43,8 +43,59 @@ timelines can run at the same time.
 You reference the configured `walks` by the `data-moonwalk="walkname"`
 syntax. If no value is provided, we run the `default` walk.
 
+#### Options
+
+- `fireOnReady` - default `true`
+  - Automatically fire on `APPLICATION_READY` event. Set this to false if you need to do
+    customized initialization before firing.
+
+- `clearLazyload` - default `false`
+  - Clear out all `data-ll-srcset` from moonwalk elements
+
+- `rootMargin` - default `'-15%'`
+  - Determines how early the IntersectionObserver triggers
+
+- `threshold` - default `0`
+  - How much of the element must be visible before IO trigger. From 0 to 1 where 1 is the entire element
+
+- `uniqueIds` - default `false`
+  - Create unique `[data-moonwalk-id="<rand>"] prop for each moonwalk element
+
+- `addIndexes` - default `false`
+  - Create `[data-moonwalk-idx="X"] inside of each section per key
+
+- `walks`
+  - Configures tweens
+  - Example:
+  ```es6
+  walks: {
+    default: {
+      /* How long between multiple entries in a moonwalk section */
+      interval: 0.1,
+      /* How long each tween is */
+      duration: 0.65,
+      /* Add a separate tween for opacity/visibility.
+      Can be set to `true` for the default tween, or `false` to skip */
+      alphaTween: { ease: Sine.easeIn, duration: 1 },
+      /* The transitions that will be tweened */
+      transition: {
+        from: {
+          y: 5
+        },
+        to: {
+          /* skip autoAlpha here, since we have our own alphaTween that sets it for us */
+          // autoAlpha: 1,
+          ease: Sine.easeOut,
+          force3D: true,
+          y: 0
+        }
+      }
+    }
+  }
+  ```
+
 Sample code
-```
+```html
 <div data-moonwalk-section>
   <div data-moonwalk>
     Default walk
@@ -211,6 +262,78 @@ slider: {
   }
  }
  ```
+
+## PARALLAX
+
+### Options
+
+- `el`
+  - default `[data-parallax]`
+
+- `fadeContent`
+  - default `false`
+  - If true, fades out `[data-parallax-content]` as we move towards bottom of parallaxed element
+
+
+Example:
+
+```html
+<style>
+  [data-parallax] {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  [data-parallax-figure] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    max-height: 100%;
+  }
+
+  [data-parallax-figure] picture {
+    height: 100%;
+    width: 100%;
+  }
+
+  [data-parallax-figure] picture img {
+    min-height: 100%;
+    min-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+  }
+
+  [data-parallax-content] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  [data-parallax-content] div {
+    color: #ffffff;
+    font-size: 4rem;
+  }
+</style>
+
+<section data-parallax>
+  <div data-parallax-figure>
+    <%= picture_tag(work.cover, placeholder: false, key: :original, lazyload: true, srcset: {Kunstnerforbundet.Artists.Work, :cover}, prefix: media_url(), img_class: "img-fluid", alt: "#{work.title} (#{work.year}) - #{work.size} - #{work.technique}") %>
+  </div>
+  <div data-parallax-content>
+    <div>
+      Testing some parallax :)
+    </div>
+  </div>
+</section>
+```
 
 
 ## CSS/JS QUIRKS
