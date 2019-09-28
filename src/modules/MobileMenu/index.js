@@ -85,9 +85,11 @@ export default class MobileMenu {
     this.lis = this.header.querySelectorAll('li')
     this.nav = this.header.querySelector('nav')
 
-    this.hamburger.addEventListener('click', () => {
-      this.toggleMenu()
-    })
+    if (this.hamburger) {
+      this.hamburger.addEventListener('click', () => {
+        this.toggleMenu()
+      })
+    }
 
     if (this.opts.onResize) {
       window.addEventListener(Events.APPLICATION_RESIZE, this.opts.onResize.bind(this))
