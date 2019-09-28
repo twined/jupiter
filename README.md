@@ -48,6 +48,96 @@ exclude: [
   - Release the application's scrolling
 
 
+## Events (application)
+
+- `APPLICATION:PRELUDIUM`
+
+Called before initialization
+
+- `APPLICATION:INITIALIZED`
+
+Called after initialization
+
+- `APPLICATION:READY`
+
+Called when application/dom ready
+
+- `APPLICATION:REVEALED`
+
+Called after `#fader` removed
+
+- `APPLICATION:MOBILE_MENU:OPEN`
+
+Called on opening mobile navigation menu
+
+- `APPLICATION:MOBILE_MENU:CLOSE`
+
+Called on closing mobile navigation menu
+
+- `APPLICATION:SCROLL`
+
+Called on application scrolling
+
+- `APPLICATION:RESIZE`
+
+Called on application resizing
+
+- `APPLICATION:SCROLL_LOCKED`
+
+Called when scrollbar is locked with `app.scrollLock()`
+
+- `APPLICATION:SCROLL_RELEASED`
+
+Called when scrollbar is released with `app.scrollRelease()`
+
+- `APPLICATION:FORCED_SCROLL_START`
+
+Called when application is forced to scroll, for instance on clicking anchors, triggering `scrollTo`
+
+- `APPLICATION:FORCED_SCROLL_END`
+
+Called at end of forced scroll.
+
+- `APPLICATION:OUTLINE`
+
+Called if user presses `<tab>`. Tells us the user is using tabbed navigation
+
+- `APPLICATION:VISIBILITY_CHANGE`
+
+Called when application becomes hidden or visible
+
+- `APPLICATION:HIDDEN`
+
+Called when application becomes hidden
+
+- `APPLICATION:VISIBLE`
+
+Called when application becomes visible
+
+
+## Events (other)
+
+`IMAGE:LAZYLOADED`
+
+Called when an image marked for lazyloading finishes loading. Gets called on the element itself:
+
+```es6
+import * as Events from jupiter
+const image = document.querySelector('.my-image')
+image.addEventListener(Events.IMAGE_LAZYLOADED, () => { console.log('lazyloaded') })
+```
+
+`SECTION:LAZYLOADED`
+
+Called when a `Moonwalk` section enters the viewport and its images are done loading
+
+```es6
+import * as Events from jupiter
+const section = document.querySelector('.my-section[data-moonwalk-section]')
+section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloaded') })
+```
+
+
 ## Moonwalk
 
 Moonwalks are divided into sections that are run in a timeline. Multiple
@@ -204,95 +294,6 @@ slider: {
 
 ```
 
-## Events (application)
-
-`APPLICATION:PRELUDIUM`
-
-Called before initialization
-
-`APPLICATION:INITIALIZED`
-
-Called after initialization
-
-`APPLICATION:READY`
-
-Called when application/dom ready
-
-`APPLICATION:REVEALED`
-
-Called after `#fader` removed
-
-`APPLICATION:MOBILE_MENU:OPEN`
-
-Called on opening mobile navigation menu
-
-`APPLICATION:MOBILE_MENU:CLOSE`
-
-Called on closing mobile navigation menu
-
-`APPLICATION:SCROLL`
-
-Called on application scrolling
-
-`APPLICATION:RESIZE`
-
-Called on application resizing
-
-`APPLICATION:SCROLL_LOCKED`
-
-Called when scrollbar is locked with `app.scrollLock()`
-
-`APPLICATION:SCROLL_RELEASED`
-
-Called when scrollbar is released with `app.scrollRelease()`
-
-`APPLICATION:FORCED_SCROLL_START`
-
-Called when application is forced to scroll, for instance on clicking anchors, triggering `scrollTo`
-
-`APPLICATION:FORCED_SCROLL_END`
-
-Called at end of forced scroll.
-
-`APPLICATION:OUTLINE`
-
-Called if user presses `<tab>`. Tells us the user is using tabbed navigation
-
-`APPLICATION:VISIBILITY_CHANGE`
-
-Called when application becomes hidden or visible
-
-`APPLICATION:HIDDEN`
-
-Called when application becomes hidden
-
-`APPLICATION:VISIBLE`
-
-Called when application becomes visible
-
-
-## Events (other)
-
-`IMAGE:LAZYLOADED`
-
-Called when an image marked for lazyloading finishes loading. Gets called on the element itself:
-
-```es6
-import * as Events from jupiter
-const image = document.querySelector('.my-image')
-image.addEventListener(Events.IMAGE_LAZYLOADED, () => { console.log('lazyloaded') })
-```
-
-`SECTION:LAZYLOADED`
-
-Called when a `Moonwalk` section enters the viewport and its images are done loading
-
-```es6
-import * as Events from jupiter
-const section = document.querySelector('.my-section[data-moonwalk-section]')
-section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloaded') })
-```
-
 
 ## StackedBoxes
 
@@ -317,7 +318,7 @@ section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloa
  * header element should not have position: fixed
 
 
- ## FixedHeader
+## FixedHeader
 
  * header element needs position: fixed;
 
@@ -356,7 +357,7 @@ section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloa
  }
  ```
 
-## PARALLAX
+## Parallax
 
 ### Options
 
@@ -418,7 +419,16 @@ Example:
 
 <section data-parallax>
   <div data-parallax-figure>
-    <%= picture_tag(work.cover, placeholder: false, key: :original, lazyload: true, srcset: {Kunstnerforbundet.Artists.Work, :cover}, prefix: media_url(), img_class: "img-fluid", alt: "#{work.title} (#{work.year}) - #{work.size} - #{work.technique}") %>
+    <%= picture_tag(
+      work.cover,
+      placeholder: false,
+      key: :original,
+      lazyload: true,
+      srcset: {Kunstnerforbundet.Artists.Work, :cover},
+      prefix: media_url(),
+      img_class: "img-fluid",
+      alt: "#{work.title} (#{work.year}) - #{work.size} - #{work.technique}")
+    %>
   </div>
   <div data-parallax-content>
     <div>
@@ -429,7 +439,7 @@ Example:
 ```
 
 
-## CSS/JS QUIRKS
+## CSS/JS Quirks
 
   - autoplay hero video.
     - iOS safari needs `playsinline`, `muted` and `loop` attributes
