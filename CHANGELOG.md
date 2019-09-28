@@ -8,3 +8,4 @@
 - Application: Extended debug info (screen size, viewport, features)
 - Moonwalk: Clean up Moonwalk code
 - Parallax: Fix parallax up a bit. Still mainly for hero usage.
+- Parallax: Fix parallax up a bit. Still mainly for hero usage.
