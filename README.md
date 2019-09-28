@@ -295,6 +295,69 @@ slider: {
 ```
 
 
+## Popup
+
+### Options
+
+- `tweenIn: (el, popup) => {}`
+  - Function that gets called to tween popup + background in.
+  - `el` is the popup element itself, while `popup` is the `Popup()` class.
+  - Backdrop can be accessed as `popup.backdrop`
+
+- `tweenOut: (popup) => {}`
+  - Function that gets called to tween popup + background out
+  - Backdrop can be accessed as `popup.backdrop`
+
+### Example
+
+Example HTML
+
+```html
+<div class="newsletter-popup" data-popup>
+  ...
+  <button data-popup-close>
+</div>
+
+<button data-popup-trigger=".newsletter-popup">
+  Open popup
+</button>
+```
+
+Example CSS (PCSS)
+
+```scss
+[data-popup] {
+  position: fixed;
+  justify-self: center;
+  align-self: center;
+  background-color: white;
+  top: 50%;
+  left: 50%;
+  z-index: 5000;
+  padding: 3em;
+  text-align: center;
+  display: none;
+  opacity: 0;
+
+  @responsive mobile {
+    width: 80%;
+  }
+}
+
+[data-popup-backdrop] {
+  z-index: 4999;
+  display: none;
+  opacity: 0;
+  background-color: theme(colors.blue.100);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+```
+
+
 ## StackedBoxes
 
 ```

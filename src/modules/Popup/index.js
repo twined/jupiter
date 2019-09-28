@@ -2,10 +2,8 @@ import { TweenLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
-  backdropColor: '#ffffff',
-
   tweenIn: (el, popup) => {
-    TweenLite.set(popup.backdrop, { display: 'block', backgroundColor: popup.opts.backdropColor })
+    TweenLite.set(popup.backdrop, { display: 'block' })
     TweenLite.to(popup.backdrop, 0.3, {
       opacity: 1,
       onComplete: () => {
@@ -42,6 +40,29 @@ export default class Popup {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.createBackdrop()
+    this.bindTriggers()
+  }
+
+  bindTriggers () {
+    const triggers = document.querySelectorAll('[data-popup-trigger]')
+    const closers = document.querySelectorAll('[data-popup-close]')
+
+    Array.from(triggers).forEach(trigger => {
+      const triggerTarget = trigger.getAttribute('data-popup-trigger')
+      trigger.addEventListener('click', event => {
+        event.stopImmediatePropagation()
+        event.preventDefault()
+        this.open(triggerTarget)
+      })
+    })
+
+    Array.from(closers).forEach(closer => {
+      closer.addEventListener('click', event => {
+        event.stopImmediatePropagation()
+        event.preventDefault()
+        this.close()
+      })
+    })
   }
 
   createBackdrop () {
