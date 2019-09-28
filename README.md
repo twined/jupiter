@@ -25,15 +25,28 @@ exclude: [
 
 ## Application
 
-```es6
+### Methods/functions
 
-const app = new Application()
+- `registerCallback(type, callback)`
+  - Registers `callback` to be called when an event `type` occurs.
+  - Example:
+  ```es6
+  const app = new Application()
 
-app.registerCallback(Events.APPLICATION_PRELUDIUM, () => { ... })
-app.registerCallback(Events.APPLICATION_INITIALIZED, () => { ... })
-app.registerCallback(Events.APPLICATION_READY, () => { ... })
+  app.registerCallback(Events.APPLICATION_PRELUDIUM, () => { ... })
+  app.registerCallback(Events.APPLICATION_INITIALIZED, () => { ... })
+  app.registerCallback(Events.APPLICATION_READY, () => {
+  ```
 
-```
+- `isScrolled()`
+  - If application is scrolled or not
+
+- `scrollLock()`
+  - Lock the application's scrolling
+
+- `scrollRelease()`
+  - Release the application's scrolling
+
 
 ## Moonwalk
 
@@ -191,14 +204,94 @@ slider: {
 
 ```
 
-## Events
+## Events (application)
+
+`APPLICATION:PRELUDIUM`
+
+Called before initialization
 
 `APPLICATION:INITIALIZED`
+
+Called after initialization
+
 `APPLICATION:READY`
-`APPLICATION:SCROLL`
-`APPLICATION:RESIZE`
+
+Called when application/dom ready
+
+`APPLICATION:REVEALED`
+
+Called after `#fader` removed
+
 `APPLICATION:MOBILE_MENU:OPEN`
+
+Called on opening mobile navigation menu
+
 `APPLICATION:MOBILE_MENU:CLOSE`
+
+Called on closing mobile navigation menu
+
+`APPLICATION:SCROLL`
+
+Called on application scrolling
+
+`APPLICATION:RESIZE`
+
+Called on application resizing
+
+`APPLICATION:SCROLL_LOCKED`
+
+Called when scrollbar is locked with `app.scrollLock()`
+
+`APPLICATION:SCROLL_RELEASED`
+
+Called when scrollbar is released with `app.scrollRelease()`
+
+`APPLICATION:FORCED_SCROLL_START`
+
+Called when application is forced to scroll, for instance on clicking anchors, triggering `scrollTo`
+
+`APPLICATION:FORCED_SCROLL_END`
+
+Called at end of forced scroll.
+
+`APPLICATION:OUTLINE`
+
+Called if user presses `<tab>`. Tells us the user is using tabbed navigation
+
+`APPLICATION:VISIBILITY_CHANGE`
+
+Called when application becomes hidden or visible
+
+`APPLICATION:HIDDEN`
+
+Called when application becomes hidden
+
+`APPLICATION:VISIBLE`
+
+Called when application becomes visible
+
+
+## Events (other)
+
+`IMAGE:LAZYLOADED`
+
+Called when an image marked for lazyloading finishes loading. Gets called on the element itself:
+
+```es6
+import * as Events from jupiter
+const image = document.querySelector('.my-image')
+image.addEventListener(Events.IMAGE_LAZYLOADED, () => { console.log('lazyloaded') })
+```
+
+`SECTION:LAZYLOADED`
+
+Called when a `Moonwalk` section enters the viewport and its images are done loading
+
+```es6
+import * as Events from jupiter
+const section = document.querySelector('.my-section[data-moonwalk-section]')
+section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloaded') })
+```
 
 
 ## StackedBoxes
