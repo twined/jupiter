@@ -1,6 +1,13 @@
+
+#### 3.3.0
+
+- Force update Parallax after Git tries to ruin everything
+
+
 #### 3.2.0
 
 - Popup: Add triggers for opening and closing popups. Add docs in README
+
 
 #### 3.1.0
 
