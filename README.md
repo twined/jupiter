@@ -48,6 +48,41 @@ exclude: [
   - Release the application's scrolling
 
 
+## Dom
+
+Some utility functions for dealing with the DOM.
+
+- `Dom.html`
+  - References the `html` element
+
+- `Dom.body`
+  - References the `body` element
+
+- `Dom.find('header')`
+  - Returns the `header` element
+
+- `Dom.find(header, 'nav')`
+  - Returns the `nav` element inside `header`. `header` is an element, not a string.
+
+- `Dom.all('li')`
+  - Returns all `li` elements
+
+- `Dom.all(header, 'li')`
+  - Returns all `li` elements inside `header`. `header` is an element, not a string.
+
+- `Dom.addClass(element, 'one', 'two', 'three')`
+  - Adds classes to `element`
+
+- `Dom.removeClass(element, 'one', 'two', 'three')`
+  - Removes classes to `element`
+
+- `Dom.hasClass(element, 'one')`
+  - Checks if `element` has class `one`
+
+- `Dom.toggleClass(element, 'one', 'two', 'three')`
+  - Toggles `one`, `two`, `three` classes on `element`
+
+
 ## Events (application)
 
 - `APPLICATION:PRELUDIUM`
