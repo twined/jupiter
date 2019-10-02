@@ -292,6 +292,8 @@ the section's immediate children are used instead.
 You can force a custom order of the staggered reveal by adding `data-moonwalk-order="1"` etc
 to the targeted elements.
 
+Named sections can have `startDelay`, a delay added before the first staggered tween.
+
 Sample code
 
 ```html
