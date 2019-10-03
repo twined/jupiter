@@ -1,3 +1,10 @@
+#### 3.5.0
+
+- Dom: Add `overlapsVertically` function
+- FixedHeader: Add `unPinOnResize` boolean switch
+- Export `rafCallback` function
+
+
 #### 3.4.0
 
 - Add `Dom` class

@@ -82,6 +82,9 @@ Some utility functions for dealing with the DOM.
 - `Dom.toggleClass(element, 'one', 'two', 'three')`
   - Toggles `one`, `two`, `three` classes on `element`
 
+- `Dom.overlapsVertically(element1, element2)`
+  - Returns number in pixels element1 and element2 overlaps
+
 
 ## Events (application)
 

@@ -19,6 +19,7 @@ import Breakpoints from './modules/Breakpoints'
 import Cookies from './modules/Cookies'
 import CoverOverlay from './modules/CoverOverlay'
 import Dom from './modules/Dom'
+
 import * as Events from './events'
 import FixedHeader from './modules/FixedHeader'
 import FooterReveal from './modules/FooterReveal'
@@ -40,8 +41,6 @@ import imagesAreLoaded from './utils/imagesAreLoaded'
 import loadScript from './utils/loadScript'
 import rafCallback from './utils/rafCallback'
 import prefersReducedMotion from './utils/prefersReducedMotion'
-
-window.Dom = new Dom()
 
 export {
   Application,
