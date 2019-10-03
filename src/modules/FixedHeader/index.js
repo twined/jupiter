@@ -95,6 +95,7 @@ const DEFAULT_EVENTS = {
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   pinOnOutline: true,
+  unPinOnResize: true,
 
   default: {
     canvas: window,
@@ -178,9 +179,12 @@ export default class FixedHeader {
 
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
-    window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
     window.addEventListener(Events.APPLICATION_READY, this.unpinIfScrolled.bind(this))
+
+    if (this.opts.unPinOnResize) {
+      window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
+    }
 
     this.redraw(true)
     this._bindMobileMenuListeners()
