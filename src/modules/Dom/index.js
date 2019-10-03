@@ -1,4 +1,4 @@
-export default class Dom {
+class DOM {
   constructor () {
     this.body = document.body
     this.html = document.documentElement
@@ -49,4 +49,45 @@ export default class Dom {
   toggleClass (element, ...classes) {
     return classes.map(className => element.classList.toggle(className))
   }
+
+  overlapsVertically ($div1, $div2) {
+    // Div 1 data
+    const d1Offset = $div1.getBoundingClientRect()
+    const d1Height = this.outerHeight($div1)
+    const d1DistanceFromTop = d1Offset.top + d1Height
+
+    // Div 2 data
+    const d2Offset = $div2.getBoundingClientRect()
+    const d2Height = this.outerHeight($div2)
+    const d2DistanceFromTop = d2Offset.top + d2Height
+
+    if (d1DistanceFromTop > d2Offset.top) {
+      return d1DistanceFromTop - d2Offset.top
+    }
+
+
+    if (d1Offset.top > d2DistanceFromTop) {
+      return d1Offset.top - d2DistanceFromTop
+    }
+
+    return 0
+  }
+
+  outerHeight (el) {
+    let height = el.offsetHeight
+    const style = getComputedStyle(el)
+
+    height += parseInt(style.marginTop) + parseInt(style.marginBottom)
+    return height
+  }
+
+  outerWidth (el) {
+    let width = el.offsetWidth
+    const style = getComputedStyle(el)
+
+    width += parseInt(style.marginLeft) + parseInt(style.marginRight)
+    return width
+  }
 }
+
+export default new DOM()

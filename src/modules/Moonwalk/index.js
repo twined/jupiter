@@ -57,6 +57,8 @@ const DEFAULT_OPTIONS = {
 
   walks: {
     default: {
+      /* How long to wait before firing timeline */
+      startDelay: 0,
       /* How long between multiple entries in a moonwalk-section */
       interval: 0.1,
       /* How long each tween is */
@@ -259,7 +261,12 @@ export default class Moonwalk {
         )
       }
 
-      TweenLite.set(section.children, sectionWalk.transition.from)
+      const fromTransition = sectionWalk.alphaTween ? {
+        ...sectionWalk.transition.from,
+        autoAlpha: 0
+      } : sectionWalk.transition.from
+
+      TweenLite.set(section.children, fromTransition)
     }
 
     if (section.stage.name) {
@@ -309,7 +316,6 @@ export default class Moonwalk {
               console.error(`==> JUPITER: Walk [${section.name}] not found in config`)
             }
 
-
             if (typeof tween.alphaTween === 'object') {
               tween.alphaTween.duration = tween.alphaTween.duration
                 ? tween.alphaTween.duration : tween.duration
@@ -317,6 +323,13 @@ export default class Moonwalk {
               tween.alphaTween = {
                 duration: tween.duration,
                 ease: Sine.easeIn
+              }
+            }
+
+            if (tween.startDelay) {
+              tween.transition.to = {
+                ...tween.transition.to,
+                delay: tween.startDelay
               }
             }
 
@@ -334,7 +347,8 @@ export default class Moonwalk {
                 tween.alphaTween.duration,
                 {
                   autoAlpha: 1,
-                  ease: tween.alphaTween.ease
+                  ease: tween.alphaTween.ease,
+                  delay: tween.startDelay || 0
                 },
                 tween.interval,
                 0

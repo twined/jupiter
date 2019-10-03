@@ -82,6 +82,9 @@ Some utility functions for dealing with the DOM.
 - `Dom.toggleClass(element, 'one', 'two', 'three')`
   - Toggles `one`, `two`, `three` classes on `element`
 
+- `Dom.overlapsVertically(element1, element2)`
+  - Returns number in pixels element1 and element2 overlaps
+
 
 ## Events (application)
 
@@ -291,6 +294,8 @@ the section's immediate children are used instead.
 
 You can force a custom order of the staggered reveal by adding `data-moonwalk-order="1"` etc
 to the targeted elements.
+
+Named sections can have `startDelay`, a delay added before the first staggered tween.
 
 Sample code
 
