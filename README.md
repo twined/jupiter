@@ -420,10 +420,46 @@ Example CSS (PCSS)
 
  * header element should not have position: fixed
 
+### Options
+
+- Events
+  - `onMainVisible`
+    - Triggers when main nav is in viewport
+  - `onMainInvisible`
+    - Triggers when main nav leaves viewport
+  - `onPin`
+    - Triggers when the auxillary nav gets pinned
+  - `onUnpin`
+    - Triggers when the auxillary nav unpins
+
 
 ## FixedHeader
 
  * header element needs position: fixed;
+
+### Options
+
+- Events
+  - `onPin`
+    - Triggers when the auxillary nav gets pinned
+  - `onUnpin`
+    - Triggers when the auxillary nav unpins
+  - `onAltBg`
+    - Triggers when the altBg offset is passed
+  - `onNotAltBg`
+    - Triggers when the altBg offset is passed to reg background
+  - `onSmall`
+    - Triggers when we're small
+  - `onNotSmall`
+    - Triggers when we're not small
+  - `onTop`
+    - Triggers when we're at the top
+  - `onNotTop`
+    - Triggers when we're not at the top
+  - `onBottom`
+    - Triggers when we're at the bottom
+  - `onNotBottom`
+    - Triggers when we're not at the bottom
 
  ```
  header[data-nav] {
