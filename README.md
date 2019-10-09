@@ -35,7 +35,7 @@ exclude: [
 
   app.registerCallback(Events.APPLICATION_PRELUDIUM, () => { ... })
   app.registerCallback(Events.APPLICATION_INITIALIZED, () => { ... })
-  app.registerCallback(Events.APPLICATION_READY, () => {
+  app.registerCallback(Events.APPLICATION_READY, () => { ... })
   ```
 
 - `isScrolled()`
@@ -174,6 +174,36 @@ import * as Events from jupiter
 const section = document.querySelector('.my-section[data-moonwalk-section]')
 section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloaded') })
 ```
+
+## Lightbox
+
+Can be initiated with a sectioned name `data-lightbox-section`. The lightbox will only
+include images from this section. Otherwise, all lightboxed images will be included.
+
+```html
+<div
+  data-lightbox="/media/images/site/posts/xlarge/2gmk2h1d8d4q.jpg"
+  data-lightbox-section="intro"
+  aria-hidden="true">
+  <figure>
+    <img
+      alt="Text"
+      src="/media/images/site/posts/small/2gmk2h1d8d4q.jpg"
+      height="1667"
+      width="2210">
+  </figure>
+</div>
+```
+
+#### Options
+
+- `captions` - `false` - whether to show captions or not in the overlay
+- `elements` - `object` - switch out default elements in the overlay
+  - `arrowRight` - `function` - returns an element
+  - `arrowLeft` - `function` - returns an element
+  - `close` - `function` - returns an element
+  - `dot` - `function` - returns an element
+- `onClose` - `function` - called when closing the lightbox
 
 
 ## Moonwalk
