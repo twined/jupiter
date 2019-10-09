@@ -430,7 +430,7 @@ Example CSS (PCSS)
 
 ## StackedBoxes
 
-```
+```html
 <div class="v-module" data-v="quote|image" data-moonwalk-section data-boxes-stacked>
   <aside data-boxes-stacked-size-target>
     <blockquote>
