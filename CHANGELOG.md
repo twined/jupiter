@@ -1,3 +1,10 @@
+#### 3.6.0
+
+- Remove `no-js`/`js` feature test. Handle this at the application
+level instead to try and avoid fouc. Newest Brando version does this for us
+in the `render_meta`.
+
+
 #### 3.5.0
 
 - Dom: Add `overlapsVertically` function
