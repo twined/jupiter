@@ -4,9 +4,6 @@ export default class FeatureTests {
   constructor (app, tests) {
     this.app = app
 
-    document.documentElement.classList.remove('no-js')
-    document.documentElement.classList.add('js')
-
     this.testFns = {
       touch: this.testTouch
     }
