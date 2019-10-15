@@ -26,7 +26,7 @@ const DEFAULT_OPTIONS = {
     close: () => document.createTextNode('×'),
     dot: () => document.createTextNode('▪')
   },
-
+  onOpen: () => {},
   onClose: h => {
     if (h.opts.captions) {
       TweenLite.to(h.elements.caption, 0.45, { opacity: 0 })
@@ -208,6 +208,8 @@ export default class Lightbox {
 
       this.close()
     })
+
+    this.opts.onOpen(this)
   }
 
   close () {
