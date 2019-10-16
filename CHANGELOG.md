@@ -1,5 +1,7 @@
 #### 3.6.0
 
+- Lightbox: More hooks
+- Breakpoints: Initialize earlier to ensure breakpoints are available to other modules
 - Remove `no-js`/`js` feature test. Handle this at the application
 level instead to try and avoid fouc. Newest Brando version does this for us
 in the `render_meta`.

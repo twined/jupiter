@@ -203,7 +203,10 @@ include images from this section. Otherwise, all lightboxed images will be inclu
   - `arrowLeft` - `function` - returns an element
   - `close` - `function` - returns an element
   - `dot` - `function` - returns an element
+- `onBeforeOpen` - `function` - hook for before opening lightbox
+- `onOpen` - `function`- hook for opening lightbox
 - `onClose` - `function` - called when closing the lightbox
+- `onAfterClose` - `function` - called after closing the lightbox
 
 
 ## Moonwalk
