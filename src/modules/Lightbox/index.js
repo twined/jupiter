@@ -26,7 +26,18 @@ const DEFAULT_OPTIONS = {
     close: () => document.createTextNode('×'),
     dot: () => document.createTextNode('▪')
   },
-  onOpen: () => {},
+  onBeforeOpen: () => {},
+  onOpen: h => {
+    TweenLite.to(h.elements.wrapper, 0.5, {
+      opacity: 1,
+      onComplete: () => {
+        h.fader.style.display = 'none'
+        h.fader.style.opacity = 0
+      }
+    })
+  },
+  onAfterClose: () => {},
+
   onClose: h => {
     if (h.opts.captions) {
       TweenLite.to(h.elements.caption, 0.45, { opacity: 0 })
@@ -90,9 +101,9 @@ export default class Lightbox {
   }
 
   showBox (section, index) {
-    this.fader.style.display = 'block'
-
+    TweenLite.set(this.fader, { display: 'block', opacity: 0 })
     document.addEventListener('keyup', this.onKeyup.bind(this))
+    this.opts.onBeforeOpen(this)
 
     TweenLite.to(this.fader, 0.450, {
       opacity: 1,
@@ -140,6 +151,12 @@ export default class Lightbox {
       e.stopPropagation()
       e.preventDefault()
       this.setImg(section, this.getPrevIdx(section))
+    })
+
+    this.elements.imgWrapper.addEventListener('click', e => {
+      e.stopPropagation()
+      e.preventDefault()
+      this.setImg(section, this.getNextIdx(section))
     })
 
     this.elements.prevArrow.appendChild(this.opts.elements.arrowLeft())
@@ -193,13 +210,7 @@ export default class Lightbox {
     const imgs = this.elements.wrapper.querySelectorAll('img')
 
     imagesAreLoaded(imgs).then(() => {
-      TweenLite.to(this.elements.wrapper, 0.5, {
-        opacity: 1,
-        onComplete: () => {
-          this.fader.style.display = 'none'
-          this.fader.style.opacity = 0
-        }
-      })
+      this.opts.onOpen(this)
     })
 
     this.elements.close.addEventListener('click', e => {
@@ -208,13 +219,12 @@ export default class Lightbox {
 
       this.close()
     })
-
-    this.opts.onOpen(this)
   }
 
   close () {
     document.removeEventListener('keyup', this.onKeyup.bind(this))
     this.opts.onClose(this)
+    this.opts.onAfterClose(this)
     this.currentIndex = null
   }
 
