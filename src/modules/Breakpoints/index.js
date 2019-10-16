@@ -26,7 +26,7 @@ export default class Breakpoints {
     this.app = app
     this.mediaQueries = {}
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-    window.addEventListener(Events.APPLICATION_INITIALIZED, this.initialize.bind(this))
+    window.addEventListener(Events.APPLICATION_PRELUDIUM, this.initialize.bind(this))
   }
 
   initialize () {
