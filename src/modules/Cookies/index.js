@@ -56,7 +56,7 @@ export default class Cookies {
       return
     }
 
-    window.addEventListener(Events.APPLICATION_READY, () => { this.opts.showCC(this) })
+    window.addEventListener(Events.APPLICATION_REVEALED, () => { this.opts.showCC(this) })
 
     this.btn.addEventListener('click', () => {
       this.opts.onAccept(this)
