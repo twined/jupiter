@@ -22,7 +22,7 @@ const DEFAULT_OPTIONS = {
         0.5,
         { y: '100%', display: 'block' },
         { y: '0%', delay: '0.5', ease: Power3.easeOut },
-        '0',
+        '0.5',
       )
       .fromTo(
         c.text,
