@@ -1,6 +1,7 @@
 #### 3.8.0-dev
 
 - Lightbox: Lock scroll
+- Lightbox: Ensure image is loaded before fading in
 
 
 #### 3.7.0
