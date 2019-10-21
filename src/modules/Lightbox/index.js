@@ -28,6 +28,8 @@ const DEFAULT_OPTIONS = {
   },
   onBeforeOpen: () => {},
   onOpen: h => {
+    h.app.scrollLock()
+
     TweenLite.to(h.elements.wrapper, 0.5, {
       opacity: 1,
       onComplete: () => {
@@ -42,6 +44,8 @@ const DEFAULT_OPTIONS = {
     if (h.opts.captions) {
       TweenLite.to(h.elements.caption, 0.45, { opacity: 0 })
     }
+
+    h.app.scrollRelease()
 
     TweenLite.to([
       h.elements.imgWrapper,
