@@ -7,6 +7,7 @@ import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
 import Breakpoints from '../Breakpoints'
 import FeatureTests from '../FeatureTests'
+import Fontloader from '../Fontloader'
 
 const DEFAULT_OPTIONS = {
   featureTests: {
@@ -58,6 +59,8 @@ export default class Application {
       this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig(this))
     }
 
+    this.fontLoader = new Fontloader(this)
+
     this.fader = null
     this.callbacks = {}
 
@@ -105,9 +108,11 @@ export default class Application {
   * Fade in, then execute callbacks
   */
   ready () {
-    this.fadeIn()
-    this._emitReadyEvent()
-    this.executeCallbacks(Events.APPLICATION_READY)
+    this.fontLoader.loadFonts(this.opts.fonts).then(() => {
+      this.fadeIn()
+      this._emitReadyEvent()
+      this.executeCallbacks(Events.APPLICATION_READY)
+    })
   }
 
   /**
