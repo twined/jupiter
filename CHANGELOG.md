@@ -1,3 +1,9 @@
+#### 3.9.0
+
+- FixedHeader: Allow locking/unlocking pin/unpin
+- StickyHeader: Allow locking/unlocking pin/unpin
+
+
 #### 3.8.0
 
 - Lightbox: Lock scroll
