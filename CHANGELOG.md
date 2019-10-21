@@ -1,3 +1,8 @@
+#### 3.8.0-dev
+
+- Lightbox: Lock scroll
+
+
 #### 3.7.0
 
 - Cookielaw: Show after application is revealed. Delay by 0.5 as standard.
