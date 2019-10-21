@@ -234,6 +234,16 @@ export default class StickyHeader {
     this.redraw(false)
   }
 
+  lock () {
+    this.preventPin = true
+    this.preventUnpin = true
+  }
+
+  unlock () {
+    this.preventPin = false
+    this.preventUnpin = false
+  }
+
   checkSize (force) {
     if (this.currentScrollY > this.opts.offsetSmall) {
       if (force) {

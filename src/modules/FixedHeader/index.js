@@ -190,6 +190,16 @@ export default class FixedHeader {
     this._bindMobileMenuListeners()
   }
 
+  lock () {
+    this.preventPin = true
+    this.preventUnpin = true
+  }
+
+  unlock () {
+    this.preventPin = false
+    this.preventUnpin = false
+  }
+
   isScrolled () {
     return (window.pageYOffset
       || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0) > 0
