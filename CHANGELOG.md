@@ -1,3 +1,9 @@
+#### 3.7.0
+
+- Cookielaw: Show after application is revealed. Delay by 0.5 as standard.
+- Fontloader: Check that fonts are loaded before calling fadeIn() / revealed event
+
+
 #### 3.6.0
 
 - Lightbox: More hooks
