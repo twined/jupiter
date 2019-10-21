@@ -2,6 +2,7 @@ import { Manager, Swipe } from '@egjs/hammerjs'
 import { TweenLite, Sine } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
+import imageIsLoaded from '../../utils/imageIsLoaded'
 
 TweenLite.defaultEase = Sine.easeOut
 
@@ -211,11 +212,7 @@ export default class Lightbox {
     this.setImg(section, index, this.getPrevIdx(index))
     this.attachSwiper(section, this.elements.content, index)
 
-    const imgs = this.elements.wrapper.querySelectorAll('img')
-
-    imagesAreLoaded(imgs).then(() => {
-      this.opts.onOpen(this)
-    })
+    this.opts.onOpen(this)
 
     this.elements.close.addEventListener('click', e => {
       e.preventDefault()
@@ -263,13 +260,15 @@ export default class Lightbox {
       onComplete: () => {
         this.elements.img.src = this.sections[section][index].href
 
-        TweenLite.to(this.elements.img, 0.5, {
-          opacity: 1
-        })
+        imageIsLoaded(this.elements.img).then(() => {
+          TweenLite.to(this.elements.img, 0.5, {
+            opacity: 1
+          })
 
-        if (this.elements.caption) {
-          TweenLite.to(this.elements.caption, 0.5, { opacity: 1 })
-        }
+          if (this.elements.caption) {
+            TweenLite.to(this.elements.caption, 0.5, { opacity: 1 })
+          }
+        })
       }
     })
   }
