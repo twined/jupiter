@@ -94,22 +94,29 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
+  on: Events.APPLICATION_REVEALED,
   pinOnOutline: true,
   unPinOnResize: true,
 
   default: {
     canvas: window,
-    enter: h => {
+
+    beforeEnter: h => {
       const timeline = new TimelineLite()
       timeline
         .set(h.el, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
+    },
+
+    enter: h => {
+      const timeline = new TimelineLite()
+      timeline
         .to(h.el, 1, {
           yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true
         })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
     },
-    enterDelay: 1.2,
+    enterDelay: 0,
     tolerance: 3,
     offset: 0, // how far from the top before we trigger hide
     offsetSmall: 50, // how far from the top before we trigger the shrinked padding,
@@ -123,19 +130,19 @@ const DEFAULT_OPTIONS = {
 export default class FixedHeader {
   constructor (app, opts = {}) {
     this.app = app
-    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.mainOpts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    if (this.opts.pinOnOutline) {
+    if (this.mainOpts.pinOnOutline) {
       window.addEventListener(Events.APPLICATION_OUTLINE, () => {
         this.preventUnpin = true
         this.pin()
       })
     }
 
-    if (typeof this.opts.el === 'string') {
-      this.el = document.querySelector(this.opts.el)
+    if (typeof this.mainOpts.el === 'string') {
+      this.el = document.querySelector(this.mainOpts.el)
     } else {
-      this.el = this.opts.el
+      this.el = this.mainOpts.el
     }
 
     if (!this.el) {
@@ -181,13 +188,15 @@ export default class FixedHeader {
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
     window.addEventListener(Events.APPLICATION_READY, this.unpinIfScrolled.bind(this))
+    window.addEventListener(this.mainOpts.on, this.enter.bind(this))
+
+    this._bindMobileMenuListeners()
 
     if (this.opts.unPinOnResize) {
       window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
     }
 
-    this.redraw(true)
-    this._bindMobileMenuListeners()
+    this.opts.beforeEnter(this)
   }
 
   lock () {
@@ -212,6 +221,15 @@ export default class FixedHeader {
     }
   }
 
+  enter () {
+    if (this.opts.enter) {
+      this.checkSize(true)
+      this.checkBg(true)
+      this.checkTop(true)
+      this.opts.enter(this)
+    }
+  }
+
   setResizeTimer () {
     this._isResizing = true
 
@@ -231,7 +249,8 @@ export default class FixedHeader {
   }
 
   update () {
-    this.redraw(false)
+    console.log('update!')
+    this.redraw()
   }
 
   checkSize (force) {
@@ -309,19 +328,7 @@ export default class FixedHeader {
     }
   }
 
-  redraw (force = false, enter = true) {
-    if (force && this.opts.enter) {
-      this.checkSize(force)
-      this.checkBg(force)
-      this.checkTop(force)
-
-      if (enter) {
-        this.opts.enter(this)
-      }
-
-      return
-    }
-
+  redraw () {
     this.currentScrollY = this.getScrollY()
     const toleranceExceeded = this.toleranceExceeded()
 
@@ -329,11 +336,11 @@ export default class FixedHeader {
       return
     }
 
-    this.checkSize(force)
-    this.checkBg(force)
-    this.checkTop(force)
-    this.checkBot(force)
-    this.checkPin(force, toleranceExceeded)
+    this.checkSize(false)
+    this.checkBg(false)
+    this.checkTop(false)
+    this.checkBot(false)
+    this.checkPin(false, toleranceExceeded)
 
     this.lastKnownScrollY = this.currentScrollY
 

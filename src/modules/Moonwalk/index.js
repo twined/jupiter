@@ -24,11 +24,17 @@ const DEFAULT_OPTIONS = {
   /**
    * If your app needs to do some initialization before the
    * application:ready has been fired, you can set this to
-   * false. You will then have to call `this.ready()`
+   * `() => {}`. You will then have to call `this.ready()`
    * to start the reveals
    */
 
-  fireOnReady: true,
+  on: Events.APPLICATION_REVEALED,
+
+  /**
+   * Set a delay for the initial reveal. Could be useful if you want the reveal to happen
+   * after for instance a header has been revealed
+   */
+  initialDelay: 0,
 
   /**
    * Clear out all `data-ll-srcset` from moonwalk elements
@@ -89,8 +95,8 @@ export default class Moonwalk {
       this.removeAllWalks()
     }
 
-    if (this.opts.fireOnReady) {
-      window.addEventListener(Events.APPLICATION_READY, this.ready.bind(this))
+    if (this.opts.on) {
+      window.addEventListener(this.opts.on, this.onReady.bind(this))
     }
   }
 
@@ -386,6 +392,17 @@ export default class Moonwalk {
 
       return orderA - orderB
     })
+  }
+
+
+  onReady () {
+    if (this.opts.initialDelay) {
+      setTimeout(() => {
+        this.ready()
+      }, this.opts.initialDelay)
+    } else {
+      this.ready()
+    }
   }
 
   /**

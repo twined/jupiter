@@ -219,9 +219,13 @@ syntax. If no value is provided, we run the `default` walk.
 
 #### Options
 
-- `fireOnReady` - default `true`
-  - Automatically fire on `APPLICATION_READY` event. Set this to false if you need to do
-    customized initialization before firing.
+- `on` - default `Events.APPLICATION_REVEALED`
+  - Automatically fire on `APPLICATION_REVEALED` event. Set this to `() => {}` if
+    you need to do customized initialization before firing.
+
+- `initialDelay` - default `0`
+  - Set a delay before calling the `ready` function. Useful for timing reveal against
+    other reveals happening towards the `APPLICATION_REVEALED` event for instance.
 
 - `clearLazyload` - default `false`
   - Clear out all `data-ll-srcset` from moonwalk elements
@@ -472,7 +476,15 @@ Example CSS (PCSS)
 
 ### Options
 
+- `on` - default `Events.APPLICATION_REVEALED`
+  - Automatically enter on `APPLICATION_REVEALED` event.
+
 - Events
+  - `enter`
+    - Triggers 'enter' animation on the event set in `opts.on`
+  - `beforeEnter`
+    - Triggers during initialization. Useful for preparing elements
+      before tweening into view
   - `onPin`
     - Triggers when the auxillary nav gets pinned
   - `onUnpin`

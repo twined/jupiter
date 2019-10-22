@@ -1,3 +1,13 @@
+#### 3.10.0
+
+- Moonwalk: Removed `opts.fireOnReady`. Added `opts.on` option instead. Pass the event
+  we should listen for. The default is `on: Events.APPLICATION_REVEALED`
+- Moonwalk: add `opts.initialDelay`. This is an added delay before `ready()` is fired.
+- FixedHeader: add `opts.on` option for listening to an event before firing `enter()`
+- FixedHeader: added `opts.<section>.beforeEnter`. This gets called during init, so
+  it's a good place to hide items that should be revealed in `opts.<section>.enter`.
+
+
 #### 3.9.0
 
 - FixedHeader: Allow locking/unlocking pin/unpin
