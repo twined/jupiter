@@ -249,7 +249,6 @@ export default class FixedHeader {
   }
 
   update () {
-    console.log('update!')
     this.redraw()
   }
 
