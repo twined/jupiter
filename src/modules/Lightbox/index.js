@@ -27,18 +27,55 @@ const DEFAULT_OPTIONS = {
     close: () => document.createTextNode('×'),
     dot: () => document.createTextNode('▪')
   },
+
+  onCaptionOut: (lightbox, callback) => {
+    TweenLite.to(lightbox.elements.caption, 0.5, {
+      opacity: 0,
+      onComplete: () => {
+        callback()
+      }
+    })
+  },
+
+  onCaptionIn: (lightbox, callback) => {
+    TweenLite.to(lightbox.elements.caption, 0.5, {
+      opacity: 1,
+      onComplete: () => {
+        callback()
+      }
+    })
+  },
+
+  onImageOut: (lightbox, callback) => {
+    TweenLite.to(lightbox.currentImage, 0.5, {
+      autoAlpha: 0,
+      onComplete: () => {
+        callback()
+      }
+    })
+  },
+
+  onImageIn: (lightbox, callback) => {
+    const delay = lightbox.firstTransition ? 0.6 : 0.4
+    TweenLite.to(lightbox.wantedImage, 0.5, {
+      autoAlpha: 1,
+      delay,
+      onComplete: () => {
+        callback()
+      }
+    })
+  },
+
   onBeforeOpen: () => {},
+
   onOpen: h => {
     h.app.scrollLock()
 
     TweenLite.to(h.elements.wrapper, 0.5, {
-      opacity: 1,
-      onComplete: () => {
-        h.fader.style.display = 'none'
-        h.fader.style.opacity = 0
-      }
+      opacity: 1
     })
   },
+
   onAfterClose: () => {},
 
   onClose: h => {
@@ -73,13 +110,13 @@ export default class Lightbox {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    this.fader = document.querySelector('#fader')
     this.lightboxes = document.querySelectorAll('[data-lightbox]')
     this.elements = {}
-    this.imgs = []
     this.imgAlts = []
+    this.imgs = []
     this.sections = {}
     this.currentIndex = null
+    this.firstTransition = true
 
     this.lightboxes.forEach(lightbox => {
       const href = lightbox.getAttribute('data-lightbox')
@@ -106,23 +143,15 @@ export default class Lightbox {
   }
 
   showBox (section, index) {
-    TweenLite.set(this.fader, { display: 'block', opacity: 0 })
     document.addEventListener('keyup', this.onKeyup.bind(this))
     this.opts.onBeforeOpen(this)
-
-    TweenLite.to(this.fader, 0.450, {
-      opacity: 1,
-      onComplete: () => {
-        this.buildBox(section, index)
-      }
-    })
+    this.buildBox(section, index)
   }
 
   buildBox (section, index) {
     this.elements.wrapper = document.createElement('div')
     this.elements.content = document.createElement('div')
     this.elements.imgWrapper = document.createElement('div')
-    this.elements.img = document.createElement('img')
     this.elements.dots = document.createElement('div')
     this.elements.nextArrow = document.createElement('a')
     this.elements.prevArrow = document.createElement('a')
@@ -138,7 +167,6 @@ export default class Lightbox {
     this.elements.wrapper.classList.add('lightbox-backdrop')
     this.elements.wrapper.setAttribute('data-lightbox-wrapper-section', section)
     this.elements.imgWrapper.classList.add('lightbox-image-wrapper')
-    this.elements.img.classList.add('lightbox-image', 'm-lg')
 
     this.elements.close.appendChild(this.opts.elements.close())
     this.elements.close.href = '#'
@@ -171,6 +199,13 @@ export default class Lightbox {
     let activeLink
 
     this.sections[section].forEach((img, x) => {
+      const imgElement = document.createElement('img')
+      TweenLite.set(imgElement, { autoAlpha: 0 })
+      imgElement.classList.add('lightbox-image', 'm-lg')
+      imgElement.setAttribute('data-idx', x)
+      this.elements.imgWrapper.appendChild(imgElement)
+      this.imgs.push(imgElement)
+
       const a = document.createElement('a')
       a.setAttribute('href', '#')
       a.setAttribute('data-idx', x)
@@ -193,8 +228,7 @@ export default class Lightbox {
       this.elements.dots.appendChild(a)
     })
 
-    this.elements.imgWrapper.appendChild(this.elements.img)
-    this.elements.imgWrapper.appendChild(this.elements.close)
+    this.elements.content.appendChild(this.elements.close)
     this.elements.content.appendChild(this.elements.imgWrapper)
     this.elements.content.appendChild(this.elements.nextArrow)
     this.elements.content.appendChild(this.elements.prevArrow)
@@ -227,6 +261,8 @@ export default class Lightbox {
     this.opts.onClose(this)
     this.opts.onAfterClose(this)
     this.currentIndex = null
+    this.currentImage = null
+    this.imgs = []
   }
 
   destroy () {
@@ -247,30 +283,42 @@ export default class Lightbox {
     activeDot.classList.add('active')
 
     if (this.elements.caption) {
-      TweenLite.to(this.elements.caption, 0.5, {
-        opacity: 0,
-        onComplete: () => {
-          this.elements.caption.innerHTML = this.sections[section][index].alt
-        }
+      this.opts.onCaptionOut(this, () => {
+        this.elements.caption.innerHTML = this.sections[section][index].alt
       })
     }
 
-    TweenLite.to(this.elements.img, 0.5, {
-      opacity: 0,
-      onComplete: () => {
-        this.elements.img.src = this.sections[section][index].href
+    if (this.currentImage) {
+      // fade out current image
+      this.opts.onImageOut(this, () => {})
+    }
 
-        imageIsLoaded(this.elements.img).then(() => {
-          TweenLite.to(this.elements.img, 0.5, {
-            opacity: 1
-          })
+    // preload a few
 
-          if (this.elements.caption) {
-            TweenLite.to(this.elements.caption, 0.5, { opacity: 1 })
-          }
-        })
+    for (let x = 0; x < 3; x += 1) {
+      if (this.imgs[index + x]) {
+        this.imgs[index + x].src = this.sections[section][index + x].href
+      } else {
+        break
+      }
+    }
+
+    this.wantedImage = this.imgs[index]
+    this.wantedImage.src = this.sections[section][index].href
+
+    imageIsLoaded(this.wantedImage).then(() => {
+      this.opts.onImageIn(this, () => {
+        if (this.firstTransition) {
+          this.firstTransition = false
+        }
+      })
+
+      if (this.elements.caption) {
+        this.opts.onCaptionIn(this, () => { })
       }
     })
+
+    this.currentImage = this.wantedImage
   }
 
   getNextIdx (section) {
