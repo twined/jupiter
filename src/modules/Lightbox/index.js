@@ -57,7 +57,7 @@ const DEFAULT_OPTIONS = {
 
   onImageIn: (lightbox, callback) => {
     const delay = lightbox.firstTransition ? 0.6 : 0.4
-    TweenLite.to(lightbox.wantedImage, 0.5, {
+    TweenLite.to(lightbox.nextImage, 0.5, {
       autoAlpha: 1,
       delay,
       onComplete: () => {
@@ -303,10 +303,10 @@ export default class Lightbox {
       }
     }
 
-    this.wantedImage = this.imgs[index]
-    this.wantedImage.src = this.sections[section][index].href
+    this.nextImage = this.imgs[index]
+    this.nextImage.src = this.sections[section][index].href
 
-    imageIsLoaded(this.wantedImage).then(() => {
+    imageIsLoaded(this.nextImage).then(() => {
       this.opts.onImageIn(this, () => {
         if (this.firstTransition) {
           this.firstTransition = false
@@ -318,7 +318,7 @@ export default class Lightbox {
       }
     })
 
-    this.currentImage = this.wantedImage
+    this.currentImage = this.nextImage
   }
 
   getNextIdx (section) {
