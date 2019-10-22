@@ -1,3 +1,8 @@
+#### 3.11.0
+
+- Lightbox: Rewritten to be more flexible. Exposes more events. Preloads more images.
+
+
 #### 3.10.0
 
 - Moonwalk: Removed `opts.fireOnReady`. Added `opts.on` option instead. Pass the event

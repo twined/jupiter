@@ -207,7 +207,16 @@ include images from this section. Otherwise, all lightboxed images will be inclu
 - `onOpen` - `function`- hook for opening lightbox
 - `onClose` - `function` - called when closing the lightbox
 - `onAfterClose` - `function` - called after closing the lightbox
-
+- `onImageIn` - `function (lightbox, callback)` - called on image fade in.
+  Remember to call the `callback` when your tween is finished. You can check for the
+  first transition at `lightbox.firstTransition`. The image to tween is at
+  `lightbox.nextImage`
+- `onImageOut` - `function (lightbox, callback)` - called on image fade out. The image to
+  tween is at `lightbox.currentImage`
+- `onCaptionIn` - `function (lightbox, callback)` - called on caption fade in. The caption
+  to tween is at `lightbox.elements.caption`
+- `onCaptionOut` - `function (lightbox, callback)` - called on caption fade out. The caption
+  to tween is at `lightbox.elements.caption`
 
 ## Moonwalk
 
