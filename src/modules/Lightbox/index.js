@@ -138,7 +138,6 @@ export default class Lightbox {
   }
 
   showBox (section, index) {
-    document.addEventListener('keyup', this.onKeyup.bind(this))
     this.opts.onBeforeOpen(this)
     this.buildBox(section, index)
   }
@@ -185,6 +184,10 @@ export default class Lightbox {
       e.stopPropagation()
       e.preventDefault()
       this.setImg(section, this.getNextIdx(section))
+    })
+
+    document.addEventListener('keyup', event => {
+      this.onKeyup(event, section)
     })
 
     this.elements.prevArrow.appendChild(this.opts.elements.arrowLeft())
@@ -257,6 +260,7 @@ export default class Lightbox {
     this.opts.onAfterClose(this)
     this.currentIndex = null
     this.currentImage = null
+    this.firstTransition = true
     this.imgs = []
   }
 
@@ -343,11 +347,21 @@ export default class Lightbox {
     return index - 1
   }
 
-  onKeyup (e) {
+  onKeyup (e, section) {
     const key = e.keyCode || e.which
 
-    if (key === 27) {
-      this.close()
+    switch (key) {
+      case 27:
+        this.close()
+        break
+      case 37:
+        this.setImg(section, this.getPrevIdx(section))
+        break
+      case 39:
+        this.setImg(section, this.getNextIdx(section))
+        break
+      default:
+        break
     }
   }
 
