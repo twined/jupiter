@@ -1,3 +1,8 @@
+#### 3.13.0
+
+- Lightbox: Add keyboard navigation
+
+
 #### 3.12.0
 
 - Lightbox: Use timelines for even more flexibility with captions
