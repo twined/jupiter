@@ -1,3 +1,8 @@
+#### 3.12.0
+
+- Lightbox: Use timelines for even more flexibility with captions
+
+
 #### 3.11.0
 
 - Lightbox: Rewritten to be more flexible. Exposes more events. Preloads more images.
