@@ -1,5 +1,5 @@
 import { Manager, Swipe } from '@egjs/hammerjs'
-import { TweenLite, Sine } from 'gsap/all'
+import { TweenLite, Sine, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
 import imageIsLoaded from '../../utils/imageIsLoaded'
@@ -28,42 +28,33 @@ const DEFAULT_OPTIONS = {
     dot: () => document.createTextNode('▪')
   },
 
-  onCaptionOut: (lightbox, callback) => {
-    TweenLite.to(lightbox.elements.caption, 0.5, {
-      opacity: 0,
-      onComplete: () => {
-        callback()
-      }
-    })
+  onCaptionOut: (lightbox, captionHasChanged) => {
+    if (!captionHasChanged) {
+      return
+    }
+
+    lightbox.timelines.caption
+      .to(lightbox.elements.caption, 0.4, { autoAlpha: 0 })
   },
 
-  onCaptionIn: (lightbox, callback) => {
-    TweenLite.to(lightbox.elements.caption, 0.5, {
-      opacity: 1,
-      onComplete: () => {
-        callback()
-      }
-    })
+  onCaptionIn: (lightbox, captionHasChanged) => {
+    if (!captionHasChanged) {
+      return
+    }
+
+    lightbox.timelines.caption
+      .to(lightbox.elements.caption, 0.4, { autoAlpha: 1 })
   },
 
-  onImageOut: (lightbox, callback) => {
-    TweenLite.to(lightbox.currentImage, 0.5, {
-      autoAlpha: 0,
-      onComplete: () => {
-        callback()
-      }
-    })
+  onImageOut: lightbox => {
+    lightbox.timelines.image
+      .to(lightbox.currentImage, 0.5, { autoAlpha: 0 })
   },
 
-  onImageIn: (lightbox, callback) => {
+  onImageIn: lightbox => {
     const delay = lightbox.firstTransition ? 0.6 : 0.4
-    TweenLite.to(lightbox.nextImage, 0.5, {
-      autoAlpha: 1,
-      delay,
-      onComplete: () => {
-        callback()
-      }
-    })
+    lightbox.timelines.image
+      .to(lightbox.nextImage, 0.5, { autoAlpha: 1, delay })
   },
 
   onBeforeOpen: () => {},
@@ -109,7 +100,6 @@ export default class Lightbox {
   constructor (app, opts = {}) {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-
     this.lightboxes = document.querySelectorAll('[data-lightbox]')
     this.elements = {}
     this.imgAlts = []
@@ -117,6 +107,11 @@ export default class Lightbox {
     this.sections = {}
     this.currentIndex = null
     this.firstTransition = true
+    this.previousCaption = null
+    this.timelines = {
+      caption: new TimelineLite({ paused: true }),
+      image: new TimelineLite({ paused: true })
+    }
 
     this.lightboxes.forEach(lightbox => {
       const href = lightbox.getAttribute('data-lightbox')
@@ -270,6 +265,8 @@ export default class Lightbox {
   }
 
   setImg (section, index) {
+    let captionHasChanged = false
+
     this.currentIndex = index
     this.elements.content.setAttribute('data-current-idx', index)
 
@@ -283,14 +280,19 @@ export default class Lightbox {
     activeDot.classList.add('active')
 
     if (this.elements.caption) {
-      this.opts.onCaptionOut(this, () => {
+      captionHasChanged = (
+        this.previousCaption !== this.sections[section][index].alt
+      )
+      this.previousCaption = this.sections[section][index].alt
+      this.opts.onCaptionOut(this, captionHasChanged)
+      this.timelines.caption.call(() => {
         this.elements.caption.innerHTML = this.sections[section][index].alt
       })
     }
 
     if (this.currentImage) {
       // fade out current image
-      this.opts.onImageOut(this, () => {})
+      this.opts.onImageOut(this)
     }
 
     // preload a few
@@ -306,16 +308,20 @@ export default class Lightbox {
     this.nextImage = this.imgs[index]
     this.nextImage.src = this.sections[section][index].href
 
-    imageIsLoaded(this.nextImage).then(() => {
-      this.opts.onImageIn(this, () => {
-        if (this.firstTransition) {
-          this.firstTransition = false
-        }
-      })
-
-      if (this.elements.caption) {
-        this.opts.onCaptionIn(this, () => { })
+    this.opts.onImageIn(this)
+    this.timelines.image.call(() => {
+      if (this.firstTransition) {
+        this.firstTransition = false
       }
+    })
+
+    if (this.elements.caption) {
+      this.opts.onCaptionIn(this, captionHasChanged)
+    }
+
+    imageIsLoaded(this.nextImage).then(() => {
+      this.timelines.caption.play()
+      this.timelines.image.play()
     })
 
     this.currentImage = this.nextImage
