@@ -77,6 +77,7 @@ const DEFAULT_EVENTS = {
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
+  on: Events.APPLICATION_REVEALED,
   pinOnOutline: false,
   default: {
     canvas: window,
@@ -102,19 +103,19 @@ const DEFAULT_OPTIONS = {
 export default class StickyHeader {
   constructor (app, opts = {}) {
     this.app = app
-    this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    this.mainOpts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    if (this.opts.pinOnOutline) {
+    if (this.mainOpts.pinOnOutline) {
       window.addEventListener(Events.APPLICATION_OUTLINE, () => {
         this.preventUnpin = true
         this.pin()
       })
     }
 
-    if (typeof this.opts.el === 'string') {
-      this.el = document.querySelector(this.opts.el)
+    if (typeof this.mainOpts.el === 'string') {
+      this.el = document.querySelector(this.mainOpts.el)
     } else {
-      this.el = this.opts.el
+      this.el = this.mainOpts.el
     }
 
     if (!this.el) {
@@ -150,6 +151,7 @@ export default class StickyHeader {
     this.mobileMenuOpen = false
     this.timer = null
     this.resetResizeTimer = null
+    this.firstReveal = true
 
     this.initialize()
   }
@@ -166,6 +168,8 @@ export default class StickyHeader {
     }
 
     this.setupObserver()
+
+    window.addEventListener(this.mainOpts.on, this.bindObserver.bind(this))
     this._bindMobileMenuListeners()
   }
 
@@ -178,6 +182,9 @@ export default class StickyHeader {
       if (isIntersecting) {
         if (this._navVisible !== true) {
           this.opts.onMainVisible(this)
+          if (this.firstReveal) {
+            this.firstReveal = false
+          }
         }
         this._navVisible = true
       } else {
@@ -187,8 +194,6 @@ export default class StickyHeader {
         this._navVisible = false
       }
     })
-
-    this.observer.observe(this.el)
 
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, () => {
@@ -202,6 +207,10 @@ export default class StickyHeader {
       this.preventUnpin = false
     }, false)
     window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
+  }
+
+  bindObserver () {
+    this.observer.observe(this.el)
   }
 
   setResizeTimer () {
