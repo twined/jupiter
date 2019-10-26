@@ -248,6 +248,8 @@ export default class Moonwalk {
    * @param {*} section
    */
   setupNamesAndStages (section) {
+    TweenLite.set(section.el, { visibility: 'visible' })
+
     if (!section.stage.name && !section.name) {
       return
     }
