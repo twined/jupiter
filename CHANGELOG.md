@@ -1,3 +1,11 @@
+#### 3.14.0
+
+- StickyHeader: reveals on `Events.APPLICATION_REVEALED`. Can be set with `opts.on`
+- Moonwalk: Force section element to be visible (Set `visibility: hidden`
+  in pcss for `[data-moonwalk-section]`)
+- Application: remove default fader delay.
+
+
 #### 3.13.0
 
 - Lightbox: Add keyboard navigation

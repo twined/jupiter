@@ -468,6 +468,9 @@ Example CSS (PCSS)
 
 ### Options
 
+- `on` - default `Events.APPLICATION_REVEALED`
+  - Automatically shows on `APPLICATION_REVEALED` event.
+
 - Events
   - `onMainVisible`
     - Triggers when main nav is in viewport
