@@ -21,7 +21,7 @@ const DEFAULT_OPTIONS = {
       TweenLite.to(fader, 0.65, {
         opacity: 0,
         ease: Power1.easeInOut,
-        delay: 0.35,
+        delay: 0,
         onComplete: () => {
           TweenLite.set(fader, { display: 'none' })
           document.body.classList.remove('unloaded')
