@@ -15,6 +15,7 @@ import {
 import _defaultsDeep from 'lodash.defaultsdeep'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
+import imageIsLoaded from '../../utils/imageIsLoaded'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [CSSPlugin]
@@ -38,6 +39,19 @@ const DEFAULT_OPTIONS = {
     type: 'parallax',
     /* how much to scale when 'idle' */
     scale: 1.05
+  },
+
+  onFadeIn: (hs, callback) => {
+    if (hs.slides.length > 1) {
+      TweenLite.to(hs.el, 0.250, {
+        opacity: 1,
+        onComplete: () => { callback() }
+      })
+    } else {
+      TweenLite.to(hs.el, 0.250, {
+        opacity: 1
+      })
+    }
   }
 }
 
@@ -109,47 +123,16 @@ export default class HeroSlider {
       this.slides[1].style.zIndex = this.opts.zIndex.next
     }
 
-    const fadeIn = () => {
-      if (this.slides.length > 1) {
-        TweenLite.to(this.el, 0.250, {
-          opacity: 1,
-          onComplete: () => { this.next() }
-        })
-      } else {
-        TweenLite.to(this.el, 0.250, {
-          opacity: 1
-        })
-      }
-    }
+    const callback = (this.slides.length > 1) ? this.next() : () => {}
 
-    window.addEventListener(Events.APPLICATION_READY, () => {
+    window.addEventListener(Events.APPLICATION_REVEALED, () => {
       /* Wait for the first image to load, then fade in container element */
       const firstImg = this.slides[this._currentSlideIdx].querySelector('img')
 
       if (firstImg) {
-        if (firstImg.complete) {
-          fadeIn()
-        } else {
-          firstImg.onload = () => {
-            fadeIn()
-          }
-        }
-      } else {
-        // could be a video?
-        const firstVid = this.slides[this._currentSlideIdx].querySelector('video')
-        if (firstVid.complete) {
-          fadeIn()
-        } else {
-          firstVid.oncanplay = () => {
-            if (prefersReducedMotion()) {
-              firstVid.stop()
-            } else {
-              firstVid.play()
-            }
-
-            fadeIn()
-          }
-        }
+        imageIsLoaded(firstImg).then(() => {
+          this.opts.onFadeIn(this, callback)
+        })
       }
     })
   }
