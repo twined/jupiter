@@ -1,3 +1,9 @@
+#### 3.15.0
+
+- HeroSlider: better initialization. Expose `onFadeIn` event
+- Export `_defaultsDeep`
+
+
 #### 3.14.0
 
 - StickyHeader: reveals on `Events.APPLICATION_REVEALED`. Can be set with `opts.on`
