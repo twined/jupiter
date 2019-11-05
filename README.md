@@ -216,6 +216,9 @@ include images from this section. Otherwise, all lightboxed images will be inclu
   to tween is at `lightbox.elements.caption`. Timeline is at `lightbox.timelines.caption`.
 - `onCaptionOut` - `function (lightbox, captionHasChanged)` - called on caption fade out. The caption
   to tween is at `lightbox.elements.caption`. Timeline is at `lightbox.timelines.caption`.
+- `onClick` - `function (lightbox, section, event)` - called when lightbox is clicked. The pointer
+  direction is available at `lightbox.pointerDirection`
+- `onPointerLeft/onPointerRight` - `function (lightbox)` - callback for when pointer direction changes
 
 
 ## Moonwalk

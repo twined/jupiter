@@ -1,7 +1,6 @@
 import { Manager, Swipe } from '@egjs/hammerjs'
 import { TweenLite, Sine, TimelineLite } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import imagesAreLoaded from '../../utils/imagesAreLoaded'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 
 TweenLite.defaultEase = Sine.easeOut
@@ -27,6 +26,16 @@ const DEFAULT_OPTIONS = {
     close: () => document.createTextNode('×'),
     dot: () => document.createTextNode('▪')
   },
+
+  onClick: (lightbox, section, e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    lightbox.setImg(section, lightbox.getNextIdx(section))
+  },
+
+  onPointerLeft: () => {},
+
+  onPointerRight: () => {},
 
   onCaptionOut: (lightbox, captionHasChanged) => {
     if (!captionHasChanged) {
@@ -180,14 +189,16 @@ export default class Lightbox {
       this.setImg(section, this.getPrevIdx(section))
     })
 
-    this.elements.imgWrapper.addEventListener('click', e => {
-      e.stopPropagation()
-      e.preventDefault()
-      this.setImg(section, this.getNextIdx(section))
-    })
-
     document.addEventListener('keyup', event => {
       this.onKeyup(event, section)
+    })
+
+    this.elements.wrapper.addEventListener('mousemove', event => {
+      this.onMouseMove(event)
+    })
+
+    this.elements.wrapper.addEventListener('click', event => {
+      this.onClick(event, section)
     })
 
     this.elements.prevArrow.appendChild(this.opts.elements.arrowLeft())
@@ -347,6 +358,10 @@ export default class Lightbox {
     return index - 1
   }
 
+  onClick (e, section) {
+    this.opts.onClick(this, section, e)
+  }
+
   onKeyup (e, section) {
     const key = e.keyCode || e.which
 
@@ -362,6 +377,22 @@ export default class Lightbox {
         break
       default:
         break
+    }
+  }
+
+  onMouseMove (e) {
+    if (e.clientX < (this.app.size.width / 2)) {
+      if (this.pointerDirection === 'left') {
+        return
+      }
+      this.pointerDirection = 'left'
+      this.opts.onPointerLeft(this)
+    } else {
+      if (this.pointerDirection === 'right') {
+        return
+      }
+      this.pointerDirection = 'right'
+      this.opts.onPointerRight(this)
     }
   }
 

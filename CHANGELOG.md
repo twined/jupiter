@@ -1,3 +1,9 @@
+#### 3.16.0
+
+- Lightbox: track pointer direction in `pointerDirection`
+- Lightbox: expose `onClick`, `onPointerLeft` and `onPointerRight` events.
+
+
 #### 3.15.0
 
 - HeroSlider: better initialization. Expose `onFadeIn` event
