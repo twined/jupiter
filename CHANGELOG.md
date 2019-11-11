@@ -1,8 +1,13 @@
+#### 3.17.0
+
+- Add `Application.scrollTo`
+
+
 #### 3.16.0
 
 - Lightbox: track pointer direction in `pointerDirection`
 - Lightbox: expose `onClick`, `onPointerLeft` and `onPointerRight` events.
-
+- StickyHeader: add `onClone` event to customize how the auxillary header is created.
 
 #### 3.15.0
 

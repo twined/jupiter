@@ -1,5 +1,5 @@
 import {
-  TweenLite, Sine, Power1, TimelineLite
+  TweenLite, Sine, Power1, TimelineLite, ScrollToPlugin
 } from 'gsap/all'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
@@ -8,6 +8,9 @@ import * as Events from '../../events'
 import Breakpoints from '../Breakpoints'
 import FeatureTests from '../FeatureTests'
 import Fontloader from '../Fontloader'
+
+// eslint-disable-next-line no-unused-vars
+const plugins = [ScrollToPlugin]
 
 const DEFAULT_OPTIONS = {
   featureTests: {
@@ -151,10 +154,11 @@ export default class Application {
   }
 
   scrollLock () {
+    const currentScrollbarWidth = this.getCurrentScrollBarWidth()
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_LOCKED, this)
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = true
-    TweenLite.set(document.body, { overflow: 'hidden' })
+    TweenLite.set(document.body, { overflow: 'hidden', paddingRight: currentScrollbarWidth })
     document.addEventListener('touchmove', this.scrollVoid, false)
   }
 
@@ -162,14 +166,38 @@ export default class Application {
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_RELEASED, this)
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = false
-    TweenLite.set(document.body, { clearProps: 'overflow' })
+    TweenLite.set(document.body, { clearProps: 'overflow, paddingRight' })
     document.removeEventListener('touchmove', this.scrollVoid, false)
+  }
+
+  scrollTo (target, time = 0.8) {
+    const forcedScrollEventStart = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_START)
+    window.dispatchEvent(forcedScrollEventStart)
+    TweenLite.to(window, time, {
+      scrollTo: { y: target, autoKill: false },
+      onComplete: () => {
+        const forcedScrollEventEnd = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_END)
+        window.dispatchEvent(forcedScrollEventEnd)
+      },
+      ease: Sine.easeInOut
+    })
   }
 
   scrollVoid (e) {
     e.preventDefault()
   }
 
+  /**
+   * Get current scrollbar width — if there is none, there is none
+   */
+  getCurrentScrollBarWidth () {
+    return window.innerWidth - document.documentElement.clientWidth
+  }
+
+  /**
+   * Get scrollbar width by FORCE. No matter if there is
+   * currently a scrollbar or not
+   */
   getScrollBarWidth () {
     if (!this.SCROLLBAR_WIDTH) {
       // Creating invisible container

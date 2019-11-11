@@ -79,7 +79,9 @@ const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   on: Events.APPLICATION_REVEALED,
   pinOnOutline: false,
+
   default: {
+    onClone: h => h.el.cloneNode(true),
     canvas: window,
     enter: h => {
       const timeline = new TimelineLite()
@@ -126,7 +128,7 @@ export default class StickyHeader {
     const section = document.body.getAttribute('data-script')
     this.opts = this._getOptionsForSection(section, opts)
 
-    this.auxEl = this.el.cloneNode(true)
+    this.auxEl = this.opts.onClone(this)
     this.auxEl.setAttribute('data-header-pinned', '')
     this.auxEl.setAttribute('data-auxiliary-nav', '')
     this.auxEl.removeAttribute('data-nav')

@@ -471,6 +471,9 @@ Example CSS (PCSS)
 
 ### Options
 
+- `onClone` - default `h => h.el.cloneNode(true)`
+  - Hook to customize how the auxillary header element is created
+
 - `on` - default `Events.APPLICATION_REVEALED`
   - Automatically shows on `APPLICATION_REVEALED` event.
 
