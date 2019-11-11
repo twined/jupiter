@@ -266,7 +266,7 @@ syntax. If no value is provided, we run the `default` walk.
       duration: 0.65,
       /* Add a separate tween for opacity/visibility.
       Can be set to `true` for the default tween, or `false` to skip */
-      alphaTween: { ease: Sine.easeIn, duration: 1 },
+      alphaTween: { ease: 'sine.in', duration: 1 },
       /* The transitions that will be tweened */
       transition: {
         from: {
@@ -275,7 +275,7 @@ syntax. If no value is provided, we run the `default` walk.
         to: {
           /* skip autoAlpha here, since we have our own alphaTween that sets it for us */
           // autoAlpha: 1,
-          ease: Sine.easeOut,
+          ease: 'sine.out',
           force3D: true,
           y: 0
         }
@@ -328,7 +328,7 @@ walks: {
 
       to: {
         scaleY: 1,
-        ease: Sine.easeOut
+        ease: 'sine.out'
       }
     }
   }
@@ -375,7 +375,7 @@ slider: {
       y: 21
     },
     to: {
-      ease: Sine.easeOut,
+      ease: 'sine.out',
       y: 0
     }
   }

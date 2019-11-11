@@ -1,12 +1,8 @@
 /**
  * Vendor imports
  */
-import {
-  TimelineLite,
-  Sine,
-  TweenLite,
-  CSSPlugin
-} from 'gsap/all'
+import { gsap } from 'gsap'
+import { CSSPlugin } from 'gsap/CSSPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 /**
@@ -17,8 +13,7 @@ import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
 
-// eslint-disable-next-line no-unused-vars
-const plugins = [CSSPlugin]
+gsap.registerPlugin(CSSPlugin)
 
 const DEFAULT_OPTIONS = {
   /**
@@ -166,7 +161,7 @@ export default class Moonwalk {
         id: Math.random().toString(36).substring(7),
         el: section,
         name: section.getAttribute('data-moonwalk-section') || null,
-        timeline: new TimelineLite({
+        timeline: gsap.timeline({
           // autoRemoveChildren: true
           // smoothChildTiming: true
         }),
@@ -248,7 +243,7 @@ export default class Moonwalk {
    * @param {*} section
    */
   setupNamesAndStages (section) {
-    TweenLite.set(section.el, { visibility: 'visible' })
+    gsap.set(section.el, { visibility: 'visible' })
 
     if (!section.stage.name && !section.name) {
       return
@@ -274,13 +269,13 @@ export default class Moonwalk {
         autoAlpha: 0
       } : sectionWalk.transition.from
 
-      TweenLite.set(section.children, fromTransition)
+      gsap.set(section.children, fromTransition)
     }
 
     if (section.stage.name) {
       // reset the element to its `from` state.
       const stageTween = walks[section.stage.name]
-      TweenLite.set(section.el, stageTween.transition.from)
+      gsap.set(section.el, stageTween.transition.from)
     }
 
     const observer = this.sectionObserver(section)
@@ -330,7 +325,7 @@ export default class Moonwalk {
             } else if (tween.alphaTween === true) {
               tween.alphaTween = {
                 duration: tween.duration,
-                ease: Sine.easeIn
+                ease: 'sine.in'
               }
             }
 
@@ -472,7 +467,7 @@ export default class Moonwalk {
           } else if (alphaTween === true) {
             alphaTween = {
               duration,
-              ease: Sine.easeIn
+              ease: 'sine.in'
             }
           }
 
@@ -552,7 +547,7 @@ export default class Moonwalk {
       alphaPosition = () => `-=${tweenDuration}`
     }
 
-    TweenLite.set(target, tweenTransition.from)
+    gsap.set(target, tweenTransition.from)
 
     section.timeline.to(
       target,

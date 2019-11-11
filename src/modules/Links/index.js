@@ -1,11 +1,9 @@
-import {
-  TweenLite, Power3, ScrollToPlugin, Sine
-} from 'gsap/all'
+import { gsap } from 'gsap'
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import { APPLICATION_FORCED_SCROLL_START, APPLICATION_FORCED_SCROLL_END } from '../../events'
 
-// eslint-disable-next-line no-unused-vars
-const plugins = [ScrollToPlugin]
+gsap.registerPlugin(ScrollToPlugin)
 
 const DEFAULT_OPTIONS = {
   mobileMenuDelay: 800,
@@ -15,13 +13,13 @@ const DEFAULT_OPTIONS = {
   onAnchor: target => {
     const forcedScrollEventStart = new window.CustomEvent(APPLICATION_FORCED_SCROLL_START)
     window.dispatchEvent(forcedScrollEventStart)
-    TweenLite.to(window, 0.8, {
+    gsap.to(window, 0.8, {
       scrollTo: { y: target, autoKill: false },
       onComplete: () => {
         const forcedScrollEventEnd = new window.CustomEvent(APPLICATION_FORCED_SCROLL_END)
         window.dispatchEvent(forcedScrollEventEnd)
       },
-      ease: Sine.easeInOut
+      ease: 'sine.inOut'
     })
   },
 
@@ -31,12 +29,12 @@ const DEFAULT_OPTIONS = {
 
     fader.style.display = 'block'
 
-    TweenLite.to(main, 0.8, {
+    gsap.to(main, 0.8, {
       y: 25,
-      ease: Power3.easeOut
+      ease: 'power3.out'
     })
 
-    TweenLite.to(fader, 0.2, {
+    gsap.to(fader, 0.2, {
       opacity: 1,
       onComplete: () => {
         window.location = href

@@ -1,4 +1,4 @@
-import { TimelineLite, Power3, Sine } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 
@@ -10,15 +10,15 @@ const DEFAULT_OPTIONS = {
 
   onResize: null,
   openTween: m => {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
 
     m.hamburger.classList.toggle('is-active')
     document.body.classList.toggle('open-menu')
 
     timeline
-      .fromTo(m.bg, 0.35, { x: '0%', opacity: 0, height: window.innerHeight }, { opacity: 1, ease: Sine.easeIn })
-      .to(m.logo, 0.35, { opacity: 0, ease: Power3.easeOut }, '-=0.35')
-      .to(m.header, 0.55, { backgroundColor: 'transparent', ease: Power3.easeOut }, '-=0.35')
+      .fromTo(m.bg, 0.35, { x: '0%', opacity: 0, height: window.innerHeight }, { opacity: 1, ease: 'sine.in' })
+      .to(m.logo, 0.35, { opacity: 0, ease: 'power3.out' }, '-=0.35')
+      .to(m.header, 0.55, { backgroundColor: 'transparent', ease: 'power3.out' }, '-=0.35')
       .call(() => { m.nav.style.gridTemplateRows = 'auto 1fr' })
       .set(m.nav, { height: window.innerHeight })
       .set(m.content, { display: 'block' })
@@ -32,16 +32,16 @@ const DEFAULT_OPTIONS = {
         {
           x: 0,
           opacity: 1,
-          ease: Power3.easeOut
+          ease: 'power3.out'
         }, 0.05,
       )
-      .to(m.logo, 0.55, { opacity: 1, xPercent: 0, ease: Power3.ease }, '-=1.2')
+      .to(m.logo, 0.55, { opacity: 1, xPercent: 0, ease: 'power3.inOut' }, '-=1.2')
       .call(m._emitMobileMenuOpenEvent)
   },
 
   closeTween: m => {
     document.body.classList.toggle('open-menu')
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
 
     timeline
       .call(() => { m.hamburger.classList.toggle('is-active') })
@@ -54,18 +54,18 @@ const DEFAULT_OPTIONS = {
         {
           opacity: 0,
           xPercent: 5,
-          ease: Power3.easeOut
+          ease: 'power3.out'
         },
       )
       .set(m.logoPath, { clearProps: 'fill' })
-      .staggerTo(m.lis, 0.5, { opacity: 0, x: 20, ease: Power3.easeOut }, 0.04)
+      .staggerTo(m.lis, 0.5, { opacity: 0, x: 20, ease: 'power3.out' }, 0.04)
       .set(m.nav, { clearProps: 'height' })
-      .to(m.bg, 0.25, { x: '100%', ease: Sine.easeIn }, '-=0.3')
+      .to(m.bg, 0.25, { x: '100%', ease: 'sine.in' }, '-=0.3')
       .call(() => { m._emitMobileMenuClosedEvent() })
       .set(m.content, { display: 'none' })
       .call(() => { m.nav.style.gridTemplateRows = 'auto' })
       .set(m.lis, { clearProps: 'opacity' })
-      .to(m.logo, 0.35, { opacity: 1, ease: Power3.easeIn })
+      .to(m.logo, 0.35, { opacity: 1, ease: 'power3.in' })
   }
 }
 

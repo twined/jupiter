@@ -23,15 +23,13 @@
  *
  */
 
-import {
-  TweenLite, Power3, Sine, TimelineLite
-} from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 
 const DEFAULT_EVENTS = {
   onMainVisible: h => {
-    TweenLite.to(
+    gsap.to(
       h.el,
       3,
       { opacity: 1, delay: 0.5 },
@@ -39,7 +37,7 @@ const DEFAULT_EVENTS = {
   },
 
   onMainInvisible: h => {
-    TweenLite.to(
+    gsap.to(
       h.el,
       1,
       { opacity: 0 },
@@ -47,12 +45,12 @@ const DEFAULT_EVENTS = {
   },
 
   onPin: h => {
-    TweenLite.to(
+    gsap.to(
       h.auxEl,
       0.35,
       {
         yPercent: '0',
-        ease: Sine.easeOut,
+        ease: 'sine.out',
         autoRound: true
       },
     )
@@ -60,12 +58,12 @@ const DEFAULT_EVENTS = {
 
   onUnpin: h => {
     h._hiding = true
-    TweenLite.to(
+    gsap.to(
       h.auxEl,
       0.25,
       {
         yPercent: '-100',
-        ease: Sine.easeIn,
+        ease: 'sine.in',
         autoRound: true,
         onComplete: () => {
           h._hiding = false
@@ -84,14 +82,14 @@ const DEFAULT_OPTIONS = {
     onClone: h => h.el.cloneNode(true),
     canvas: window,
     enter: h => {
-      const timeline = new TimelineLite()
+      const timeline = gsap.timeline()
       timeline
         .set(h.auxEl, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
         .to(h.auxEl, 1, {
-          yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true
+          yPercent: 0, delay: h.opts.enterDelay, ease: 'power3.out', autoRound: true
         })
-        .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
+        .staggerTo(h.lis, 0.8, { opacity: 1, ease: 'sine.in' }, 0.1, '-=1')
     },
     enterDelay: 1.2,
     tolerance: 3,

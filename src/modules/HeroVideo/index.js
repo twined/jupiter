@@ -8,21 +8,22 @@
  *
  */
 
-import {
-  TweenLite, CSSPlugin
-} from 'gsap/all'
+import { gsap } from 'gsap'
+import { CSSPlugin } from 'gsap/CSSPlugin'
 import objectFitPolyfill from 'objectFitPolyfill'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 
+
+gsap.registerPlugin(CSSPlugin)
 // eslint-disable-next-line no-unused-vars
-const plugins = [CSSPlugin, objectFitPolyfill]
+const plugins = [objectFitPolyfill]
 
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
   onFadeIn: hero => {
-    TweenLite.to(hero.el, 1, {
+    gsap.to(hero.el, 1, {
       opacity: 1
     })
   }
@@ -51,7 +52,7 @@ export default class HeroVideo {
   initialize () {
     this._addResizeHandler()
     // style the container
-    TweenLite.set(this.el, {
+    gsap.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -67,7 +68,7 @@ export default class HeroVideo {
     this.addObserver()
     this.addEvents()
 
-    TweenLite.set(this.videoDiv, {
+    gsap.set(this.videoDiv, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -81,7 +82,7 @@ export default class HeroVideo {
     }
     this.video.muted = true
 
-    TweenLite.set(this.video, {
+    gsap.set(this.video, {
       width: document.body.clientWidth,
       height: '100%',
       top: 0,
@@ -108,7 +109,7 @@ export default class HeroVideo {
           this.fadeIn()
           this.booting = false
         } else {
-          TweenLite.set(this.el, { opacity: 1 })
+          gsap.set(this.el, { opacity: 1 })
         }
       }
     })
@@ -165,7 +166,7 @@ export default class HeroVideo {
   }
 
   _resize () {
-    TweenLite.to(this.video, 0.150, {
+    gsap.to(this.video, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     })
