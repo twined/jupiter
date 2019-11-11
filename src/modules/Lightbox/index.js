@@ -3,6 +3,8 @@ import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 
+gsap.defaultEase = 'sine.out'
+
 const DEFAULT_OPTIONS = {
   captions: false,
 
