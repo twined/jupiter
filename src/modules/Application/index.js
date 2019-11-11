@@ -72,8 +72,7 @@ export default class Application {
 
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
     if (this.PREFERS_REDUCED_MOTION) {
-      // TODO: TweenMax :(
-      // gsap.globalTimeScale(200)
+      gsap.globalTimeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
 
