@@ -1,10 +1,10 @@
-import { TimelineLite, Power3 } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   onAccept: c => {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
     c.setCookie('cookielaw_accepted', 1)
 
     timeline
@@ -14,7 +14,7 @@ const DEFAULT_OPTIONS = {
   },
 
   showCC: c => {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
 
     timeline
       .fromTo(

@@ -551,16 +551,22 @@ export default class Moonwalk {
 
     section.timeline.to(
       target,
-      tweenDuration,
+      {
+        ...tweenTransition.to,
+        duration: tweenDuration
+      },
       tweenTransition.to,
-      tweenPosition(),
+      tweenPosition()
     )
 
     if (alphaTween) {
       section.timeline.to(
         target,
-        alphaTween.duration,
-        { autoAlpha: 1, ease: alphaTween.ease },
+        {
+          duration: alphaTween.duration,
+          autoAlpha: 1,
+          ease: alphaTween.ease
+        },
         alphaPosition()
       )
     }
