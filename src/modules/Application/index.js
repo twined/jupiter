@@ -9,6 +9,7 @@ import FeatureTests from '../FeatureTests'
 import Fontloader from '../Fontloader'
 
 gsap.registerPlugin(ScrollToPlugin)
+gsap.defaults({ overwrite: 'auto', ease: 'sine.out' })
 
 const DEFAULT_OPTIONS = {
   featureTests: {
@@ -72,7 +73,7 @@ export default class Application {
 
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
     if (this.PREFERS_REDUCED_MOTION) {
-      gsap.globalTimeScale(200)
+      gsap.globalTimeline.timeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
 
@@ -87,8 +88,6 @@ export default class Application {
     window.addEventListener('orientationchange', this.onResize.bind(this))
     window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
     window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
-
-    gsap.defaultEase = 'sine.out'
   }
 
   /**
