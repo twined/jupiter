@@ -38,7 +38,7 @@ const DEFAULT_EVENTS = {
         yPercent: '0',
         ease: Sine.easeOut,
         autoRound: true
-      },
+      }
     )
   },
 
@@ -54,7 +54,7 @@ const DEFAULT_EVENTS = {
         onComplete: () => {
           h._hiding = false
         }
-      },
+      }
     )
   },
 
@@ -64,7 +64,7 @@ const DEFAULT_EVENTS = {
       0.2,
       {
         backgroundColor: h.opts.altBgColor
-      },
+      }
     )
   },
 
@@ -74,7 +74,7 @@ const DEFAULT_EVENTS = {
       0.4,
       {
         backgroundColor: h.opts.regBgColor
-      },
+      }
     )
   },
 
@@ -465,7 +465,7 @@ export default class FixedHeader {
     return Math.max(
       body.scrollHeight, documentElement.scrollHeight,
       body.offsetHeight, documentElement.offsetHeight,
-      body.clientHeight, documentElement.clientHeight,
+      body.clientHeight, documentElement.clientHeight
     )
   }
 
@@ -479,14 +479,14 @@ export default class FixedHeader {
     return Math.max(
       el.scrollHeight,
       el.offsetHeight,
-      el.clientHeight,
+      el.clientHeight
     )
   }
 
   getElementPhysicalHeight (el) {
     return Math.max(
       el.offsetHeight,
-      el.clientHeight,
+      el.clientHeight
     )
   }
 
@@ -506,7 +506,7 @@ export default class FixedHeader {
 
   _getOptionsForSection (section, opts) {
     // if section is not a key in opts, return default opts
-    if (!Object.prototype.hasOwnProperty.call(opts, 'sections') || !Object.prototype.hasOwnProperty.call(opts, section)) {
+    if (!Object.prototype.hasOwnProperty.call(opts, 'sections') || !Object.prototype.hasOwnProperty.call(opts.sections, section)) {
       return opts.default
     }
 
