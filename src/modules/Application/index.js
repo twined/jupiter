@@ -89,8 +89,6 @@ export default class Application {
     window.addEventListener('orientationchange', this.onResize.bind(this))
     window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
     window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
-
-    gsap.defaultEase = 'sine.out'
   }
 
   /**
