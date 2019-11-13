@@ -47,6 +47,9 @@ exclude: [
 - `scrollRelease()`
   - Release the application's scrolling
 
+- `scrollTo(target)`
+  - scroll to target
+
 
 ## Dom
 
@@ -558,6 +561,26 @@ Example CSS (PCSS)
   }
  }
  ```
+
+
+## HeroVideo
+
+### Options
+
+- Events
+  - `onFadeIn: (hero) => {}`
+  - `onPlayReady: (hero) => {}`
+  - `onClickPlay: (hero) => {}`
+  - `onClickPause: (hero) => {}`
+
+- Elements
+  - `elements.play`
+    - string SVG representing the play icon
+    - Gets wrapped in a button with `[data-hero-video-pause].
+  - `elements.pause`
+    - string SVG representing the pause icon
+    - Gets wrapped in a button with `[data-hero-video-pause].
+
 
 ## Parallax
 
