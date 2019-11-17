@@ -81,8 +81,6 @@ const DEFAULT_OPTIONS = {
       gsap.to(h.elements.caption, 0.45, { opacity: 0 })
     }
 
-    h.app.scrollRelease()
-
     gsap.to([
       h.elements.imgWrapper,
       h.elements.nextArrow,
@@ -95,6 +93,7 @@ const DEFAULT_OPTIONS = {
         gsap.to(h.elements.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
+            h.app.scrollRelease()
             h.destroy()
           }
         })
