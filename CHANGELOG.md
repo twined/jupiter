@@ -1,7 +1,8 @@
 #### 3.17.0
 
-- Add `Application.scrollTo`
-- Add pause/play to `HeroVideo`.
+- StickyHeader: Add `opts.pinOnForcedScroll`
+- Application: Add `Application.scrollTo`
+- HeroVideo: Add pause/play.
   `opts.elements.play` and `opts.elements.pause` are strings representing the SVG icons.
   They get wrapped in a button with `[data-hero-video-pause].
 
