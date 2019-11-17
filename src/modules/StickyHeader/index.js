@@ -77,6 +77,7 @@ const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   on: Events.APPLICATION_REVEALED,
   pinOnOutline: false,
+  pinOnForcedScroll: true,
 
   default: {
     onClone: h => h.el.cloneNode(true),
@@ -196,16 +197,20 @@ export default class StickyHeader {
     })
 
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
-    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, () => {
-      this.preventUnpin = false
-      this.unpin()
-      this.preventPin = true
-    })
-    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, () => {
-      this.preventPin = false
-      this.pin()
-      this.preventUnpin = false
-    }, false)
+
+    if (this.mainOpts.pinOnForcedScroll) {
+      window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, () => {
+        this.preventUnpin = false
+        this.unpin()
+        this.preventPin = true
+      })
+      window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, () => {
+        this.preventPin = false
+        this.pin()
+        this.preventUnpin = false
+      }, false)
+    }
+
     window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
   }
 
