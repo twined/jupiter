@@ -480,6 +480,11 @@ Example CSS (PCSS)
 - `on` - default `Events.APPLICATION_REVEALED`
   - Automatically shows on `APPLICATION_REVEALED` event.
 
+- `pinOnOutline` - default `false`
+  - Pin header when user tabs
+- `pinOnForcedScroll` - default `true`
+  - Pin header when scroll is forced (`application.scrollTo`, clicking anchors etc)
+
 - Events
   - `onMainVisible`
     - Triggers when main nav is in viewport
