@@ -1,3 +1,10 @@
+#### 3.18.0
+
+- Applicaton: Add `Application.pollForElement` and `Application.pollForVariable`
+- FixedHeader: Add `onMobileMenuOpen` and `onMobileMenuClose` callbacks
+- Dom: Add `Dom.offset` and `Dom.position`
+
+
 #### 3.17.0
 
 - StickyHeader: Add `opts.pinOnForcedScroll`

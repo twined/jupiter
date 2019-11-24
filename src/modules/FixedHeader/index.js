@@ -89,7 +89,11 @@ const DEFAULT_EVENTS = {
   // eslint-disable-next-line no-unused-vars
   onBottom: h => {},
   // eslint-disable-next-line no-unused-vars
-  onNotBottom: h => {}
+  onNotBottom: h => {},
+  // eslint-disable-next-line no-unused-vars
+  onMobileMenuOpen: h => { },
+  // eslint-disable-next-line no-unused-vars
+  onMobileMenuClose: h => { }
 }
 
 const DEFAULT_OPTIONS = {
@@ -522,10 +526,12 @@ export default class FixedHeader {
   }
 
   _onMobileMenuOpen () {
+    this.opts.onMobileMenuOpen(this)
     this.mobileMenuOpen = true
   }
 
   _onMobileMenuClose () {
+    this.opts.onMobileMenuClose(this)
     this.mobileMenuOpen = false
   }
 }

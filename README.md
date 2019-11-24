@@ -50,6 +50,12 @@ exclude: [
 - `scrollTo(target)`
   - scroll to target
 
+- `pollForElement(target, time = 500, callback = () => {})`
+  - Checks if `target` is in DOM every 500ms until successful, then calls `callback`
+
+- `pollForVar(variable, time = 500, callback = () => {})`
+  - Checks if `variable` is true every 500ms until successful, then calls `callback`
+
 
 ## Dom
 
@@ -87,6 +93,12 @@ Some utility functions for dealing with the DOM.
 
 - `Dom.overlapsVertically(element1, element2)`
   - Returns number in pixels element1 and element2 overlaps
+
+- `Dom.offset(element)`
+  - Returns `top` and `left` offsets for `element`
+
+- `Dom.position(element)`
+  - Returns `top` and `left` positions for `element`
 
 
 ## Events (application)
@@ -532,6 +544,10 @@ Example CSS (PCSS)
     - Triggers when we're at the bottom
   - `onNotBottom`
     - Triggers when we're not at the bottom
+  - `onMobileMenuOpen`
+    - Triggers when mobile menu opens
+  - `onMobileMenuClose`
+    - Triggers when mobile menu closes
 
  ```
  header[data-nav] {
