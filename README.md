@@ -323,6 +323,7 @@ walks: {
   scaleup: {
     interval: 0,
     duration: 1,
+    startDelay: 1,
     transition: {
       from: {
         scaleY: 0,
