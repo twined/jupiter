@@ -88,6 +88,21 @@ class DOM {
     width += parseInt(style.marginLeft) + parseInt(style.marginRight)
     return width
   }
+
+  offset (el) {
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top + window.pageYOffset,
+      left: rect.left + window.pageXOffset
+    };
+  }
+
+  position (el) {
+    return {
+      top: el.offsetTop,
+      left: el.offsetLeft
+    };
+  }
 }
 
 export default new DOM()

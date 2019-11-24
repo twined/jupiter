@@ -283,6 +283,29 @@ export default class Application {
     }
   }
 
+  pollForElement (selector, time = 500, callback = () => {}) {
+    const el = document.querySelector(selector)
+    if (el !== null) {
+      callback(el)
+    } else {
+      setTimeout(() => {
+        this.pollForElement(selector, time, callback)
+      }, time)
+    }
+  }
+
+  pollForVar (variable, time = 500, callback = () => { }) {
+    console.log(variable)
+    if (variable !== null) {
+      callback(variable)
+    } else {
+      setTimeout(() => {
+        this.pollForVar(variable, time, callback)
+      }, time)
+    }
+  }
+
+
   setupDebug () {
     this.debugOverlay = document.querySelector('.dbg-breakpoints')
     if (!this.debugOverlay) {
