@@ -8,6 +8,7 @@ import * as Events from '../../events'
 import Breakpoints from '../Breakpoints'
 import FeatureTests from '../FeatureTests'
 import Fontloader from '../Fontloader'
+import Dom from '../Dom'
 
 // eslint-disable-next-line no-unused-vars
 const plugins = [ScrollToPlugin]
@@ -181,6 +182,13 @@ export default class Application {
       },
       ease: Sine.easeInOut
     })
+  }
+
+  hardScrollTo (target) {
+    const element = Dom.find(target)
+    if (element) {
+      element.scrollIntoView()
+    }
   }
 
   scrollVoid (e) {
