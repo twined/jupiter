@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollToPlugin)
 const DEFAULT_OPTIONS = {
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
-  anchorQuery: 'a[href^="#"]',
+  anchorQuery: 'a[href^="#"]:not(.noanim)',
 
   onAnchor: target => {
     const forcedScrollEventStart = new window.CustomEvent(APPLICATION_FORCED_SCROLL_START)
