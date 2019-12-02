@@ -1,3 +1,9 @@
+#### 3.19.0
+
+- HeroVideo: Don't autoplay when in viewport if pause is pressed
+- Links: Ignore `noanim` classed anchors
+
+
 #### 3.18.0
 
 - Applicaton: Add `Application.pollForElement` and `Application.pollForVariable`
