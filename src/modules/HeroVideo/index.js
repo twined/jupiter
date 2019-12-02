@@ -53,6 +53,7 @@ export default class HeroVideo {
     this.app = app
     this.booting = true
     this.playing = false
+    this.forcePaused = false
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.elements = {}
 
@@ -152,10 +153,12 @@ export default class HeroVideo {
         if (this.playing) {
           this.opts.onClickPause(this)
           this.pause()
+          this.forcePaused = true
           this.elements.pause.innerHTML = this.opts.elements.play()
         } else {
           this.opts.onClickPlay(this)
           this.play()
+          this.forcePaused = false
           this.elements.pause.innerHTML = this.opts.elements.pause()
         }
       })
@@ -180,6 +183,10 @@ export default class HeroVideo {
     const observer = new IntersectionObserver(entries => {
       const [{ isIntersecting }] = entries
       if (isIntersecting) {
+        if (this.forcePaused) {
+          return
+        }
+
         if (!this.booting && !this.playing) {
           this.play()
         } else {
