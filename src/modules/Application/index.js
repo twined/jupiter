@@ -171,14 +171,21 @@ export default class Application {
     document.removeEventListener('touchmove', this.scrollVoid, false)
   }
 
-  scrollTo (target, time = 0.8) {
+  scrollTo (target, time = 0.8, emitEvents = true) {
     const forcedScrollEventStart = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_START)
-    window.dispatchEvent(forcedScrollEventStart)
+    if (emitEvents) {
+      window.dispatchEvent(forcedScrollEventStart)
+    }
+
+    console.log(target, target.offsetTop)
+
     TweenLite.to(window, time, {
       scrollTo: { y: target, autoKill: false },
       onComplete: () => {
         const forcedScrollEventEnd = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_END)
-        window.dispatchEvent(forcedScrollEventEnd)
+        if (emitEvents) {
+          window.dispatchEvent(forcedScrollEventEnd)
+        }
       },
       ease: Sine.easeInOut
     })
