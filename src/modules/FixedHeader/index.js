@@ -26,6 +26,7 @@
 import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
+import Dom from '../Dom'
 
 const DEFAULT_EVENTS = {
   onPin: h => {
@@ -91,18 +92,20 @@ const DEFAULT_EVENTS = {
   // eslint-disable-next-line no-unused-vars
   onMobileMenuOpen: h => { },
   // eslint-disable-next-line no-unused-vars
-  onMobileMenuClose: h => { }
+  onMobileMenuClose: h => { },
+  // eslint-disable-next-line no-unused-vars
+  onIntersect: h => { }
 }
 
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   on: Events.APPLICATION_REVEALED,
   pinOnOutline: true,
-  unPinOnResize: true,
 
   default: {
+    unPinOnResize: true,
     canvas: window,
-
+    intersects: null,
     beforeEnter: h => {
       const timeline = gsap.timeline()
       timeline
@@ -172,6 +175,10 @@ export default class FixedHeader {
     this.timer = null
     this.resetResizeTimer = null
 
+    if (this.opts.intersects) {
+      this.intersectingElements = Dom.all('[data-intersect]')
+    }
+
     this.initialize()
   }
 
@@ -182,8 +189,14 @@ export default class FixedHeader {
 
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
-      const elm = document.querySelector(this.opts.offsetBg)
-      this.opts.offsetBg = elm.offsetTop
+      const offsetBgElm = document.querySelector(this.opts.offsetBg)
+      this.opts.offsetBg = offsetBgElm.offsetTop
+    }
+
+    if (typeof this.opts.offset === 'string') {
+      // get offset of element, with height of header subtracted
+      const offsetElm = document.querySelector(this.opts.offset)
+      this.opts.offset = offsetElm.offsetTop - 1
     }
 
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
@@ -234,7 +247,6 @@ export default class FixedHeader {
 
   setResizeTimer () {
     this._isResizing = true
-
     if (this._pinned) {
       // unpin if resizing to prevent visual clutter
       this.unpin()
@@ -279,6 +291,25 @@ export default class FixedHeader {
       this.notAltBg()
     } else if (this._altBg) {
       this.notAltBg()
+    }
+  }
+
+  checkIntersects () {
+    if (this.opts.intersects) {
+      const headerBottom = this.el.offsetHeight
+      // check if we overlap any of the intersects?
+      this.intersectingElements.forEach(ie => {
+        const { top } = ie.getBoundingClientRect()
+        const { bottom } = ie.getBoundingClientRect()
+        if (bottom > 0 && top < headerBottom) {
+          console.log('intersects')
+        }
+        // height of header
+        // if (Dom.overlapsVertically(ie, this.el)) {
+        //   console.log('OMG')
+        //   this.opts.onIntersect(this, ie)
+        // }
+      })
     }
   }
 
@@ -339,6 +370,7 @@ export default class FixedHeader {
 
     this.checkSize(false)
     this.checkBg(false)
+    this.checkIntersects(false)
     this.checkTop(false)
     this.checkBot(false)
     this.checkPin(false, toleranceExceeded)
