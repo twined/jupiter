@@ -517,6 +517,12 @@ Example CSS (PCSS)
 
 - `on` - default `Events.APPLICATION_REVEALED`
   - Automatically enter on `APPLICATION_REVEALED` event.
+- `pinOnOutline` - default `false`
+  - Pin header when user tabs
+- `sections`
+  - Here you can set a config per section (body[data-script="section"])
+  - `unPinOnResize` - auto unpin while resizing
+  - events are same as under default.
 
 - Events
   - `enter`

@@ -1,3 +1,9 @@
+#### 3.20.0
+
+- FixedHeader: Allow element as `offset`
+- Move `unPinOnResize` to section config!
+
+
 #### 3.19.0
 
 - HeroVideo: Don't autoplay when in viewport if pause is pressed
