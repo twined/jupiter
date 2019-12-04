@@ -1,7 +1,6 @@
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
-import { APPLICATION_FORCED_SCROLL_START, APPLICATION_FORCED_SCROLL_END } from '../../events'
 
 gsap.registerPlugin(ScrollToPlugin)
 
@@ -10,17 +9,8 @@ const DEFAULT_OPTIONS = {
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]:not(.noanim)',
 
-  onAnchor: target => {
-    const forcedScrollEventStart = new window.CustomEvent(APPLICATION_FORCED_SCROLL_START)
-    window.dispatchEvent(forcedScrollEventStart)
-    gsap.to(window, 0.8, {
-      scrollTo: { y: target, autoKill: false },
-      onComplete: () => {
-        const forcedScrollEventEnd = new window.CustomEvent(APPLICATION_FORCED_SCROLL_END)
-        window.dispatchEvent(forcedScrollEventEnd)
-      },
-      ease: 'sine.inOut'
-    })
+  onAnchor: (target, links) => {
+    links.app.scrollTo(target)
   },
 
   onTransition: href => {
@@ -63,7 +53,7 @@ export default class Links {
         const dataTarget = document.querySelector('main')
         e.preventDefault()
         if (dataTarget) {
-          this.opts.onAnchor(dataTarget)
+          this.opts.onAnchor(dataTarget, this)
         }
       })
     }
@@ -84,9 +74,11 @@ export default class Links {
         const move = () => {
           const dataID = href
           const dataTarget = document.querySelector(dataID)
+
           e.preventDefault()
+
           if (dataTarget) {
-            this.opts.onAnchor(dataTarget)
+            this.opts.onAnchor(dataTarget, this)
           }
 
           if (this.app.header && dataTarget.id !== 'top') {
