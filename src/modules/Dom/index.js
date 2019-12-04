@@ -65,7 +65,6 @@ class DOM {
       return d1DistanceFromTop - d2Offset.top
     }
 
-
     if (d1Offset.top > d2DistanceFromTop) {
       return d1Offset.top - d2DistanceFromTop
     }
