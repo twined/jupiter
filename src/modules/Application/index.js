@@ -314,7 +314,6 @@ export default class Application {
   }
 
   pollForVar (variable, time = 500, callback = () => { }) {
-    console.log(variable)
     if (variable !== null) {
       callback(variable)
     } else {
