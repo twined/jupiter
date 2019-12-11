@@ -157,14 +157,16 @@ export default class Moonwalk {
         this.addIndexes(section)
       }
 
+      const timeline = gsap.timeline({
+        // autoRemoveChildren: true
+        // smoothChildTiming: true
+      })
+
       return {
         id: Math.random().toString(36).substring(7),
         el: section,
         name: section.getAttribute('data-moonwalk-section') || null,
-        timeline: gsap.timeline({
-          // autoRemoveChildren: true
-          // smoothChildTiming: true
-        }),
+        timeline,
         observer: null,
         stage: {
           name: section.getAttribute('data-moonwalk-stage') || null,
@@ -300,12 +302,12 @@ export default class Moonwalk {
               // run stage tween
               const stageTween = walks[section.stage.name]
 
-              section.timeline.to(
-                entry.target,
-                stageTween.duration,
-                stageTween.transition.to,
-                0
-              )
+              const to = {
+                ...stageTween.transition.to,
+                duration: stageTween.duration
+              }
+
+              section.timeline.to(entry.target, to, 0)
 
               section.stage.firstTween = true
             }
@@ -528,7 +530,6 @@ export default class Moonwalk {
    */
   tweenJS (section, target, tweenDuration, tweenTransition, tweenOverlap, alphaTween) {
     let tweenPosition
-    let alphaPosition
     const startingPoint = tweenDuration - tweenOverlap
 
     if (section.timeline.isActive() && section.timeline.recent()) {
@@ -536,15 +537,12 @@ export default class Moonwalk {
         /* We're late for this tween if it was supposed to be sequential,
         so insert at current time in timeline instead */
         tweenPosition = () => section.timeline.time()
-        alphaPosition = () => section.timeline.time()
       } else {
         /* Still time, add as normal overlap at the end */
-        tweenPosition = () => `-=${tweenOverlap}`
-        alphaPosition = () => `-=${tweenDuration}`
+        tweenPosition = () => `>${tweenOverlap}`
       }
     } else {
-      tweenPosition = () => '+=0'
-      alphaPosition = () => `-=${tweenDuration}`
+      tweenPosition = () => '0'
     }
 
     gsap.set(target, tweenTransition.from)
@@ -555,7 +553,6 @@ export default class Moonwalk {
         ...tweenTransition.to,
         duration: tweenDuration
       },
-      tweenTransition.to,
       tweenPosition()
     )
 
@@ -567,7 +564,7 @@ export default class Moonwalk {
           autoAlpha: 1,
           ease: alphaTween.ease
         },
-        alphaPosition()
+        '<'
       )
     }
   }
@@ -584,8 +581,7 @@ export default class Moonwalk {
   tweenCSS (section, target, duration, transition, overlap) {
     section.timeline.to(
       target,
-      duration,
-      { css: { className: '+=moonwalked' } },
+      { css: { className: '+=moonwalked' }, duration },
       overlap
     )
   }

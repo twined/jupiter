@@ -21,10 +21,11 @@ const DEFAULT_OPTIONS = {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
 
-      gsap.to(fader, 0.65, {
+      gsap.to(fader, {
         opacity: 0,
         ease: 'power1.inOut',
         delay: 0,
+        duration: 0.65,
         onComplete: () => {
           gsap.set(fader, { display: 'none' })
           document.body.classList.remove('unloaded')
@@ -175,7 +176,8 @@ export default class Application {
 
     console.log(target, target.offsetTop)
 
-    gsap.to(window, time, {
+    gsap.to(window, {
+      duration: time,
       scrollTo: { y: target, autoKill: false },
       onComplete: () => {
         const forcedScrollEventEnd = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_END)
