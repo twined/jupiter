@@ -9,7 +9,8 @@ import {
   ScrollToPlugin,
   Sine,
   TweenLite,
-  TimelineLite
+  TimelineLite,
+  gsap
 } from 'gsap/all'
 
 import Hammer from '@egjs/hammerjs'
@@ -75,6 +76,7 @@ export {
 
   // Export some of the libs we use,
   // that can also be used in the main frontend.
+  gsap,
   Back,
   CSSPlugin,
   ScrollToPlugin,
