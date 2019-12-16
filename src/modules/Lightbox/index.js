@@ -41,7 +41,7 @@ const DEFAULT_OPTIONS = {
     }
 
     lightbox.timelines.caption
-      .to(lightbox.elements.caption, 0.4, { autoAlpha: 0 })
+      .to(lightbox.elements.caption, { duration: 0.4, autoAlpha: 0 })
   },
 
   onCaptionIn: (lightbox, captionHasChanged) => {
@@ -50,18 +50,18 @@ const DEFAULT_OPTIONS = {
     }
 
     lightbox.timelines.caption
-      .to(lightbox.elements.caption, 0.4, { autoAlpha: 1 })
+      .to(lightbox.elements.caption, { duration: 0.4, autoAlpha: 1 })
   },
 
   onImageOut: lightbox => {
     lightbox.timelines.image
-      .to(lightbox.currentImage, 0.5, { autoAlpha: 0 })
+      .to(lightbox.currentImage, { duration: 0.5, autoAlpha: 0 })
   },
 
   onImageIn: lightbox => {
     const delay = lightbox.firstTransition ? 0.6 : 0.4
     lightbox.timelines.image
-      .to(lightbox.nextImage, 0.5, { autoAlpha: 1, delay })
+      .to(lightbox.nextImage, { duration: 0.5, autoAlpha: 1, delay })
   },
 
   onBeforeOpen: () => {},
@@ -69,7 +69,8 @@ const DEFAULT_OPTIONS = {
   onOpen: h => {
     h.app.scrollLock()
 
-    gsap.to(h.elements.wrapper, 0.5, {
+    gsap.to(h.elements.wrapper, {
+      duration: 0.5,
       opacity: 1
     })
   },
@@ -78,7 +79,10 @@ const DEFAULT_OPTIONS = {
 
   onClose: h => {
     if (h.opts.captions) {
-      gsap.to(h.elements.caption, 0.45, { opacity: 0 })
+      gsap.to(h.elements.caption, {
+        duration: 0.45,
+        opacity: 0
+      })
     }
 
     gsap.to([
@@ -87,10 +91,12 @@ const DEFAULT_OPTIONS = {
       h.elements.prevArrow,
       h.elements.close,
       h.elements.dots
-    ], 0.50, {
+    ], {
+      duration: 0.50,
       opacity: 0,
       onComplete: () => {
-        gsap.to(h.elements.wrapper, 0.45, {
+        gsap.to(h.elements.wrapper, {
+          duration: 0.45,
           opacity: 0,
           onComplete: () => {
             h.app.scrollRelease()

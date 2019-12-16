@@ -34,8 +34,8 @@ export default class CoverOverlay {
 
         timeline
           .set(iframe, { opacity: 1 })
-          .to(btn, 0.5, { opacity: 0, ease: 'sine.in' })
-          .to(overlay, 1, { opacity: 0, ease: 'sine.in' })
+          .to(btn, { duration: 0.5, opacity: 0, ease: 'sine.in' })
+          .to(overlay, { duration: 1, opacity: 0, ease: 'sine.in' })
           .set(overlay, { display: 'none' })
           .call(() => {
             if (player) {

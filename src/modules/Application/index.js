@@ -1,5 +1,4 @@
 import { gsap } from 'gsap'
-  TweenLite, Sine, Power1, TimelineLite, ScrollToPlugin
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
@@ -378,23 +377,23 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
     switch (this.debugType) {
       case 0:
         // hide all except branding
-        tl.to([breakpoint, userAgent], 0.3, { autoAlpha: 0 })
-          .to([breakpoint, userAgent], 0.7, { width: 0 })
+        tl.to([breakpoint, userAgent], { duration: 0.3, autoAlpha: 0 })
+          .to([breakpoint, userAgent], { duration: 0.7, width: 0 })
           .call(() => { gsap.set([breakpoint, userAgent], { display: 'none' }) })
         break
 
       case 1:
         //
         gsap.set(breakpoint, { width: 'auto', display: 'block' })
-        tl.from(breakpoint, 0.7, { width: 0 })
-          .to(breakpoint, 0.3, { autoAlpha: 1 })
+        tl.from(breakpoint, { duration: 0.7, width: 0 })
+          .to(breakpoint, { duration: 0.3, autoAlpha: 1 })
         break
 
       case 2:
         //
         gsap.set(userAgent, { width: 'auto', display: 'block' })
-        tl.from(userAgent, 0.7, { width: 0 })
-          .to(userAgent, 0.3, { autoAlpha: 1 })
+        tl.from(userAgent, { duration: 0.7, width: 0 })
+          .to(userAgent, { duration: 0.3, autoAlpha: 1 })
         break
 
       default:

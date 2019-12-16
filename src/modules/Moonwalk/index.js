@@ -308,7 +308,6 @@ export default class Moonwalk {
               }
 
               section.timeline.to(entry.target, to, 0)
-
               section.stage.firstTween = true
             }
           }
@@ -547,25 +546,19 @@ export default class Moonwalk {
 
     gsap.set(target, tweenTransition.from)
 
-    section.timeline.to(
-      target,
-      {
-        ...tweenTransition.to,
-        duration: tweenDuration
-      },
-      tweenPosition()
-    )
+    section.timeline.to(target, {
+      ...tweenTransition.to,
+      duration: tweenDuration
+    },
+    tweenPosition())
 
     if (alphaTween) {
-      section.timeline.to(
-        target,
-        {
-          duration: alphaTween.duration,
-          autoAlpha: 1,
-          ease: alphaTween.ease
-        },
-        '<'
-      )
+      section.timeline.to(target, {
+        duration: alphaTween.duration,
+        autoAlpha: 1,
+        ease: alphaTween.ease
+      },
+      '<')
     }
   }
 
@@ -579,10 +572,12 @@ export default class Moonwalk {
    * @param {*} overlap
    */
   tweenCSS (section, target, duration, transition, overlap) {
-    section.timeline.to(
-      target,
-      { css: { className: '+=moonwalked' }, duration },
-      overlap
-    )
+    section.timeline.to(target, {
+      css: {
+        className: '+=moonwalked'
+      },
+      duration
+    },
+    overlap)
   }
 }

@@ -29,47 +29,40 @@ import * as Events from '../../events'
 
 const DEFAULT_EVENTS = {
   onMainVisible: h => {
-    gsap.to(
-      h.el,
-      3,
-      { opacity: 1, delay: 0.5 },
-    )
+    gsap.to(h.el, {
+      duration: 3,
+      opacity: 1,
+      delay: 0.5
+    })
   },
 
   onMainInvisible: h => {
-    gsap.to(
-      h.el,
-      1,
-      { opacity: 0 },
-    )
+    gsap.to(h.el, {
+      duration: 1,
+      opacity: 0
+    })
   },
 
   onPin: h => {
-    gsap.to(
-      h.auxEl,
-      0.35,
-      {
-        yPercent: '0',
-        ease: 'sine.out',
-        autoRound: true
-      },
-    )
+    gsap.to(h.auxEl, {
+      duration: 0.35,
+      yPercent: '0',
+      ease: 'sine.out',
+      autoRound: true
+    })
   },
 
   onUnpin: h => {
     h._hiding = true
-    gsap.to(
-      h.auxEl,
-      0.25,
-      {
-        yPercent: '-100',
-        ease: 'sine.in',
-        autoRound: true,
-        onComplete: () => {
-          h._hiding = false
-        }
-      },
-    )
+    gsap.to(h.auxEl, {
+      duration: 0.25,
+      yPercent: '-100',
+      ease: 'sine.in',
+      autoRound: true,
+      onComplete: () => {
+        h._hiding = false
+      }
+    })
   }
 }
 
@@ -439,7 +432,7 @@ export default class StickyHeader {
     return Math.max(
       body.scrollHeight, documentElement.scrollHeight,
       body.offsetHeight, documentElement.offsetHeight,
-      body.clientHeight, documentElement.clientHeight,
+      body.clientHeight, documentElement.clientHeight
     )
   }
 
@@ -453,14 +446,14 @@ export default class StickyHeader {
     return Math.max(
       el.scrollHeight,
       el.offsetHeight,
-      el.clientHeight,
+      el.clientHeight
     )
   }
 
   getElementPhysicalHeight (el) {
     return Math.max(
       el.offsetHeight,
-      el.clientHeight,
+      el.clientHeight
     )
   }
 

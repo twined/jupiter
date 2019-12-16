@@ -23,7 +23,8 @@ const plugins = [objectFitPolyfill]
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
   onFadeIn: hero => {
-    gsap.to(hero.el, 1, {
+    gsap.to(hero.el, {
+      duration: 1,
       opacity: 1
     })
   },
@@ -220,7 +221,8 @@ export default class HeroVideo {
   }
 
   _resize () {
-    gsap.to(this.video, 0.150, {
+    gsap.to(this.video, {
+      duration: 0.15,
       width: document.body.clientWidth,
       overwrite: 'all'
     })

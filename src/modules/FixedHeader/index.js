@@ -30,51 +30,39 @@ import Dom from '../Dom'
 
 const DEFAULT_EVENTS = {
   onPin: h => {
-    gsap.to(
-      h.el,
-      0.35,
-      {
-        yPercent: '0',
-        ease: 'sine.out',
-        autoRound: true
-      }
-    )
+    gsap.to(h.el, {
+      duration: 0.35,
+      yPercent: '0',
+      ease: 'sine.out',
+      autoRound: true
+    })
   },
 
   onUnpin: h => {
     h._hiding = true
-    gsap.to(
-      h.el,
-      0.25,
-      {
-        yPercent: '-100',
-        ease: 'sine.in',
-        autoRound: true,
-        onComplete: () => {
-          h._hiding = false
-        }
+    gsap.to(h.el, {
+      duration: 0.25,
+      yPercent: '-100',
+      ease: 'sine.in',
+      autoRound: true,
+      onComplete: () => {
+        h._hiding = false
       }
-    )
+    })
   },
 
   onAltBg: h => {
-    gsap.to(
-      h.el,
-      0.2,
-      {
-        backgroundColor: h.opts.altBgColor
-      }
-    )
+    gsap.to(h.el, {
+      duration: 0.2,
+      backgroundColor: h.opts.altBgColor
+    })
   },
 
   onNotAltBg: h => {
-    gsap.to(
-      h.el,
-      0.4,
-      {
-        backgroundColor: h.opts.regBgColor
-      }
-    )
+    gsap.to(h.el, {
+      duration: 0.4,
+      backgroundColor: h.opts.regBgColor
+    })
   },
 
   // eslint-disable-next-line no-unused-vars
@@ -116,8 +104,12 @@ const DEFAULT_OPTIONS = {
     enter: h => {
       const timeline = gsap.timeline()
       timeline
-        .to(h.el, 1, {
-          yPercent: 0, delay: h.opts.enterDelay, ease: 'power3.out', autoRound: true
+        .to(h.el, {
+          duration: 1,
+          yPercent: 0,
+          delay: h.opts.enterDelay,
+          ease: 'power3.out',
+          autoRound: true
         })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: 'sine.in' }, 0.1, '-=1')
     },

@@ -41,12 +41,14 @@ const DEFAULT_OPTIONS = {
 
   onFadeIn: (hs, callback) => {
     if (hs.slides.length > 1) {
-      gsap.to(hs.el, 0.250, {
+      gsap.to(hs.el, {
+        duration: 0.25,
         opacity: 1,
         onComplete: () => { callback() }
       })
     } else {
-      gsap.to(hs.el, 0.250, {
+      gsap.to(hs.el, {
+        duration: 0.25,
         opacity: 1
       })
     }
@@ -150,7 +152,7 @@ export default class HeroSlider {
       this._nextSlide = this.slides[this._currentSlideIdx + 1]
     } else {
       this._previousSlide = this.slides[this._currentSlideIdx]
-      this._currentSlideIdx = this._currentSlideIdx + 1
+      this._currentSlideIdx += 1
       if (this._currentSlideIdx === this.slideCount) {
         [this._nextSlide] = this.slides
       } else {
@@ -180,10 +182,12 @@ export default class HeroSlider {
           .set(this._nextSlide, {
             opacity: 0
           })
-          .to(this._previousSlide, this.opts.interval, {
+          .to(this._previousSlide, {
+            duration: this.opts.interval,
             scale: this.opts.transition.scale
           })
-          .to(this._currentSlide, this.opts.transition.duration, {
+          .to(this._currentSlide, {
+            duration: this.opts.transition.duration,
             opacity: 1,
             delay: this.opts.interval - this.opts.transition.duration,
             force3D: true,
@@ -208,12 +212,15 @@ export default class HeroSlider {
             scale: 1.0,
             width: '100%'
           })
-          .fromTo(this._previousSlide, this.opts.interval, {
+          .fromTo(this._previousSlide, {
+            duration: this.opts.interval,
             overflow: 'hidden'
           }, {
+            duration: this.opts.interval,
             scale: this.opts.transition.scale
           })
-          .to(this._previousSlide, this.opts.transition.duration, {
+          .to(this._previousSlide, {
+            duration: this.opts.transition.duration,
             width: 0,
             ease: 'power3.in',
             autoRound: true,
@@ -258,7 +265,8 @@ export default class HeroSlider {
   }
 
   _resizeSlides () {
-    gsap.to(this.images, 0.150, {
+    gsap.to(this.images, {
+      duration: 0.15,
       width: document.body.clientWidth,
       overwrite: 'all'
     })

@@ -36,22 +36,26 @@ export default class Parallax {
 
     if (this.opts.fadeContent) {
       this.timeline
-        .to(this.elements.content, this.app.size.height * 0.4, {
+        .to(this.elements.content, {
+          duration: this.app.size.height * 0.4,
           opacity: 0,
           ease: 'power0.none'
         }, 0)
     }
 
     this.timeline
-      .to(this.elements.content, this.app.size.height * 0.5, {
+      .to(this.elements.content, {
+        duration: this.app.size.height * 0.5,
         y: this.app.size.height * 0.1,
         ease: 'power0.none'
       }, 0)
 
     this.timeline
-      .fromTo(this.elements.figure, this.app.size.height, {
+      .fromTo(this.elements.figure, {
+        duration: this.app.size.height,
         yPercent: 0
       }, {
+        duration: this.app.size.height,
         yPercent: ((this.app.size.height * this.opts.factor) / 100),
         ease: 'power0.none'
       }, 0)

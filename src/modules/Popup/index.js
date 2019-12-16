@@ -4,16 +4,19 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 const DEFAULT_OPTIONS = {
   tweenIn: (el, popup) => {
     gsap.set(popup.backdrop, { display: 'block' })
-    gsap.to(popup.backdrop, 0.3, {
+    gsap.to(popup.backdrop, {
+      duration: 0.3,
       opacity: 1,
       onComplete: () => {
-        gsap.fromTo(el, 0.3, {
+        gsap.fromTo(el, {
+          duration: 0.3,
           yPercent: -50,
           x: -5,
           xPercent: -50,
           opacity: 0,
           display: 'block'
         }, {
+          duration: 0.3,
           yPercent: -50,
           xPercent: -50,
           x: 0,
@@ -25,8 +28,13 @@ const DEFAULT_OPTIONS = {
 
   tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]')
-    gsap.to(popups, 0.3, { opacity: 0, display: 'none' })
-    gsap.to(popup.backdrop, 0.3, {
+    gsap.to(popups, {
+      duration: 0.3,
+      opacity: 0,
+      display: 'none'
+    })
+    gsap.to(popup.backdrop, {
+      duration: 0.3,
       opacity: 0,
       onComplete: () => {
         gsap.set(popup.backdrop, { display: 'none' })

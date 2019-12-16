@@ -16,26 +16,47 @@ const DEFAULT_OPTIONS = {
     document.body.classList.toggle('open-menu')
 
     timeline
-      .fromTo(m.bg, 0.35, { x: '0%', opacity: 0, height: window.innerHeight }, { opacity: 1, ease: 'sine.in' })
-      .to(m.logo, 0.35, { opacity: 0, ease: 'power3.out' }, '-=0.35')
-      .to(m.header, 0.55, { backgroundColor: 'transparent', ease: 'power3.out' }, '-=0.35')
+      .fromTo(m.bg, {
+        duration: 0.35,
+        x: '0%',
+        opacity: 0,
+        height: window.innerHeight
+      }, {
+        duration: 0.35,
+        opacity: 1,
+        ease: 'sine.in'
+      })
+      .to(m.logo, {
+        duration: 0.35,
+        opacity: 0,
+        ease: 'power3.out'
+      }, '-=0.35')
+      .to(m.header, {
+        duration: 0.55,
+        backgroundColor: 'transparent',
+        ease: 'power3.out'
+      }, '-=0.35')
       .call(() => { m.nav.style.gridTemplateRows = 'auto 1fr' })
       .set(m.nav, { height: window.innerHeight })
       .set(m.content, { display: 'block' })
       .set(m.logoPath, { fill: m.opts.logoColor })
       .set(m.logo, { xPercent: 3 })
-      .staggerFromTo(
-        m.lis,
-        1, {
-          opacity: 0, x: 20
-        },
-        {
-          x: 0,
-          opacity: 1,
-          ease: 'power3.out'
-        }, 0.05,
-      )
-      .to(m.logo, 0.55, { opacity: 1, xPercent: 0, ease: 'power3.inOut' }, '-=1.2')
+      .staggerFromTo(m.lis, {
+        duration: 1,
+        opacity: 0,
+        x: 20
+      }, {
+        duration: 1,
+        x: 0,
+        opacity: 1,
+        ease: 'power3.out'
+      }, 0.05)
+      .to(m.logo, {
+        duration: 0.55,
+        opacity: 1,
+        xPercent: 0,
+        ease: 'power3.inOut'
+      }, '-=1.2')
       .call(m._emitMobileMenuOpenEvent)
   },
 
@@ -45,27 +66,36 @@ const DEFAULT_OPTIONS = {
 
     timeline
       .call(() => { m.hamburger.classList.toggle('is-active') })
-      .fromTo(
-        m.logo,
-        0.2, {
-          opacity: 1,
-          xPercent: 0
-        },
-        {
-          opacity: 0,
-          xPercent: 5,
-          ease: 'power3.out'
-        },
-      )
+      .fromTo(m.logo, {
+        duration: 0.2,
+        opacity: 1,
+        xPercent: 0
+      },
+      {
+        duration: 0.2,
+        opacity: 0,
+        xPercent: 5,
+        ease: 'power3.out'
+      })
       .set(m.logoPath, { clearProps: 'fill' })
-      .staggerTo(m.lis, 0.5, { opacity: 0, x: 20, ease: 'power3.out' }, 0.04)
+      .staggerTo(m.lis, {
+        duration: 0.5, opacity: 0, x: 20, ease: 'power3.out'
+      }, 0.04)
       .set(m.nav, { clearProps: 'height' })
-      .to(m.bg, 0.25, { x: '100%', ease: 'sine.in' }, '-=0.3')
+      .to(m.bg, {
+        duration: 0.25,
+        x: '100%',
+        ease: 'sine.in'
+      }, '-=0.3')
       .call(() => { m._emitMobileMenuClosedEvent() })
       .set(m.content, { display: 'none' })
       .call(() => { m.nav.style.gridTemplateRows = 'auto' })
       .set(m.lis, { clearProps: 'opacity' })
-      .to(m.logo, 0.35, { opacity: 1, ease: 'power3.in' })
+      .to(m.logo, {
+        duration: 0.35,
+        opacity: 1,
+        ease: 'power3.in'
+      })
   }
 }
 

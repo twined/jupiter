@@ -19,12 +19,14 @@ const DEFAULT_OPTIONS = {
 
     fader.style.display = 'block'
 
-    gsap.to(main, 0.8, {
+    gsap.to(main, {
+      duration: 0.8,
       y: 25,
       ease: 'power3.out'
     })
 
-    gsap.to(fader, 0.2, {
+    gsap.to(fader, {
+      duration: 0.2,
       opacity: 1,
       onComplete: () => {
         window.location = href

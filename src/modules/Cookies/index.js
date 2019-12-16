@@ -8,8 +8,8 @@ const DEFAULT_OPTIONS = {
     c.setCookie('cookielaw_accepted', 1)
 
     timeline
-      .to(c.cc, 0.35, { y: '100%', ease: 'power3.in' }, '0')
-      .to(c.inner, 0.3, { opacity: 0, ease: 'power3.in' }, '0')
+      .to(c.cc, { duration: 0.35, y: '100%', ease: 'power3.in' }, '0')
+      .to(c.inner, { duration: 0.3, opacity: 0, ease: 'power3.in' }, '0')
       .set(c.cc, { display: 'none' })
   },
 
@@ -17,27 +17,33 @@ const DEFAULT_OPTIONS = {
     const timeline = gsap.timeline()
 
     timeline
-      .fromTo(
-        c.cc,
-        0.5,
-        { y: '100%', display: 'block' },
-        { y: '0%', delay: '0.5', ease: 'power3.out' },
-        '0.5',
-      )
-      .fromTo(
-        c.text,
-        0.7,
-        { opacity: 0 },
-        { opacity: 1, ease: 'power3.out' },
-        '-=0.35',
-      )
-      .fromTo(
-        c.btns,
-        0.7,
-        { opacity: 0 },
-        { opacity: 1, ease: 'power3.out' },
-        '-=0.35',
-      )
+      .fromTo(c.cc, {
+        duration: 0.5,
+        y: '100%',
+        display: 'block'
+      }, {
+        duration: 0.5,
+        y: '0%',
+        delay: '0.5',
+        ease: 'power3.out'
+      }, '0.5')
+      .fromTo(c.text, {
+        duration: 0.7,
+        opacity: 0
+      }, {
+        duration: 0.7,
+        opacity: 1,
+        ease: 'power3.out'
+      }, '-=0.35')
+      .fromTo(c.btns, {
+        duration: 0.7,
+        opacity: 0
+      }, {
+        duration: 0.7,
+        opacity: 1,
+        ease: 'power3.out'
+      },
+      '-=0.35')
   }
 }
 
