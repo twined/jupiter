@@ -9,16 +9,14 @@
  *
  */
 
-import {
-  TweenLite, Sine, Power3, CSSPlugin, TimelineLite
-} from 'gsap/all'
+import { gsap } from 'gsap'
+import { CSSPlugin } from 'gsap/CSSPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import * as Events from '../../events'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 
-// eslint-disable-next-line no-unused-vars
-const plugins = [CSSPlugin]
+gsap.registerPlugin(CSSPlugin)
 
 const DEFAULT_OPTIONS = {
   el: '[data-hero-slider]',
@@ -43,12 +41,12 @@ const DEFAULT_OPTIONS = {
 
   onFadeIn: (hs, callback) => {
     if (hs.slides.length > 1) {
-      TweenLite.to(hs.el, 0.250, {
+      gsap.to(hs.el, 0.250, {
         opacity: 1,
         onComplete: () => { callback() }
       })
     } else {
-      TweenLite.to(hs.el, 0.250, {
+      gsap.to(hs.el, 0.250, {
         opacity: 1
       })
     }
@@ -76,7 +74,7 @@ export default class HeroSlider {
   initialize () {
     this._addResizeHandler()
     // style the container
-    TweenLite.set(this.el, {
+    gsap.set(this.el, {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -94,7 +92,7 @@ export default class HeroSlider {
 
     // style the slides
     Array.from(this.slides).forEach(s => {
-      TweenLite.set(s, {
+      gsap.set(s, {
         zIndex: this.opts.zIndex.regular,
         position: 'absolute',
         top: 0,
@@ -106,7 +104,7 @@ export default class HeroSlider {
       const img = s.querySelector('.hero-slide-img')
 
       if (img) {
-        TweenLite.set(img, {
+        gsap.set(img, {
           width: document.body.clientWidth,
           height: '100%',
           top: 0,
@@ -169,7 +167,7 @@ export default class HeroSlider {
    * Switches between slides
    */
   slide () {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
 
     switch (this.opts.transition.type) {
       case 'fade':
@@ -189,7 +187,7 @@ export default class HeroSlider {
             opacity: 1,
             delay: this.opts.interval - this.opts.transition.duration,
             force3D: true,
-            ease: Sine.easeInOut
+            ease: 'sine.inOut'
           })
           .set(this._previousSlide, {
             opacity: 0
@@ -217,7 +215,7 @@ export default class HeroSlider {
           })
           .to(this._previousSlide, this.opts.transition.duration, {
             width: 0,
-            ease: Power3.easeIn,
+            ease: 'power3.in',
             autoRound: true,
             overwrite: 'preexisting'
           })
@@ -260,7 +258,7 @@ export default class HeroSlider {
   }
 
   _resizeSlides () {
-    TweenLite.to(this.images, 0.150, {
+    gsap.to(this.images, 0.150, {
       width: document.body.clientWidth,
       overwrite: 'all'
     })

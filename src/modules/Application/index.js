@@ -1,6 +1,6 @@
-import {
+import { gsap } from 'gsap'
   TweenLite, Sine, Power1, TimelineLite, ScrollToPlugin
-} from 'gsap/all'
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
@@ -10,8 +10,8 @@ import FeatureTests from '../FeatureTests'
 import Fontloader from '../Fontloader'
 import Dom from '../Dom'
 
-// eslint-disable-next-line no-unused-vars
-const plugins = [ScrollToPlugin]
+gsap.registerPlugin(ScrollToPlugin)
+gsap.defaults({ overwrite: 'auto', ease: 'sine.out' })
 
 const DEFAULT_OPTIONS = {
   featureTests: {
@@ -22,12 +22,13 @@ const DEFAULT_OPTIONS = {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
 
-      TweenLite.to(fader, 0.65, {
+      gsap.to(fader, {
         opacity: 0,
-        ease: Power1.easeInOut,
+        ease: 'power1.inOut',
         delay: 0,
+        duration: 0.65,
         onComplete: () => {
-          TweenLite.set(fader, { display: 'none' })
+          gsap.set(fader, { display: 'none' })
           document.body.classList.remove('unloaded')
           callback()
         }
@@ -75,8 +76,7 @@ export default class Application {
 
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
     if (this.PREFERS_REDUCED_MOTION) {
-      // TODO: TweenMax :(
-      // TweenLite.globalTimeScale(200)
+      gsap.globalTimeline.timeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
 
@@ -91,8 +91,6 @@ export default class Application {
     window.addEventListener('orientationchange', this.onResize.bind(this))
     window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
     window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
-
-    TweenLite.defaultEase = Sine.easeOut
   }
 
   /**
@@ -159,7 +157,7 @@ export default class Application {
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_LOCKED, this)
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = true
-    TweenLite.set(document.body, { overflow: 'hidden', paddingRight: currentScrollbarWidth })
+    gsap.set(document.body, { overflow: 'hidden', paddingRight: currentScrollbarWidth })
     document.addEventListener('touchmove', this.scrollVoid, false)
   }
 
@@ -167,7 +165,7 @@ export default class Application {
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_RELEASED, this)
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = false
-    TweenLite.set(document.body, { clearProps: 'overflow, paddingRight' })
+    gsap.set(document.body, { clearProps: 'overflow, paddingRight' })
     document.removeEventListener('touchmove', this.scrollVoid, false)
   }
 
@@ -179,7 +177,8 @@ export default class Application {
 
     console.log(target, target.offsetTop)
 
-    TweenLite.to(window, time, {
+    gsap.to(window, {
+      duration: time,
       scrollTo: { y: target, autoKill: false },
       onComplete: () => {
         const forcedScrollEventEnd = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_END)
@@ -187,7 +186,7 @@ export default class Application {
           window.dispatchEvent(forcedScrollEventEnd)
         }
       },
-      ease: Sine.easeInOut
+      ease: 'sine.inOut'
     })
   }
 
@@ -332,7 +331,7 @@ export default class Application {
     this.debugOverlay.addEventListener('click', this.toggleDebug.bind(this))
 
     const userAgent = this.debugOverlay.querySelector('.user-agent')
-    TweenLite.set(userAgent, { display: 'none' })
+    gsap.set(userAgent, { display: 'none' })
     userAgent.innerHTML = `<b>&rarr; ${this.userAgent}</b> >> <span>KOPIER</span>`
 
     const span = userAgent.querySelector('span')
@@ -366,7 +365,7 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
   }
 
   toggleDebug () {
-    const tl = new TimelineLite()
+    const tl = gsap.timeline()
     const breakpoint = this.debugOverlay.querySelector('.breakpoint')
     const userAgent = this.debugOverlay.querySelector('.user-agent')
 
@@ -381,19 +380,19 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
         // hide all except branding
         tl.to([breakpoint, userAgent], 0.3, { autoAlpha: 0 })
           .to([breakpoint, userAgent], 0.7, { width: 0 })
-          .call(() => { TweenLite.set([breakpoint, userAgent], { display: 'none' }) })
+          .call(() => { gsap.set([breakpoint, userAgent], { display: 'none' }) })
         break
 
       case 1:
         //
-        TweenLite.set(breakpoint, { width: 'auto', display: 'block' })
+        gsap.set(breakpoint, { width: 'auto', display: 'block' })
         tl.from(breakpoint, 0.7, { width: 0 })
           .to(breakpoint, 0.3, { autoAlpha: 1 })
         break
 
       case 2:
         //
-        TweenLite.set(userAgent, { width: 'auto', display: 'block' })
+        gsap.set(userAgent, { width: 'auto', display: 'block' })
         tl.from(userAgent, 0.7, { width: 0 })
           .to(userAgent, 0.3, { autoAlpha: 1 })
         break

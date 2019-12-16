@@ -23,21 +23,19 @@
  *
  */
 
-import {
-  TweenLite, Power3, Sine, TimelineLite
-} from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 import Dom from '../Dom'
 
 const DEFAULT_EVENTS = {
   onPin: h => {
-    TweenLite.to(
+    gsap.to(
       h.el,
       0.35,
       {
         yPercent: '0',
-        ease: Sine.easeOut,
+        ease: 'sine.out',
         autoRound: true
       }
     )
@@ -45,12 +43,12 @@ const DEFAULT_EVENTS = {
 
   onUnpin: h => {
     h._hiding = true
-    TweenLite.to(
+    gsap.to(
       h.el,
       0.25,
       {
         yPercent: '-100',
-        ease: Sine.easeIn,
+        ease: 'sine.in',
         autoRound: true,
         onComplete: () => {
           h._hiding = false
@@ -60,7 +58,7 @@ const DEFAULT_EVENTS = {
   },
 
   onAltBg: h => {
-    TweenLite.to(
+    gsap.to(
       h.el,
       0.2,
       {
@@ -70,7 +68,7 @@ const DEFAULT_EVENTS = {
   },
 
   onNotAltBg: h => {
-    TweenLite.to(
+    gsap.to(
       h.el,
       0.4,
       {
@@ -109,19 +107,19 @@ const DEFAULT_OPTIONS = {
     canvas: window,
     intersects: null,
     beforeEnter: h => {
-      const timeline = new TimelineLite()
+      const timeline = gsap.timeline()
       timeline
         .set(h.el, { yPercent: -100 })
         .set(h.lis, { opacity: 0 })
     },
 
     enter: h => {
-      const timeline = new TimelineLite()
+      const timeline = gsap.timeline()
       timeline
         .to(h.el, 1, {
-          yPercent: 0, delay: h.opts.enterDelay, ease: Power3.easeOut, autoRound: true
+          yPercent: 0, delay: h.opts.enterDelay, ease: 'power3.out', autoRound: true
         })
-        .staggerTo(h.lis, 0.8, { opacity: 1, ease: Sine.easeIn }, 0.1, '-=1')
+        .staggerTo(h.lis, 0.8, { opacity: 1, ease: 'sine.in' }, 0.1, '-=1')
     },
     enterDelay: 0,
     tolerance: 3,
@@ -193,12 +191,16 @@ export default class FixedHeader {
       // get offset of element, with height of header subtracted
       const offsetBgElm = document.querySelector(this.opts.offsetBg)
       this.opts.offsetBg = offsetBgElm.offsetTop
+    } else if (typeof this.opts.offsetBg === 'function') {
+      this.opts.offsetBg = this.opts.offsetBg(this) - 1
     }
 
     if (typeof this.opts.offset === 'string') {
       // get offset of element, with height of header subtracted
       const offsetElm = document.querySelector(this.opts.offset)
       this.opts.offset = offsetElm.offsetTop - 1
+    } else if (typeof this.opts.offset === 'function') {
+      this.opts.offset = this.opts.offset(this) - 1
     }
 
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)

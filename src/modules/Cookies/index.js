@@ -1,41 +1,41 @@
-import { TimelineLite, Power3 } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   onAccept: c => {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
     c.setCookie('cookielaw_accepted', 1)
 
     timeline
-      .to(c.cc, 0.35, { y: '100%', ease: Power3.easeIn }, '0')
-      .to(c.inner, 0.3, { opacity: 0, ease: Power3.easeIn }, '0')
+      .to(c.cc, 0.35, { y: '100%', ease: 'power3.in' }, '0')
+      .to(c.inner, 0.3, { opacity: 0, ease: 'power3.in' }, '0')
       .set(c.cc, { display: 'none' })
   },
 
   showCC: c => {
-    const timeline = new TimelineLite()
+    const timeline = gsap.timeline()
 
     timeline
       .fromTo(
         c.cc,
         0.5,
         { y: '100%', display: 'block' },
-        { y: '0%', delay: '0.5', ease: Power3.easeOut },
+        { y: '0%', delay: '0.5', ease: 'power3.out' },
         '0.5',
       )
       .fromTo(
         c.text,
         0.7,
         { opacity: 0 },
-        { opacity: 1, ease: Power3.easeOut },
+        { opacity: 1, ease: 'power3.out' },
         '-=0.35',
       )
       .fromTo(
         c.btns,
         0.7,
         { opacity: 0 },
-        { opacity: 1, ease: Power3.easeOut },
+        { opacity: 1, ease: 'power3.out' },
         '-=0.35',
       )
   }

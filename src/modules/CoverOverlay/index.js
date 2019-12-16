@@ -1,5 +1,4 @@
-// import Headroom from 'headroom.js'
-import { TimelineLite, Sine } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {}
@@ -31,12 +30,12 @@ export default class CoverOverlay {
       }
 
       btn.addEventListener('click', () => {
-        const timeline = new TimelineLite()
+        const timeline = gsap.timeline()
 
         timeline
           .set(iframe, { opacity: 1 })
-          .to(btn, 0.5, { opacity: 0, ease: Sine.easeIn })
-          .to(overlay, 1, { opacity: 0, ease: Sine.easeIn })
+          .to(btn, 0.5, { opacity: 0, ease: 'sine.in' })
+          .to(overlay, 1, { opacity: 0, ease: 'sine.in' })
           .set(overlay, { display: 'none' })
           .call(() => {
             if (player) {

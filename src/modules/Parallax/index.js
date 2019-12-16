@@ -1,5 +1,5 @@
 import _defaultsDeep from 'lodash.defaultsdeep'
-import { TimelineLite, Linear } from 'gsap/all'
+import { gsap } from 'gsap'
 import * as Events from '../../events'
 
 // Default Settings
@@ -29,7 +29,7 @@ export default class Parallax {
   }
 
   initializeTimeline () {
-    this.timeline = new TimelineLite({
+    this.timeline = gsap.timeline({
       useFrames: true,
       paused: true
     })
@@ -38,14 +38,14 @@ export default class Parallax {
       this.timeline
         .to(this.elements.content, this.app.size.height * 0.4, {
           opacity: 0,
-          ease: Linear.easeNone
+          ease: 'power0.none'
         }, 0)
     }
 
     this.timeline
       .to(this.elements.content, this.app.size.height * 0.5, {
         y: this.app.size.height * 0.1,
-        ease: Linear.easeNone
+        ease: 'power0.none'
       }, 0)
 
     this.timeline
@@ -53,7 +53,7 @@ export default class Parallax {
         yPercent: 0
       }, {
         yPercent: ((this.app.size.height * this.opts.factor) / 100),
-        ease: Linear.easeNone
+        ease: 'power0.none'
       }, 0)
   }
 

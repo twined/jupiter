@@ -1,9 +1,7 @@
 import { Manager, Swipe } from '@egjs/hammerjs'
-import { TweenLite, Sine, TimelineLite } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import imageIsLoaded from '../../utils/imageIsLoaded'
-
-TweenLite.defaultEase = Sine.easeOut
 
 const DEFAULT_OPTIONS = {
   captions: false,
@@ -71,7 +69,7 @@ const DEFAULT_OPTIONS = {
   onOpen: h => {
     h.app.scrollLock()
 
-    TweenLite.to(h.elements.wrapper, 0.5, {
+    gsap.to(h.elements.wrapper, 0.5, {
       opacity: 1
     })
   },
@@ -80,10 +78,10 @@ const DEFAULT_OPTIONS = {
 
   onClose: h => {
     if (h.opts.captions) {
-      TweenLite.to(h.elements.caption, 0.45, { opacity: 0 })
+      gsap.to(h.elements.caption, 0.45, { opacity: 0 })
     }
 
-    TweenLite.to([
+    gsap.to([
       h.elements.imgWrapper,
       h.elements.nextArrow,
       h.elements.prevArrow,
@@ -92,7 +90,7 @@ const DEFAULT_OPTIONS = {
     ], 0.50, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.to(h.elements.wrapper, 0.45, {
+        gsap.to(h.elements.wrapper, 0.45, {
           opacity: 0,
           onComplete: () => {
             h.app.scrollRelease()
@@ -117,8 +115,8 @@ export default class Lightbox {
     this.firstTransition = true
     this.previousCaption = null
     this.timelines = {
-      caption: new TimelineLite({ paused: true }),
-      image: new TimelineLite({ paused: true })
+      caption: gsap.timeline({ paused: true }),
+      image: gsap.timeline({ paused: true })
     }
 
     this.lightboxes.forEach(lightbox => {
@@ -208,7 +206,7 @@ export default class Lightbox {
 
     this.sections[section].forEach((img, x) => {
       const imgElement = document.createElement('img')
-      TweenLite.set(imgElement, { autoAlpha: 0 })
+      gsap.set(imgElement, { autoAlpha: 0 })
       imgElement.classList.add('lightbox-image', 'm-lg')
       imgElement.setAttribute('data-idx', x)
       this.elements.imgWrapper.appendChild(imgElement)

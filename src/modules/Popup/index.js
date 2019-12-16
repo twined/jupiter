@@ -1,13 +1,13 @@
-import { TweenLite } from 'gsap/all'
+import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
   tweenIn: (el, popup) => {
-    TweenLite.set(popup.backdrop, { display: 'block' })
-    TweenLite.to(popup.backdrop, 0.3, {
+    gsap.set(popup.backdrop, { display: 'block' })
+    gsap.to(popup.backdrop, 0.3, {
       opacity: 1,
       onComplete: () => {
-        TweenLite.fromTo(el, 0.3, {
+        gsap.fromTo(el, 0.3, {
           yPercent: -50,
           x: -5,
           xPercent: -50,
@@ -25,11 +25,11 @@ const DEFAULT_OPTIONS = {
 
   tweenOut: popup => {
     const popups = document.querySelectorAll('[data-popup]')
-    TweenLite.to(popups, 0.3, { opacity: 0, display: 'none' })
-    TweenLite.to(popup.backdrop, 0.3, {
+    gsap.to(popups, 0.3, { opacity: 0, display: 'none' })
+    gsap.to(popup.backdrop, 0.3, {
       opacity: 0,
       onComplete: () => {
-        TweenLite.set(popup.backdrop, { display: 'none' })
+        gsap.set(popup.backdrop, { display: 'none' })
       }
     })
   }
@@ -68,7 +68,7 @@ export default class Popup {
   createBackdrop () {
     const backdrop = document.createElement('div')
     backdrop.setAttribute('data-popup-backdrop', '')
-    TweenLite.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 })
+    gsap.set(backdrop, { opacity: 0, display: 'none', zIndex: 4999 })
 
     backdrop.addEventListener('click', e => {
       e.stopPropagation()

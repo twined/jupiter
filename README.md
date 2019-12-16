@@ -290,7 +290,7 @@ syntax. If no value is provided, we run the `default` walk.
         to: {
           /* skip autoAlpha here, since we have our own alphaTween that sets it for us */
           // autoAlpha: 1,
-          ease: Sine.easeOut,
+          ease: 'sine.out',
           force3D: true,
           y: 0
         }
@@ -344,7 +344,7 @@ walks: {
 
       to: {
         scaleY: 1,
-        ease: Sine.easeOut
+        ease: 'sine.out'
       }
     }
   }
@@ -391,7 +391,7 @@ slider: {
       y: 21
     },
     to: {
-      ease: Sine.easeOut,
+      ease: 'sine.out',
       y: 0
     }
   }
@@ -522,6 +522,8 @@ Example CSS (PCSS)
 - `sections`
   - Here you can set a config per section (body[data-script="section"])
   - `unPinOnResize` - auto unpin while resizing
+  - `offset` - when is header triggered
+  - `offsetBg` - when is offset background triggered (i.e. if there's another bg for content)
   - events are same as under default.
 
 - Events
