@@ -1,3 +1,9 @@
+#### 3.21.0
+
+- gsap 3!
+- FixedHeader: Allow function as `offset` and `offsetBg`
+
+
 #### 3.20.0
 
 - FixedHeader: Allow element as `offset`

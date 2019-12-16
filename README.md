@@ -522,6 +522,8 @@ Example CSS (PCSS)
 - `sections`
   - Here you can set a config per section (body[data-script="section"])
   - `unPinOnResize` - auto unpin while resizing
+  - `offset` - when is header triggered
+  - `offsetBg` - when is offset background triggered (i.e. if there's another bg for content)
   - events are same as under default.
 
 - Events
