@@ -1,4 +1,5 @@
 import { gsap } from 'gsap'
+  TweenLite, Sine, Power1, TimelineLite, ScrollToPlugin
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import rafCallback from '../../utils/rafCallback'

@@ -281,7 +281,7 @@ syntax. If no value is provided, we run the `default` walk.
       duration: 0.65,
       /* Add a separate tween for opacity/visibility.
       Can be set to `true` for the default tween, or `false` to skip */
-      alphaTween: { ease: 'sine.in', duration: 1 },
+      alphaTween: { ease: Sine.easeIn, duration: 1 },
       /* The transitions that will be tweened */
       transition: {
         from: {
