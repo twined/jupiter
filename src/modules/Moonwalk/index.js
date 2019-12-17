@@ -81,6 +81,7 @@ export default class Moonwalk {
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
     this.addClass()
     this.sections = this.initializeSections()
+    this.runs = this.initializeRuns()
 
     if (this.opts.clearLazyload) {
       this.clearLazyloads()
@@ -137,6 +138,19 @@ export default class Moonwalk {
         element.setAttribute('data-moonwalk-idx', index + 1)
       })
     }, this)
+  }
+
+  /**
+   * Go through each `data-moonwalk-run`, parse children, add IDs/indexes
+   * (if wanted), initialize a new object for each.
+   */
+  initializeRuns () {
+    const runs = document.querySelectorAll('[data-moonwalk-run]')
+    return Array.from(runs).map(run => ({
+      el: run,
+      threshold: this.opts.runs[run.getAttribute('data-moonwalk-run')].threshold || 0,
+      callback: this.opts.runs[run.getAttribute('data-moonwalk-run')].callback
+    }))
   }
 
   /**
@@ -410,6 +424,20 @@ export default class Moonwalk {
   ready () {
     const { opts } = this
 
+    this.runs.forEach((run, idx) => {
+      // if this is the last section, set rootMargin to 0
+      let rootMargin
+
+      if (idx === this.sections.length - 1) {
+        rootMargin = '0px'
+      } else {
+        rootMargin = opts.rootMargin
+      }
+
+      const runObserver = this.runObserver(run, rootMargin)
+      runObserver.observe(run.el)
+    })
+
     this.sections.forEach((section, idx) => {
       // if this is the last section, set rootMargin to 0
       let rootMargin
@@ -428,6 +456,26 @@ export default class Moonwalk {
 
       section.elements = section.el.querySelectorAll('[data-moonwalk]')
       section.elements.forEach(box => section.observer.observe(box))
+    })
+  }
+
+  /**
+   * Creates and returns the RUN observer for data-moonwalk-run elements
+   *
+   * @param {*} run
+   * @param {*} rootMargin
+   */
+  runObserver (run, rootMargin) {
+    return new IntersectionObserver((entries, self) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          run.callback(entry.target)
+          self.unobserve(entry.target)
+        }
+      })
+    }, {
+      rootMargin,
+      threshold: run.threshold
     })
   }
 
@@ -538,10 +586,10 @@ export default class Moonwalk {
         tweenPosition = () => section.timeline.time()
       } else {
         /* Still time, add as normal overlap at the end */
-        tweenPosition = () => `>${tweenOverlap}`
+        tweenPosition = () => `>-${tweenOverlap}`
       }
     } else {
-      tweenPosition = () => '0'
+      tweenPosition = () => '+=0'
     }
 
     gsap.set(target, tweenTransition.from)

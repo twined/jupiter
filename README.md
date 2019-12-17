@@ -269,6 +269,20 @@ syntax. If no value is provided, we run the `default` walk.
 - `addIndexes` - default `false`
   - Create `[data-moonwalk-idx="X"] inside of each section per key
 
+- `runs`
+  - Example
+  ```es6
+  runs: {
+    heroAnimation: {
+      threshold: 0.5,
+      callback: element => {
+        // This function runs when `element` comes into view
+      }
+    }
+  }
+  ```
+  - Call this with `<div data-moonwalk-run="heroAnimation">`
+
 - `walks`
   - Configures tweens
   - Example:

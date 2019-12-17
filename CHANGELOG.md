@@ -1,3 +1,9 @@
+#### 3.22.0
+
+- Moonwalk: Fix visual bug
+- Moonwalk: Add runs. Runs a function when element comes into view.
+
+
 #### 3.21.0
 
 - gsap 3!
