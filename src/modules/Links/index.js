@@ -81,10 +81,10 @@ export default class Links {
 
           if (dataTarget) {
             this.opts.onAnchor(dataTarget, this)
-          }
 
-          if (this.app.header && dataTarget.id !== 'top') {
-            setTimeout(() => { this.app.header.unpin() }, 800)
+            if (this.app.header && dataTarget.id !== 'top') {
+              setTimeout(() => { this.app.header.unpin() }, 800)
+            }
           }
         }
 

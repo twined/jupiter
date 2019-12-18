@@ -116,7 +116,8 @@ export default class MobileMenu {
     this.nav = this.header.querySelector('nav')
 
     if (this.hamburger) {
-      this.hamburger.addEventListener('click', () => {
+      this.hamburger.addEventListener('click', e => {
+        e.preventDefault()
         this.toggleMenu()
       })
     }
