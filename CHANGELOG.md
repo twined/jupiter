@@ -1,3 +1,8 @@
+#### 3.23.0
+
+- MobileMenu: Fix: Pass self to `onResize` event.
+
+
 #### 3.22.0
 
 - Moonwalk: Fix visual bug

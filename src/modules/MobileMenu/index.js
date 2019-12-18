@@ -122,7 +122,7 @@ export default class MobileMenu {
     }
 
     if (this.opts.onResize) {
-      window.addEventListener(Events.APPLICATION_RESIZE, this.opts.onResize.bind(this))
+      window.addEventListener(Events.APPLICATION_RESIZE, () => { this.opts.onResize(this) })
     }
   }
 
