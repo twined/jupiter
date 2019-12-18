@@ -174,8 +174,6 @@ export default class Application {
       window.dispatchEvent(forcedScrollEventStart)
     }
 
-    console.log(target, target.offsetTop)
-
     gsap.to(window, {
       duration: time,
       scrollTo: { y: target, autoKill: false },

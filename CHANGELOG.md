@@ -1,3 +1,14 @@
+#### 3.24.1
+
+- Remove debug log
+
+
+#### 3.24.0
+
+- MobileMenu: Fix: Prevent default when binding click event
+
+
+
 #### 3.23.0
 
 - MobileMenu: Fix: Pass self to `onResize` event.
