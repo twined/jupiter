@@ -594,11 +594,13 @@ export default class Moonwalk {
 
     gsap.set(target, tweenTransition.from)
 
-    section.timeline.to(target, {
-      ...tweenTransition.to,
-      duration: tweenDuration
-    },
-    tweenPosition())
+    section.timeline.to(
+      target, {
+        ...tweenTransition.to,
+        duration: tweenDuration
+      },
+      tweenPosition()
+    )
 
     if (alphaTween) {
       section.timeline.to(target, {
