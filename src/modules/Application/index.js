@@ -12,6 +12,12 @@ import Dom from '../Dom'
 gsap.registerPlugin(ScrollToPlugin)
 gsap.defaults({ overwrite: 'auto', ease: 'sine.out' })
 
+window.onpageshow = event => {
+  if (event.persisted) {
+    gsap.to(document.querySelector('#fader'), { duration: 0.35, autoAlpha: 0 })
+  }
+}
+
 const DEFAULT_OPTIONS = {
   featureTests: {
     touch: true
