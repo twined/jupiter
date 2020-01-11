@@ -1,3 +1,8 @@
+#### 3.25.0
+
+- Fix Safari back button bug where fader would stay activated.
+
+
 #### 3.24.2
 
 - Lock GSAP to 3.0.4 due to a timeline regression.
