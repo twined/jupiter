@@ -1,3 +1,8 @@
+#### 3.26.0
+
+- Links: Add `triggerEvents` and `scrollDuration` to config.
+
+
 #### 3.25.0
 
 - Fix Safari back button bug where fader would stay activated.

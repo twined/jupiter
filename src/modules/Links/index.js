@@ -5,12 +5,14 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 gsap.registerPlugin(ScrollToPlugin)
 
 const DEFAULT_OPTIONS = {
+  triggerEvents: true,
+  scrollDuration: 0.8,
   mobileMenuDelay: 800,
   linkQuery: 'a:not([href^="#"]):not([target="_blank"]):not([data-lightbox]):not(.noanim)',
   anchorQuery: 'a[href^="#"]:not(.noanim)',
 
   onAnchor: (target, links) => {
-    links.app.scrollTo(target)
+    links.app.scrollTo(target, links.opts.scrollDuration, links.opts.triggerEvents)
   },
 
   onTransition: href => {

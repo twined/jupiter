@@ -236,6 +236,17 @@ include images from this section. Otherwise, all lightboxed images will be inclu
 - `onPointerLeft/onPointerRight` - `function (lightbox)` - callback for when pointer direction changes
 
 
+
+## Links
+
+#### Options
+
+- `triggerEvents` - `boolean` - `true` - If we should trigger events when scrolling.
+  This affects the fixed header amongst other things.
+- `scrollDuration` - `number` - `0.8` - how long the scroll lasts
+
+
+
 ## Moonwalk
 
 Moonwalks are divided into sections that are run in a timeline. Multiple

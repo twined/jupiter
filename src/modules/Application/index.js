@@ -411,11 +411,34 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
   setupGridoverlay () {
     const gridKeyPressed = e => {
       if (e.keyCode === 71 && e.ctrlKey) {
-        const guides = document.querySelector('.dbg-grid')
-        if (!guides) {
+        const guides = Dom.find('.dbg-grid')
+        const cols = Dom.all(guides, 'b')
+
+        if (!guides || !cols) {
           return
         }
-        guides.classList.toggle('visible')
+
+        if (Dom.hasClass(guides, 'visible')) {
+          gsap.set(cols, { width: 'auto' })
+          gsap.to(cols, {
+            duration: 0.35,
+            width: 0,
+            stagger: 0.02,
+            ease: 'sine.inOut',
+            onComplete: () => {
+              guides.classList.toggle('visible')
+            }
+          })
+        } else {
+          gsap.set(cols, { width: 0 })
+          guides.classList.toggle('visible')
+          gsap.to(cols, {
+            duration: 0.35,
+            width: '100%',
+            stagger: 0.02,
+            ease: 'sine.inOut'
+          })
+        }
       }
     }
     document.onkeydown = gridKeyPressed
