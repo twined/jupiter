@@ -195,6 +195,14 @@ export default class FixedHeader {
       this.opts.offset = this.opts.offset(this) - 1
     }
 
+    if (typeof this.opts.offsetSmall === 'string') {
+      // get offsetSmall of element, with height of header subtracted
+      const offsetSmallElm = document.querySelector(this.opts.offsetSmall)
+      this.opts.offsetSmall = offsetSmallElm.offsetTop - 1
+    } else if (typeof this.opts.offsetSmall === 'function') {
+      this.opts.offsetSmall = this.opts.offsetSmall(this) - 1
+    }
+
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
