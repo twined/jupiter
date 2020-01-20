@@ -1,3 +1,9 @@
+#### 3.27.0
+
+- Moonwalk: Allow setting named children - `data-moonwalk-children="slide"`
+- HeroVideo: Add `data-cover` for cover image.
+
+
 #### 3.26.0
 
 - Links: Add `triggerEvents` and `scrollDuration` to config.
