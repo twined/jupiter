@@ -26,7 +26,6 @@ const DEFAULT_OPTIONS = {
   faderOpts: {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
-
       gsap.to(fader, {
         opacity: 0,
         ease: 'power1.inOut',
@@ -116,9 +115,9 @@ export default class Application {
   */
   ready () {
     this.fontLoader.loadFonts(this.opts.fonts).then(() => {
-      this.fadeIn()
       this._emitReadyEvent()
       this.executeCallbacks(Events.APPLICATION_READY)
+      this.fadeIn()
     })
   }
 
