@@ -14,6 +14,8 @@ import objectFitPolyfill from 'objectFitPolyfill'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
+import imageIsLoaded from '../../utils/imageIsLoaded'
+import Dom from '../Dom'
 
 
 gsap.registerPlugin(CSSPlugin)
@@ -23,9 +25,23 @@ const plugins = [objectFitPolyfill]
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
   onFadeIn: hero => {
-    gsap.to(hero.el, {
+    gsap.to(hero.videoDiv, {
       duration: 1,
-      opacity: 1
+      autoAlpha: 1
+    })
+  },
+
+  onFadeInCover: hero => {
+    gsap.to(hero.cover, {
+      duration: 0.35,
+      autoAlpha: 1
+    })
+  },
+
+  onFadeOutCover: hero => {
+    gsap.set(hero.cover, {
+      duration: 0.35,
+      autoAlpha: 0
     })
   },
 
@@ -80,9 +96,11 @@ export default class HeroVideo {
       left: 0,
       width: '100%',
       height: '100%',
-      overflow: 'hidden',
-      opacity: 0
+      overflow: 'hidden'
     })
+
+    this.cover = Dom.find(this.el, '[data-cover]')
+    gsap.set(this.cover, { autoAlpha: 0 })
 
     const pauseParent = document.querySelector(this.opts.pauseParent)
     const pauseButton = document.createRange().createContextualFragment(`
@@ -106,7 +124,8 @@ export default class HeroVideo {
       top: 0,
       left: 0,
       width: '100%',
-      height: '100%'
+      height: '100%',
+      opacity: 0
     })
 
     if (!this.video) {
@@ -122,6 +141,12 @@ export default class HeroVideo {
       left: 0,
       position: 'absolute'
     })
+
+    if (this.cover) {
+      imageIsLoaded(this.cover).then(() => {
+        this.fadeInCover()
+      })
+    }
 
     window.addEventListener(Events.APPLICATION_READY, () => {
       /* Wait for the video to load, then fade in container element */
@@ -143,7 +168,7 @@ export default class HeroVideo {
           this.fadeIn()
           this.booting = false
         } else {
-          gsap.set(this.el, { opacity: 1 })
+          gsap.set(this.videoDiv, { opacity: 1 })
         }
       }
     })
@@ -167,6 +192,9 @@ export default class HeroVideo {
   }
 
   play () {
+    if (this.cover) {
+      this.opts.onFadeOutCover(this)
+    }
     this.video.play()
     this.playing = true
   }
@@ -178,6 +206,10 @@ export default class HeroVideo {
 
   fadeIn () {
     this.opts.onFadeIn(this)
+  }
+
+  fadeInCover () {
+    this.opts.onFadeInCover(this)
   }
 
   addObserver () {

@@ -336,46 +336,6 @@ Sample code
 </div>
 ```
 
-### Stages
-
-A stage will run a transition on itself before introducing the rest
-of the moonwalks. For instance, if a section should be animated to
-"open" by scaling Y from 0 to 100. When the stage's tween is finished,
-the rest are called as they intersect.
-
-Sample code
-
-```html
-<div class="slideshow" data-moonwalk-section data-moonwalk-stage="scaleup">
-  <div data-moonwalk="slow">...</div>
-  <div data-moonwalk>...</div>
-  <div data-moonwalk="slow">...</div>
-</div>
-```
-
-Sample config
-
-```es6
-walks: {
-  scaleup: {
-    interval: 0,
-    duration: 1,
-    startDelay: 1,
-    transition: {
-      from: {
-        scaleY: 0,
-        transformOrigin: '50% 50%'
-      },
-
-      to: {
-        scaleY: 1,
-        ease: 'sine.out'
-      }
-    }
-  }
-}
-```
-
 ### Named sections
 
 A named section will autoplay its children when intersecting with the viewport.
@@ -423,6 +383,63 @@ slider: {
 }
 
 ```
+
+### Stages
+
+A stage will run a transition on itself before introducing the rest
+of the moonwalks. For instance, if a section should be animated to
+"open" by scaling Y from 0 to 100. When the stage's tween is finished,
+the rest are called as they intersect.
+
+Sample code
+
+```html
+<div class="slideshow" data-moonwalk-section data-moonwalk-stage="scaleup">
+  <div data-moonwalk="slow">...</div>
+  <div data-moonwalk>...</div>
+  <div data-moonwalk="slow">...</div>
+</div>
+```
+
+Sample config
+
+```es6
+walks: {
+  scaleup: {
+    interval: 0,
+    duration: 1,
+    startDelay: 1,
+    transition: {
+      from: {
+        scaleY: 0,
+        transformOrigin: '50% 50%'
+      },
+
+      to: {
+        scaleY: 1,
+        ease: 'sine.out'
+      }
+    }
+  }
+}
+```
+
+### Set children
+
+Sometimes you might have a dynamic number of children that you want to moonwalk,
+for instance paragraphs in an article. You can do this by setting `data-moonwalk-children`
+on the parent element. You can also supply a value to this attribute if you want to set a
+specific walk to the children:
+
+```html
+<article data-moonwalk-section data-moonwalk-children="slide">
+  <p>Paragraph one</p>
+  <p>Paragraph two</p>
+  ...
+</article>
+```
+
+Paragraph one and two will then get a `data-moonwalk="slide"` attribute.
 
 
 ## Popup
@@ -620,6 +637,41 @@ Example CSS (PCSS)
 
 ## HeroVideo
 
+Set a cover image by supplying a `data-cover` element.
+
+Hero example:
+
+```html
+<section class="hero stretch" data-section>
+  <div class="hero-bg">
+    <div data-hero-video data-object-fit="cover">
+      <img src="/img/wide.jpg" data-object-fit="cover" data-cover />
+      <div data-hero-video-content>
+        <video tabindex="-1" role="presentation" preload="auto" muted loop playsinline src="/img/hero.mp4"></video>
+      </div>
+      <noscript>
+        <video tabindex="-1" role="presentation" autoplay muted loop playsinline src="/img/hero.mp4"></video>
+      </noscript>
+    </div>
+  </div>
+  <article class="hero-content">
+    <div class="container">
+      <section class="main-text">
+        <p>
+          We specialise in branding<br>
+          and identity design.
+        </p>
+      </section>
+    </div>
+    <section class="centered-arrow">
+      <a href="#index-content">
+        <span class="arrow-d mt-3">↓</span>
+      </a>
+    </section>
+  </article>
+</section>
+```
+
 ### Options
 
 - Events
@@ -627,6 +679,8 @@ Example CSS (PCSS)
   - `onPlayReady: (hero) => {}`
   - `onClickPlay: (hero) => {}`
   - `onClickPause: (hero) => {}`
+  - `onFadeInCover: (hero) => {}`
+  - `onFadeOutCover: (hero) => {}`
 
 - Elements
   - `elements.play`
