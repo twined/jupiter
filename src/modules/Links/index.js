@@ -104,10 +104,13 @@ export default class Links {
       link.addEventListener('click', e => {
         const loadingContainer = document.querySelector('.loading-container')
         const href = link.getAttribute('href')
-        loadingContainer.style.display = 'none'
 
         if (e.shiftKey || e.metaKey || e.ctrlKey) {
           return
+        }
+
+        if (loadingContainer) {
+          loadingContainer.style.display = 'none'
         }
 
         if (href.indexOf(document.location.hostname) > -1 || href.startsWith('/')) {
