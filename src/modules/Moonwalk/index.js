@@ -12,6 +12,7 @@ import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
+import Dom from '../Dom'
 
 gsap.registerPlugin(CSSPlugin)
 
@@ -55,6 +56,8 @@ const DEFAULT_OPTIONS = {
    * Create indexes inside of each section per key
    */
   addIndexes: false,
+
+  runs: {},
 
   walks: {
     default: {
@@ -203,49 +206,32 @@ export default class Moonwalk {
 
   /**
    * Look through section for `data-moonwalk-children` or
-   * `data-moonwalk-{walkName}-children`, then convert all children to
+   * `data-moonwalk-children="{walkName}"`, then convert all children to
    * `data-moonwalk` or `data-moonwalk-{walkName}`
    *
    * @param {*} section
    */
   parseChildren (section) {
-    Object.keys(this.opts.walks).forEach(key => {
-      const { elements, attr, val } = this.findChildElementsByKey(section, key)
-      this.setAttrs(elements, attr, val)
-    }, this)
+    const mwc = Dom.all(section, '[data-moonwalk-children]')
+
+    Array.from(mwc).forEach(c => {
+      const key = c.getAttribute('data-moonwalk-children')
+      this.setAttrs(c, key)
+    })
   }
 
   /**
-   * Look through `section`, searching for `key`
+   * Sets all `element`s childrens `data-moonwalk` to `val`
    *
-   * @param {*} section
-   * @param {*} key
-   */
-  findChildElementsByKey (section, key) {
-    const [searchAttr, attr, val] = key === 'default'
-      ? ['[data-moonwalk-children]', 'data-moonwalk', '']
-      : [`[data-moonwalk-${key}-children]`, 'data-moonwalk', key]
-
-    const elements = section.querySelectorAll(searchAttr)
-
-    return { elements, attr, val }
-  }
-
-  /**
-   * Sets all `elements`s `attr` to `val`
-   *
-   * @param {*} elements
-   * @param {*} attr
+   * @param {*} element
    * @param {*} val
    */
-  setAttrs (elements, attr, val) {
+  setAttrs (element, val) {
     const affectedElements = []
 
-    Array.prototype.forEach.call(elements, el => {
-      Array.prototype.forEach.call(el.children, c => {
-        c.setAttribute(attr, val)
-        affectedElements.push(c)
-      })
+    Array.prototype.forEach.call(element.children, c => {
+      c.setAttribute('data-moonwalk', val)
+      affectedElements.push(c)
     })
 
     return affectedElements
