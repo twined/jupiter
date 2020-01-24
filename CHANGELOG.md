@@ -1,6 +1,7 @@
 #### 3.27.0
 
 - Moonwalk: Allow setting named children - `data-moonwalk-children="slide"`
+- Moonwalk: Clear out more keys on reduced-motion. Update EuropaCSS too for fixes.
 - HeroVideo: Add `data-cover` for cover image.
 
 
