@@ -1,3 +1,10 @@
+#### 3.28.0
+
+- Bug fixes
+- Update GSAP to 3.1.1
+- Moonwalk: Fix CSS transitions
+
+
 #### 3.27.0
 
 - Moonwalk: Allow setting named children - `data-moonwalk-children="slide"`

@@ -118,6 +118,7 @@ export default class MobileMenu {
     if (this.hamburger) {
       this.hamburger.addEventListener('click', e => {
         e.preventDefault()
+        e.stopPropagation()
         this.toggleMenu()
       })
     }

@@ -1,6 +1,7 @@
 import {
   Back,
   CSSPlugin,
+  Draggable,
   Linear,
   Power1,
   Power2,
@@ -50,6 +51,7 @@ export {
   Cookies,
   CoverOverlay,
   Dom,
+  Draggable,
   Events,
   FixedHeader,
   FooterReveal,

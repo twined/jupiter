@@ -100,7 +100,9 @@ export default class HeroVideo {
     })
 
     this.cover = Dom.find(this.el, '[data-cover]')
-    gsap.set(this.cover, { autoAlpha: 0 })
+    if (this.cover) {
+      gsap.set(this.cover, { autoAlpha: 0 })
+    }
 
     const pauseParent = document.querySelector(this.opts.pauseParent)
     const pauseButton = document.createRange().createContextualFragment(`
@@ -222,10 +224,6 @@ export default class HeroVideo {
 
         if (!this.booting && !this.playing) {
           this.play()
-        } else {
-          this.play()
-          this.fadeIn()
-          this.booting = false
         }
       } else if (this.playing) {
         this.pause()

@@ -608,13 +608,31 @@ export default class Moonwalk {
    * @param {*} transition
    * @param {*} overlap
    */
-  tweenCSS (section, target, duration, transition, overlap) {
-    section.timeline.to(target, {
-      css: {
-        className: '+=moonwalked'
+  tweenCSS (section, target, tweenDuration, tweenTransition, tweenOverlap) {
+    let tweenPosition
+    const startingPoint = tweenDuration - tweenOverlap
+
+    if (section.timeline.isActive() && section.timeline.recent()) {
+      if (section.timeline.recent().time() > startingPoint) {
+        /* We're late for this tween if it was supposed to be sequential,
+        so insert at current time in timeline instead */
+        tweenPosition = () => section.timeline.time()
+      } else {
+        /* Still time, add as normal overlap at the end */
+        tweenPosition = () => `>-${tweenOverlap}`
+      }
+    } else {
+      tweenPosition = () => '+=0'
+    }
+
+    section.timeline.to(
+      target, {
+        css: {
+          className: `${target.className} moonwalked`
+        },
+        duration: tweenDuration
       },
-      duration
-    },
-    overlap)
+      tweenPosition()
+    )
   }
 }
