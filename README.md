@@ -638,6 +638,8 @@ Example CSS (PCSS)
 ## HeroVideo
 
 Set a cover image by supplying a `data-cover` element.
+Allow different srcs for mobile/desktop by setting
+`data-src='{"phone": "<%= get_global("hero_link_phone") %>", "desktop": "<%= get_global("hero_link_desktop") %>"}'`
 
 Hero example:
 

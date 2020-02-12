@@ -120,6 +120,7 @@ export default class HeroVideo {
 
     this.addObserver()
     this.addEvents()
+    this.setSrc()
 
     gsap.set(this.videoDiv, {
       position: 'absolute',
@@ -159,6 +160,20 @@ export default class HeroVideo {
       }
       window.objectFitPolyfill()
     })
+  }
+
+  setSrc () {
+    const dataSrc = this.video.getAttribute('data-src')
+    if (!dataSrc) {
+      return
+    }
+    const dataObj = JSON.parse(dataSrc)
+    if (this.app.breakpoints.mediaQueries.iphone.matches
+        || this.app.breakpoints.mediaQueries.mobile.matches) {
+      this.video.setAttribute('src', dataObj.phone)
+    } else {
+      this.video.setAttribute('src', dataObj.desktop)
+    }
   }
 
   addEvents () {

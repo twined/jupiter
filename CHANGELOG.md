@@ -1,3 +1,8 @@
+#### 3.29.0
+
+- HeroVideo: Add `data-src` option for choosing mobile/desktop versions.
+
+
 #### 3.28.0
 
 - Bug fixes
