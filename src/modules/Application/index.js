@@ -15,6 +15,7 @@ gsap.defaults({ overwrite: 'auto', ease: 'sine.out' })
 window.onpageshow = event => {
   if (event.persisted) {
     gsap.to(document.querySelector('#fader'), { duration: 0.35, autoAlpha: 0 })
+    gsap.to(document.querySelectorAll('[data-fader]'), { duration: 0.35, autoAlpha: 0 })
   }
 }
 
@@ -22,6 +23,9 @@ const DEFAULT_OPTIONS = {
   featureTests: {
     touch: true
   },
+
+  bindScroll: true,
+  bindResize: true,
 
   faderOpts: {
     fadeIn: (callback = () => {}) => {
@@ -93,8 +97,14 @@ export default class Application {
      */
     document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this))
     window.addEventListener('orientationchange', this.onResize.bind(this))
-    window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
-    window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
+
+    if (opts.bindScroll) {
+      window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
+    }
+
+    if (opts.bindResize) {
+      window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
+    }
   }
 
   /**

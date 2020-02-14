@@ -177,7 +177,7 @@ export default class Moonwalk {
 
       const timeline = gsap.timeline({
         // autoRemoveChildren: true
-        // smoothChildTiming: true
+        smoothChildTiming: true
       })
 
       return {
@@ -294,7 +294,9 @@ export default class Moonwalk {
     const { opts: { walks } } = this
 
     return new IntersectionObserver((entries, self) => {
-      entries.forEach(entry => {
+      for (let i = 0; i < entries.length; i += 1) {
+        const entry = entries[i]
+
         if (entry.isIntersecting) {
           /* stage section */
           if (section.stage.name) {
@@ -363,7 +365,7 @@ export default class Moonwalk {
 
           self.unobserve(entry.target)
         }
-      })
+      }
     }, { rootMargin: '0px' })
   }
 
@@ -411,7 +413,8 @@ export default class Moonwalk {
   ready () {
     const { opts } = this
 
-    this.runs.forEach((run, idx) => {
+    for (let idx = 0; idx < this.runs.length; idx += 1) {
+      const run = this.runs[idx]
       // if this is the last section, set rootMargin to 0
       let rootMargin
 
@@ -423,9 +426,10 @@ export default class Moonwalk {
 
       const runObserver = this.runObserver(run, rootMargin)
       runObserver.observe(run.el)
-    })
+    }
 
-    this.sections.forEach((section, idx) => {
+    for (let idx = 0; idx < this.sections.length; idx += 1) {
+      const section = this.sections[idx]
       // if this is the last section, set rootMargin to 0
       let rootMargin
 
@@ -443,7 +447,7 @@ export default class Moonwalk {
 
       section.elements = section.el.querySelectorAll('[data-moonwalk]')
       section.elements.forEach(box => section.observer.observe(box))
-    })
+    }
   }
 
   /**
@@ -454,12 +458,13 @@ export default class Moonwalk {
    */
   runObserver (run, rootMargin) {
     return new IntersectionObserver((entries, self) => {
-      entries.forEach(entry => {
+      for (let i = 0; i < entries.length; i += 1) {
+        const entry = entries[i]
         if (entry.isIntersecting) {
           run.callback(entry.target)
           self.unobserve(entry.target)
         }
-      })
+      }
     }, {
       rootMargin,
       threshold: run.threshold
@@ -477,7 +482,9 @@ export default class Moonwalk {
     const { opts } = this
 
     return new IntersectionObserver((entries, self) => {
-      entries.forEach(entry => {
+      for (let i = 0; i < entries.length; i += 1) {
+        const entry = entries[i]
+
         if (entry.isIntersecting) {
           section.running = true
 
@@ -545,7 +552,7 @@ export default class Moonwalk {
           }
           self.unobserve(entry.target)
         }
-      })
+      }
     }, {
       rootMargin,
       threshold: opts.threshold
