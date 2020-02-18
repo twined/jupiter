@@ -1,3 +1,8 @@
+#### 3.30.0
+
+- Kill all faders
+
+
 #### 3.29.0
 
 - HeroVideo: Add `data-src` option for choosing mobile/desktop versions.
