@@ -14,6 +14,10 @@ const DEFAULT_OPTIONS = {
   },
 
   showCC: c => {
+    if (c.hasCookie('cookielaw_accepted')) {
+      return
+    }
+
     const timeline = gsap.timeline()
 
     timeline
