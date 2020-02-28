@@ -336,6 +336,7 @@ export default class Application {
 
 
   setupDebug () {
+    this.setupGridoverlay()
     this.debugOverlay = document.querySelector('.dbg-breakpoints')
     if (!this.debugOverlay) {
       return
@@ -372,8 +373,6 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
         span.innerHTML = 'KOPIER'
       }, 1500)
     })
-
-    this.setupGridoverlay()
   }
 
   toggleDebug () {
