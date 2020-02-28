@@ -1,3 +1,8 @@
+#### 3.31.0
+
+- Fix cookielaw banner not respecting cookie set
+
+
 #### 3.30.0
 
 - Kill all faders
