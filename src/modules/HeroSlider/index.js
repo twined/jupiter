@@ -39,6 +39,12 @@ const DEFAULT_OPTIONS = {
     scale: 1.05
   },
 
+  onTransition: hs => {
+    hs.slide('parallax')
+  },
+
+  onInitialize: (/* hs */) => {},
+
   onFadeIn: (hs, callback) => {
     if (hs.slides.length > 1) {
       gsap.to(hs.el, {
@@ -123,7 +129,9 @@ export default class HeroSlider {
       this.slides[1].style.zIndex = this.opts.zIndex.next
     }
 
-    const callback = (this.slides.length > 1) ? this.next() : () => {}
+    this.opts.onInitialize(this)
+
+    const callback = (this.slides.length > 1) ? this.next.bind(this) : () => {}
 
     window.addEventListener(Events.APPLICATION_REVEALED, () => {
       /* Wait for the first image to load, then fade in container element */
@@ -162,16 +170,16 @@ export default class HeroSlider {
 
     this._currentSlide = this.slides[this._currentSlideIdx]
 
-    this.slide()
+    this.opts.onTransition(this)
   }
 
   /**
    * Switches between slides
    */
-  slide () {
+  slide (type) {
     const timeline = gsap.timeline()
 
-    switch (this.opts.transition.type) {
+    switch (type) {
       case 'fade':
         timeline
           .set(this._currentSlide, {
@@ -238,7 +246,9 @@ export default class HeroSlider {
             scale: 1.0,
             width: '100%'
           })
-          .call(this.next, null, this)
+          .call(() => {
+            this.next()
+          })
 
         break
 
