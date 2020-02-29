@@ -24,6 +24,10 @@ const DEFAULT_OPTIONS = {
     touch: true
   },
 
+  focusableSelectors: [
+    'a', 'input', 'select', 'button', 'textarea', 'iframe' // , 'video'?
+  ],
+
   bindScroll: true,
   bindResize: true,
 
@@ -62,6 +66,8 @@ export default class Application {
     }
 
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    this.focusableSelectors = this.opts.focusableSelectors
 
     this.setDims()
 
@@ -450,5 +456,32 @@ ${JSON.stringify(this.featureTests.results, undefined, 2)}
       }
     }
     document.onkeydown = gridKeyPressed
+  }
+
+  /**
+   * Add in extra selectors that are focusable
+   * @param {array} extraSelectors
+   */
+  addFocusableSelectors (extraSelectors) {
+    if (extraSelectors.length) {
+      this.focusableSelectors = this.focusableSelectors.concat(extraSelectors)
+    }
+  }
+
+  /**
+   * Set focusable selectors. Replaces default array.
+   * @param {array} selectors
+   */
+  setFocusableSelectors (selectors) {
+    if (selectors.length) {
+      this.focusableSelectors = selectors
+    }
+  }
+
+  /**
+   * Returns focusable selectors as a comma separated list
+   */
+  getFocusableSelectors () {
+    return this.focusableSelectors.join(',')
   }
 }
