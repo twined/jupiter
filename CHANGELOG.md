@@ -1,3 +1,11 @@
+#### 3.32.0
+
+- FixedHeader: Add `onOutline` event that pins header when outline is enabled. Replaces `pinOnOutline`.
+- Moonwalk: Change default starting style to be `opacity 0` instead of `visibility: hidden`, since the latter
+screws up tabbing. Make sure your css reflects this by setting `[data-moonwalk], [data-moonwalk-section], ...`
+to `opacity: 0` instead of `visibility: hidden`. If you update `europacss` this is fixed automatically.
+
+
 #### 3.31.0
 
 - Fix cookielaw banner not respecting cookie set

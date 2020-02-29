@@ -570,11 +570,16 @@ Example CSS (PCSS)
   - events are same as under default.
 
 - Events
+  *Standard events*
   - `enter`
     - Triggers 'enter' animation on the event set in `opts.on`
   - `beforeEnter`
     - Triggers during initialization. Useful for preparing elements
       before tweening into view
+  - `onOutline`
+    - When document is outlined. Default behaviour is to pin the header.
+
+  *Section-specific events*
   - `onPin`
     - Triggers when the auxillary nav gets pinned
   - `onUnpin`

@@ -246,7 +246,7 @@ export default class Moonwalk {
    * @param {*} section
    */
   setupNamesAndStages (section) {
-    gsap.set(section.el, { visibility: 'visible' })
+    gsap.set(section.el, { opacity: 1 })
 
     if (!section.stage.name && !section.name) {
       return
@@ -269,7 +269,7 @@ export default class Moonwalk {
 
       const fromTransition = sectionWalk.alphaTween ? {
         ...sectionWalk.transition.from,
-        autoAlpha: 0
+        opacity: 0
       } : sectionWalk.transition.from
 
       gsap.set(section.children, fromTransition)
@@ -353,7 +353,7 @@ export default class Moonwalk {
                 section.children,
                 tween.alphaTween.duration,
                 {
-                  autoAlpha: 1,
+                  opacity: 1,
                   ease: tween.alphaTween.ease,
                   delay: tween.startDelay || 0
                 },
@@ -599,7 +599,7 @@ export default class Moonwalk {
     if (alphaTween) {
       section.timeline.to(target, {
         duration: alphaTween.duration,
-        autoAlpha: 1,
+        opacity: 1,
         ease: alphaTween.ease
       },
       '<')

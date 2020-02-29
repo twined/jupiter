@@ -88,7 +88,6 @@ const DEFAULT_EVENTS = {
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   on: Events.APPLICATION_REVEALED,
-  pinOnOutline: true,
 
   default: {
     unPinOnResize: true,
@@ -113,6 +112,12 @@ const DEFAULT_OPTIONS = {
         })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: 'sine.in' }, 0.1, '-=1')
     },
+
+    onOutline: h => {
+      h.preventUnpin = true
+      h.pin()
+    },
+
     enterDelay: 0,
     tolerance: 3,
     offset: 0, // how far from the top before we trigger hide
@@ -129,12 +134,9 @@ export default class FixedHeader {
     this.app = app
     this.mainOpts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    if (this.mainOpts.pinOnOutline) {
-      window.addEventListener(Events.APPLICATION_OUTLINE, () => {
-        this.preventUnpin = true
-        this.pin()
-      })
-    }
+    window.addEventListener(Events.APPLICATION_OUTLINE, () => {
+      this.mainOpts.onOutline(this)
+    })
 
     if (typeof this.mainOpts.el === 'string') {
       this.el = document.querySelector(this.mainOpts.el)
