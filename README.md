@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://travis-ci.org/univers-agency/jupiter"><img src="https://img.shields.io/travis/univers-agency/jupiter/master.svg" alt="Build Status"></a>
+  <a href="https://badge.fury.io/js/%40univers-agency%2Fjupiter"><img src="https://badge.fury.io/js/%40univers-agency%2Fjupiter.svg" alt="npm version" height="18"></a>
 </p>
 
 ------
