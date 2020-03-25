@@ -26,6 +26,15 @@ exclude: [
 
 ## Application
 
+### Available CSS vars
+
+- `--vp-initial-inner-h` - Initial window inner height
+- `--vp-initial-outer-h` - Initial window outer height
+- `--vp-initial-inner-w` - Initial window inner width
+- `--vp-initial-outer-w` - Initial window outer width
+
+
+
 ### Methods/functions
 
 - `registerCallback(type, callback)`
@@ -183,11 +192,11 @@ image.addEventListener(Events.IMAGE_LAZYLOADED, () => { console.log('lazyloaded'
 
 `SECTION:LAZYLOADED`
 
-Called when a `Moonwalk` section enters the viewport and its images are done loading
+Called when a section enters the viewport and its pictures are done loading
 
 ```es6
 import * as Events from jupiter
-const section = document.querySelector('.my-section[data-moonwalk-section]')
+const section = document.querySelector('.my-section[data-lazyload-section]')
 section.addEventListener(Events.SECTION_LAZYLOADED, () => { console.log('lazyloaded') })
 ```
 
