@@ -16,6 +16,12 @@ export default class FeatureTests {
       this.results.ie11 = false
     }
 
+    if (this.testIOS()) {
+      this.testFor('ios', true)
+    } else {
+      this.results.ios = false
+    }
+
     const testKeys = Object.keys(tests)
     const wantedTests = testKeys.filter(t => tests[t])
 
@@ -99,5 +105,9 @@ export default class FeatureTests {
 
   testIE11 () {
     return '-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style
+  }
+
+  testIOS () {
+    return navigator.userAgent.match(/iphone|ipod|ipad/i)
   }
 }
