@@ -54,10 +54,15 @@ export default class Application {
     this.debugType = 1
     this.debugOverlay = null
     this.userAgent = navigator.userAgent
+    this._lastWindowHeight = 0
 
     this.size = {
       width: 0,
-      height: 0
+      height: 0,
+      initialInnerHeight: 0,
+      initialOuterHeight: 0,
+      initialInnerWidth: 0,
+      initialOuterWidth: 0
     }
 
     this.position = {
@@ -66,10 +71,7 @@ export default class Application {
     }
 
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
-
     this.focusableSelectors = this.opts.focusableSelectors
-
-    this.setDims()
 
     this.featureTests = new FeatureTests(this, this.opts.featureTests)
     if (typeof this.opts.breakpointConfig === 'object') {
@@ -78,6 +80,7 @@ export default class Application {
       this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig(this))
     }
 
+    this.setDims()
     this.fontLoader = new Fontloader(this)
 
     this.fader = null
@@ -97,6 +100,7 @@ export default class Application {
     this.beforeInitializedEvent = new window.CustomEvent(Events.APPLICATION_PRELUDIUM, this)
     this.initializedEvent = new window.CustomEvent(Events.APPLICATION_INITIALIZED, this)
     this.readyEvent = new window.CustomEvent(Events.APPLICATION_READY, this)
+    this.revealedEvent = new window.CustomEvent(Events.APPLICATION_REVEALED, this)
 
     /**
      * Grab common events and defer
@@ -251,6 +255,41 @@ export default class Application {
     }
   }
 
+  getIOSInnerHeight () {
+    if (!navigator.userAgent.match(/iphone|ipod|ipad/i)) {
+      return window.innerHeight
+    }
+
+    const axis = Math.abs(window.orientation)
+    const dims = { w: 0, h: 0 }
+
+    const createRuler = () => {
+      let ruler = document.createElement('div')
+
+      ruler.style.position = 'fixed'
+      ruler.style.height = '100vh'
+      ruler.style.width = 0
+      ruler.style.top = 0
+
+      document.documentElement.appendChild(ruler)
+
+      dims.w = axis === 90 ? ruler.offsetHeight : window.innerWidth
+      dims.h = axis === 90 ? window.innerWidth : ruler.offsetHeight
+
+      document.documentElement.removeChild(ruler)
+      ruler = null
+    }
+
+    createRuler()
+
+    if (Math.abs(window.orientation) !== 90) {
+      return dims.h
+    }
+
+    return dims.w
+  }
+
+
   /**
    * Event emitters
    */
@@ -268,11 +307,27 @@ export default class Application {
   }
 
   _emitRevealedEvent () {
-    const ev = new window.CustomEvent(Events.APPLICATION_REVEALED, this)
-    window.dispatchEvent(ev)
+    window.dispatchEvent(this.revealedEvent)
   }
 
   setDims () {
+    const root = document.querySelector(':root')
+
+    this.size.initialInnerHeight = window.innerHeight
+    this.size.initialOuterHeight = window.outerHeight
+    this.size.initialInnerWidth = window.innerWidth
+    this.size.initialOuterWidth = window.outerWidth
+
+    const vh100 = this.featureTests.results.ios ? this.getIOSInnerHeight() : this.size.initialInnerHeight
+
+    root.style.setProperty('--vp-initial-inner-h', `${this.size.initialInnerHeight}px`)
+    root.style.setProperty('--vp-initial-outer-h', `${this.size.initialOuterHeight}px`)
+    root.style.setProperty('--vp-initial-inner-w', `${this.size.initialInnerWidth}px`)
+    root.style.setProperty('--vp-initial-outer-w', `${this.size.initialOuterWidth}px`)
+    root.style.setProperty('--vp-100vh', `${vh100}px`)
+
+
+    this.size.vh100 = vh100
     this.size.width = window.innerWidth
     this.size.height = window.innerHeight
     this.position.top = window.pageYOffset
