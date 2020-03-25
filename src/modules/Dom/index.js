@@ -5,6 +5,10 @@ class DOM {
   }
 
   find (arg1, arg2) {
+    if (typeof arg1 === 'string' && typeof arg2 === 'object') {
+      throw new Error('Dom.find: Wrong syntax, use -> Dom.find(node, selector)')
+    }
+
     if (typeof arg1 === 'string') {
       return document.querySelector(arg1)
     }
