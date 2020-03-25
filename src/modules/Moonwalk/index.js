@@ -163,7 +163,6 @@ export default class Moonwalk {
    */
   initializeSections () {
     const sections = document.querySelectorAll('[data-moonwalk-section]')
-
     return Array.from(sections).map(section => {
       this.parseChildren(section)
 
@@ -291,7 +290,9 @@ export default class Moonwalk {
    * @param {*} section
    */
   sectionObserver (section) {
-    const { opts: { walks } } = this
+    // const { opts: { walks } } = this
+    const { opts } = this
+    const { walks } = opts
 
     return new IntersectionObserver((entries, self) => {
       for (let i = 0; i < entries.length; i += 1) {
@@ -366,7 +367,7 @@ export default class Moonwalk {
           self.unobserve(entry.target)
         }
       }
-    }, { rootMargin: '0px' })
+    }, { rootMargin: opts.rootMargin })
   }
 
   /**
@@ -618,6 +619,10 @@ export default class Moonwalk {
   tweenCSS (section, target, tweenDuration, tweenTransition, tweenOverlap) {
     let tweenPosition
     const startingPoint = tweenDuration - tweenOverlap
+
+    if (Dom.hasClass(target, 'moonwalked')) {
+      return
+    }
 
     if (section.timeline.isActive() && section.timeline.recent()) {
       if (section.timeline.recent().time() > startingPoint) {
