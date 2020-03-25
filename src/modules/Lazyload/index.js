@@ -2,6 +2,7 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 import { IMAGE_LAZYLOADED, SECTION_LAZYLOADED } from '../../events'
 import dispatchElementEvent from '../../utils/dispatchElementEvent'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
+import Dom from '../Dom'
 
 const DEFAULT_OPTIONS = {
   intersectionObserverConfig: {
@@ -67,27 +68,30 @@ export default class Lazyload {
   initializeSections () {
     const sections = document.querySelectorAll('[data-lazyload-section]')
     if (sections) {
-      const sectionObserver = (section, children) => new IntersectionObserver((entries, self) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting || entry.intersectionRatio > 0) {
-            children.forEach(image => {
-              this.swapImage(image)
-              this.imgObserver.unobserve(image)
-            })
-            imagesAreLoaded(children, true).then(() => {
-              dispatchElementEvent(section, SECTION_LAZYLOADED)
-            })
-            self.unobserve(section)
-          }
+      const sectionObserver = (section, children) => {
+        const imagesInSection = Dom.all(section, 'img')
+        return new IntersectionObserver((entries, self) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting || entry.intersectionRatio > 0) {
+              children.forEach(picture => {
+                this.swapPicture(picture)
+                this.pictureObserver.unobserve(picture)
+              })
+              imagesAreLoaded(imagesInSection, true).then(() => {
+                dispatchElementEvent(section, SECTION_LAZYLOADED)
+              })
+              self.unobserve(section)
+            }
+          })
+        },
+        {
+          rootMargin: '350px 0px',
+          threshold: 0.0
         })
-      },
-      {
-        rootMargin: '350px 0px',
-        threshold: 0.0
-      })
+      }
 
       sections.forEach(section => {
-        const children = section.querySelectorAll('img')
+        const children = section.querySelectorAll('picture')
         const obs = sectionObserver(section, children)
         obs.observe(section)
       })
@@ -140,6 +144,9 @@ export default class Lazyload {
     }, false)
 
     img.setAttribute('src', img.dataset.src)
+    if (img.dataset.srcset) {
+      img.setAttribute('srcset', img.dataset.srcset)
+    }
     img.setAttribute('data-ll-loaded', '')
 
     dispatchElementEvent(img, IMAGE_LAZYLOADED)
