@@ -308,6 +308,7 @@ export default class Application {
 
   _emitRevealedEvent () {
     window.dispatchEvent(this.revealedEvent)
+    this.executeCallbacks(Events.APPLICATION_REVEALED)
   }
 
   setDims () {

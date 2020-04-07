@@ -1,3 +1,9 @@
+#### 3.33.0
+
+- Add `APPLICATION_REVEALED` to registerable callbacks.
+  app.registerCallback(Events.APPLICATION_REVEALED, () => {})
+
+
 #### 3.32.0
 
 - FixedHeader: Add `onOutline` event that pins header when outline is enabled. Replaces `pinOnOutline`.

@@ -30,7 +30,7 @@ const DEFAULT_OPTIONS = {
    * Set a delay for the initial reveal. Could be useful if you want the reveal to happen
    * after for instance a header has been revealed
    */
-  initialDelay: 0,
+  initialDelay: 0.1,
 
   /**
    * Clear out all `data-ll-srcset` from moonwalk elements
@@ -40,7 +40,7 @@ const DEFAULT_OPTIONS = {
   /**
    * Determines how early the IntersectionObserver triggers
    */
-  rootMargin: '-15%',
+  rootMargin: '-10% 0%',
 
   /**
    * How much of the element must be visible before IO trigger
@@ -64,15 +64,19 @@ const DEFAULT_OPTIONS = {
       /* How long to wait before firing timeline */
       startDelay: 0,
       /* How long between multiple entries in a moonwalk-section */
-      interval: 0.1,
+      interval: 0.15,
       /* How long each tween is */
       duration: 0.65,
       /* */
-      alphaTween: false,
+      alphaTween: true,
       /* The transitions that will be tweened */
       transition: {
-        from: {},
-        to: {}
+        from: {
+          y: 20
+        },
+        to: {
+          y: 0
+        }
       }
     }
   }
