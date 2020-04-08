@@ -216,12 +216,15 @@ include images from this section. Otherwise, all lightboxed images will be inclu
       src="/media/images/site/posts/small/2gmk2h1d8d4q.jpg"
       height="1667"
       width="2210">
+
+      <div data-lightbox-trigger>Click to trigger</div>
   </figure>
 </div>
 ```
 
 #### Options
 
+- `trigger` - `false` - Selector representing an element you want to use as a trigger to open lightbox
 - `captions` - `false` - whether to show captions or not in the overlay
 - `elements` - `object` - switch out default elements in the overlay
   - `arrowRight` - `function` - returns an element

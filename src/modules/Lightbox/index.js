@@ -2,9 +2,13 @@ import { Manager, Swipe } from '@egjs/hammerjs'
 import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import imageIsLoaded from '../../utils/imageIsLoaded'
+import Dom from '../Dom'
 
 const DEFAULT_OPTIONS = {
   captions: false,
+
+  /* set to a selector if you want a specific trigger element to open the box */
+  trigger: false,
 
   elements: {
     arrowRight: () => {
@@ -130,6 +134,10 @@ export default class Lightbox {
       const originalImage = lightbox.querySelector('img')
       const alt = originalImage.getAttribute('alt')
       const section = lightbox.getAttribute('data-lightbox-section') || 'general'
+      let trigger = lightbox
+      if (this.opts.trigger) {
+        trigger = Dom.find(lightbox, this.opts.trigger) || lightbox
+      }
 
       if (!Object.prototype.hasOwnProperty.call(this.sections, section)) {
         this.sections[section] = []
@@ -142,7 +150,7 @@ export default class Lightbox {
 
       const index = this.sections[section].push(image) - 1
 
-      lightbox.addEventListener('click', e => {
+      trigger.addEventListener('click', e => {
         e.preventDefault()
         this.showBox(section, index)
       })

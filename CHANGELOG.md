@@ -1,3 +1,10 @@
+
+#### 3.34.0
+
+- Lightbox: Add `trigger` to opts.
+- Drop node 8 from travis
+
+
 #### 3.33.0
 
 - Add `APPLICATION_REVEALED` to registerable callbacks.
