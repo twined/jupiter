@@ -1,3 +1,7 @@
+#### 3.34.1
+
+- Cookies: Set `cookielaw` cookie to ROOT
+
 
 #### 3.34.0
 

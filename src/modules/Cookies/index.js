@@ -5,7 +5,7 @@ import * as Events from '../../events'
 const DEFAULT_OPTIONS = {
   onAccept: c => {
     const timeline = gsap.timeline()
-    c.setCookie('cookielaw_accepted', 1)
+    c.setCookie('cookielaw_accepted', 1, null, '/')
 
     timeline
       .to(c.cc, { duration: 0.35, y: '100%', ease: 'power3.in' }, '0')
@@ -63,6 +63,7 @@ export default class Cookies {
     this.btn = document.querySelector('.dismiss-cookielaw')
 
     if (!this.btn) {
+      console.error('Cookies: No `.dismiss-cookielaw` button found.')
       return
     }
 
