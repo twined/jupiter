@@ -92,6 +92,10 @@ class DOM {
     return width
   }
 
+  getCSSVar (key) {
+    return getComputedStyle(document.documentElement).getPropertyValue(key).trim()
+  }
+
   offset (el) {
     const rect = el.getBoundingClientRect();
     return {

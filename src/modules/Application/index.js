@@ -96,6 +96,7 @@ export default class Application {
       gsap.globalTimeline.timeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
+    window.addEventListener(Events.BREAKPOINT_CHANGE, this.onBreakpointChanged.bind(this))
 
     this.beforeInitializedEvent = new window.CustomEvent(Events.APPLICATION_PRELUDIUM, this)
     this.initializedEvent = new window.CustomEvent(Events.APPLICATION_INITIALIZED, this)
@@ -328,11 +329,16 @@ export default class Application {
     root.style.setProperty('--vp-100vh', `${vh100}px`)
 
 
+    this.size.container = Dom.getCSSVar('--container-padding')
     this.size.vh100 = vh100
     this.size.width = window.innerWidth
     this.size.height = window.innerHeight
     this.position.top = window.pageYOffset
     this.position.left = window.pageXOffset
+  }
+
+  onBreakpointChanged () {
+    this.size.container = Dom.getCSSVar('--container-padding')
   }
 
   /**

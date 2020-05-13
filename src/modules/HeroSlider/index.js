@@ -88,8 +88,7 @@ export default class HeroSlider {
       left: 0,
       width: '100%',
       height: '100%',
-      overflow: 'hidden',
-      opacity: 0
+      overflow: 'hidden'
     })
 
     this.slides = this.el.querySelectorAll('[data-hero-slide]')
