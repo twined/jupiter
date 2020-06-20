@@ -38,6 +38,11 @@ const DEFAULT_OPTIONS = {
   clearLazyload: false,
 
   /**
+   * Clear out all nested [data-moonwalk-section]s
+   */
+  clearNestedSections: true,
+
+  /**
    * Determines how early the IntersectionObserver triggers
    */
   rootMargin: '-10% 0%',
@@ -86,6 +91,9 @@ export default class Moonwalk {
   constructor (app, opts = {}) {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+    if (this.opts.clearNestedSections) {
+      document.querySelectorAll('[data-moonwalk-section] [data-moonwalk-section]').forEach(ms => ms.removeAttribute('data-moonwalk-section'))
+    }
     this.addClass()
     this.sections = this.initializeSections()
     this.runs = this.initializeRuns()
