@@ -82,7 +82,11 @@ const DEFAULT_EVENTS = {
   // eslint-disable-next-line no-unused-vars
   onMobileMenuClose: h => { },
   // eslint-disable-next-line no-unused-vars
-  onIntersect: h => { }
+  onIntersect: h => { },
+  onOutline: h => {
+    h.preventUnpin = true
+    h.pin()
+  }
 }
 
 const DEFAULT_OPTIONS = {
@@ -111,11 +115,6 @@ const DEFAULT_OPTIONS = {
           autoRound: true
         })
         .staggerTo(h.lis, 0.8, { opacity: 1, ease: 'sine.in' }, 0.1, '-=1')
-    },
-
-    onOutline: h => {
-      h.preventUnpin = true
-      h.pin()
     },
 
     enterDelay: 0,
