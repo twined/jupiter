@@ -5,7 +5,11 @@ import imageIsLoaded from '../../utils/imageIsLoaded'
 import Dom from '../Dom'
 
 const DEFAULT_OPTIONS = {
+  /* enable captions */
   captions: false,
+
+  /* enable swipe — this breaks native zoom! */
+  swipe: true,
 
   /* set to a selector if you want a specific trigger element to open the box */
   trigger: false,
@@ -32,7 +36,12 @@ const DEFAULT_OPTIONS = {
   onClick: (lightbox, section, e) => {
     e.stopPropagation()
     e.preventDefault()
-    lightbox.setImg(section, lightbox.getNextIdx(section))
+
+    if (lightbox.pointerDirection === 'left') {
+      lightbox.setImg(section, lightbox.getPrevIdx(section))
+    } else {
+      lightbox.setImg(section, lightbox.getNextIdx(section))
+    }
   },
 
   onPointerLeft: () => {},
@@ -264,7 +273,9 @@ export default class Lightbox {
     document.body.appendChild(this.elements.wrapper)
 
     this.setImg(section, index, this.getPrevIdx(index))
-    this.attachSwiper(section, this.elements.content, index)
+    if (this.opts.swipe) {
+      this.attachSwiper(section, this.elements.content, index)
+    }
 
     this.opts.onOpen(this)
 
