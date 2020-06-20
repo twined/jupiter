@@ -110,6 +110,13 @@ Some utility functions for dealing with the DOM.
 - `Dom.position(element)`
   - Returns `top` and `left` positions for `element`
 
+- `Dom.getCSSVar(key)`
+  - Get `key` as CSS var on root
+
+- `Dom.setCSSVar(key, val)`
+  - Sets `key` with `val` as CSS var on root
+
+
 
 ## Events (application)
 
@@ -224,8 +231,9 @@ include images from this section. Otherwise, all lightboxed images will be inclu
 
 #### Options
 
-- `trigger` - `false` - Selector representing an element you want to use as a trigger to open lightbox
+- `trigger` - `false` - selector representing an element you want to use as a trigger to open lightbox
 - `captions` - `false` - whether to show captions or not in the overlay
+- `swipe` - `true` – if swipe is true, native zoom won't work, so allow choosing
 - `elements` - `object` - switch out default elements in the overlay
   - `arrowRight` - `function` - returns an element
   - `arrowLeft` - `function` - returns an element
@@ -280,6 +288,9 @@ syntax. If no value is provided, we run the `default` walk.
 
 - `clearLazyload` - default `false`
   - Clear out all `data-ll-srcset` from moonwalk elements
+
+- `clearNestedSections` - default `true`
+  - Clear nested `data-moonwalk-sections` since they usually just break functionality.
 
 - `rootMargin` - default `'-15%'`
   - Determines how early the IntersectionObserver triggers
@@ -468,6 +479,9 @@ Paragraph one and two will then get a `data-moonwalk="slide"` attribute.
   - Function that gets called to tween popup + background out
   - Backdrop can be accessed as `popup.backdrop`
 
+- `onClose: (popup) => {}`
+  - Function that gets called right before `popup.close`
+
 ### Example
 
 Example HTML
@@ -552,6 +566,8 @@ Example CSS (PCSS)
   - Pin header when user tabs
 - `pinOnForcedScroll` - default `true`
   - Pin header when scroll is forced (`application.scrollTo`, clicking anchors etc)
+- `unPinOnResize` - default `false`
+  - Unpin header when window is resized
 
 - Events
   - `onMainVisible`
@@ -562,6 +578,9 @@ Example CSS (PCSS)
     - Triggers when the auxillary nav gets pinned
   - `onUnpin`
     - Triggers when the auxillary nav unpins
+  - `beforeEnter`
+    - Triggers during initialization. Useful for preparing elements
+      before tweening into view
 
 
 ## FixedHeader

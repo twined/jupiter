@@ -1,3 +1,14 @@
+#### 3.35.0
+
+- Dom: `setCSSVar`
+- FixedHeader: fix `onOutline` event
+- Lightbox: `swipe: true/false` cfg setting. If swipe is true, native zoom won't work, so allow to choose.
+- Moonwalk: add `clearNestedSections` -- NOTE: This is enabled by default, since nested sections
+  usually leads to trouble!
+- StickyHeader: add `beforeEnter` event
+- StickyHeader: add `unPinOnResize` cfg.
+
+
 #### 3.34.1
 
 - Cookies: Set `cookielaw` cookie to ROOT
