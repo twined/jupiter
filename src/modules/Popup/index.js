@@ -2,6 +2,8 @@ import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
+  onClose: () => {},
+
   tweenIn: (el, popup) => {
     gsap.set(popup.backdrop, { display: 'block' })
     gsap.to(popup.backdrop, {
@@ -68,6 +70,7 @@ export default class Popup {
       closer.addEventListener('click', event => {
         event.stopImmediatePropagation()
         event.preventDefault()
+        this.opts.onClose(this)
         this.close()
       })
     })
