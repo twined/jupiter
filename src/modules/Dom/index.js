@@ -96,6 +96,10 @@ class DOM {
     return getComputedStyle(document.documentElement).getPropertyValue(key).trim()
   }
 
+  setCSSVar (key, val) {
+    document.documentElement.style.setProperty(`--${key}`, val)
+  }
+
   offset (el) {
     const rect = el.getBoundingClientRect();
     return {
