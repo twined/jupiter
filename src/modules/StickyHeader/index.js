@@ -71,10 +71,14 @@ const DEFAULT_OPTIONS = {
   on: Events.APPLICATION_REVEALED,
   pinOnOutline: false,
   pinOnForcedScroll: true,
+  unPinOnResize: false,
 
   default: {
     onClone: h => h.el.cloneNode(true),
     canvas: window,
+    beforeEnter: h => {
+      gsap.set(h.el, { opacity: 0 })
+    },
     enter: h => {
       const timeline = gsap.timeline()
       timeline
@@ -165,6 +169,12 @@ export default class StickyHeader {
 
     window.addEventListener(this.mainOpts.on, this.bindObserver.bind(this))
     this._bindMobileMenuListeners()
+
+    if (this.opts.unPinOnResize) {
+      window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
+    }
+
+    this.opts.beforeEnter(this)
   }
 
   setupObserver () {
@@ -203,8 +213,6 @@ export default class StickyHeader {
         this.preventUnpin = false
       }, false)
     }
-
-    window.addEventListener(Events.APPLICATION_RESIZE, this.setResizeTimer.bind(this), false)
   }
 
   bindObserver () {
@@ -213,7 +221,6 @@ export default class StickyHeader {
 
   setResizeTimer () {
     this._isResizing = true
-
     if (this._pinned) {
       // unpin if resizing to prevent visual clutter
       this.unpin()
