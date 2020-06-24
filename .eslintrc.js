@@ -16,9 +16,9 @@ module.exports = {
     'no-debugger': 'off',
     'no-param-reassign': 0,
     'no-underscore-dangle': 0,
-    'quotes': ['error', 'single'],
-    'radix': ['error', 'as-needed'],
-    'semi': 0,
+    quotes: ['error', 'single'],
+    radix: ['error', 'as-needed'],
+    semi: 0,
     'space-before-function-paren': ['error', 'always']
   },
   parserOptions: {

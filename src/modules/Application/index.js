@@ -20,6 +20,7 @@ window.onpageshow = event => {
 }
 
 const DEFAULT_OPTIONS = {
+  respectReducedMotion: true,
   featureTests: {
     touch: true
   },
@@ -92,7 +93,7 @@ export default class Application {
     this.INITIALIZED = false
 
     this.PREFERS_REDUCED_MOTION = prefersReducedMotion()
-    if (this.PREFERS_REDUCED_MOTION) {
+    if (this.PREFERS_REDUCED_MOTION && this.opts.respectReducedMotion) {
       gsap.globalTimeline.timeScale(200)
       document.documentElement.classList.add('prefers-reduced-motion')
     }
@@ -290,7 +291,6 @@ export default class Application {
     return dims.w
   }
 
-
   /**
    * Event emitters
    */
@@ -327,7 +327,6 @@ export default class Application {
     root.style.setProperty('--vp-initial-inner-w', `${this.size.initialInnerWidth}px`)
     root.style.setProperty('--vp-initial-outer-w', `${this.size.initialOuterWidth}px`)
     root.style.setProperty('--vp-100vh', `${vh100}px`)
-
 
     this.size.container = Dom.getCSSVar('--container-padding')
     this.size.vh100 = vh100
@@ -401,7 +400,6 @@ export default class Application {
       }, time)
     }
   }
-
 
   setupDebug () {
     this.setupGridoverlay()
