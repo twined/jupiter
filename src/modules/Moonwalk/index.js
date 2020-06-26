@@ -302,7 +302,6 @@ export default class Moonwalk {
    * @param {*} section
    */
   sectionObserver (section) {
-    // const { opts: { walks } } = this
     const { opts } = this
     const { walks } = opts
 
@@ -407,7 +406,6 @@ export default class Moonwalk {
       return orderA - orderB
     })
   }
-
 
   onReady () {
     if (this.opts.initialDelay) {
@@ -652,7 +650,7 @@ export default class Moonwalk {
     section.timeline.to(
       target, {
         css: {
-          className: `${target.className} moonwalked`
+          className: target.className ? `${target.className} moonwalked` : 'moonwalked'
         },
         duration: tweenDuration
       },
