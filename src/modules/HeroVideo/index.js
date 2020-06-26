@@ -17,7 +17,6 @@ import prefersReducedMotion from '../../utils/prefersReducedMotion'
 import imageIsLoaded from '../../utils/imageIsLoaded'
 import Dom from '../Dom'
 
-
 gsap.registerPlugin(CSSPlugin)
 // eslint-disable-next-line no-unused-vars
 const plugins = [objectFitPolyfill]
@@ -158,7 +157,12 @@ export default class HeroVideo {
         this.fadeIn()
         this.booting = false
       }
-      window.objectFitPolyfill()
+
+      if (this.app.featureTests.results.ie11) {
+        if (window.objectFitPolyfill) {
+          window.objectFitPolyfill()
+        }
+      }
     })
   }
 
