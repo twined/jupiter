@@ -143,11 +143,21 @@ export default class Lazyload {
       img.removeAttribute('data-ll-blurred')
     }, false)
 
-    img.setAttribute('src', img.dataset.src)
+    if (img.dataset.src) {
+      img.setAttribute('src', img.dataset.src)
+    }
+
     if (img.dataset.srcset) {
       img.setAttribute('srcset', img.dataset.srcset)
     }
+
     img.setAttribute('data-ll-loaded', '')
+
+    if (this.app.featureTests.results.ie11) {
+      if (window.picturefill) {
+        window.picturefill({ reevaluate: true })
+      }
+    }
 
     dispatchElementEvent(img, IMAGE_LAZYLOADED)
 
