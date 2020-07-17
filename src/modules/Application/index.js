@@ -108,14 +108,23 @@ export default class Application {
      * Grab common events and defer
      */
     document.addEventListener('visibilitychange', this.onVisibilityChange.bind(this))
-    window.addEventListener('orientationchange', this.onResize.bind(this))
+    window.addEventListener('orientationchange', this.onResize.bind(this), {
+      capture: false,
+      passive: true
+    })
 
     if (opts.bindScroll) {
-      window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)))
+      window.addEventListener('scroll', rafCallback(this.onScroll.bind(this)), {
+        capture: false,
+        passive: true
+      })
     }
 
     if (opts.bindResize) {
-      window.addEventListener('resize', rafCallback(this.onResize.bind(this)))
+      window.addEventListener('resize', rafCallback(this.onResize.bind(this)), {
+        capture: false,
+        passive: true
+      })
     }
   }
 

@@ -206,7 +206,10 @@ export default class FixedHeader {
 
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
     window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
-    window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), false)
+    window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), {
+      capture: false,
+      passive: true
+    })
     window.addEventListener(Events.APPLICATION_READY, this.unpinIfScrolled.bind(this))
     window.addEventListener(this.mainOpts.on, this.enter.bind(this))
 
