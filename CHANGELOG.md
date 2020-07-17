@@ -1,3 +1,17 @@
+#### 3.36.0
+
+- Moonwalk: Fix space in class name when css tweening
+- Moonwalk: add `clearMoonwalkOnAnchors`. Removes all moonwalks if called from a link with hash/anchor.
+I.e if the URL is `/news#latest`, all moonwalks are removed. This can sort out a rendering bug with
+IntersectionObserver that sometimes happens.
+- Application: add `respectReducedMotion`. Set to false if you don't want to respect the user's
+reduced-motion settings. May prevent some rendering bugs in extreme cases, but not recommended.
+- General: Don't include polyfills in package, include from application
+- General: Only try to call object-fit polyfill on IE11
+- General: Set capture/passive for events where applicable.
+- Lazyload: Force picturefill after lazyload on IE11
+
+
 #### 3.35.0
 
 - Dom: `setCSSVar`

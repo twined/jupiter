@@ -26,13 +26,17 @@ exclude: [
 
 ## Application
 
+### Config
+
+- `respectReducedMotion` - default `true`
+
+
 ### Available CSS vars
 
 - `--vp-initial-inner-h` - Initial window inner height
 - `--vp-initial-outer-h` - Initial window outer height
 - `--vp-initial-inner-w` - Initial window inner width
 - `--vp-initial-outer-w` - Initial window outer width
-
 
 
 ### Methods/functions
@@ -291,6 +295,9 @@ syntax. If no value is provided, we run the `default` walk.
 
 - `clearNestedSections` - default `true`
   - Clear nested `data-moonwalk-sections` since they usually just break functionality.
+
+- `clearMoonwalkOnAnchors` - default `false`
+  - Removes all moonwalks if called from a link with hash/anchor.
 
 - `rootMargin` - default `'-15%'`
   - Determines how early the IntersectionObserver triggers
