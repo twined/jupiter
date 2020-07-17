@@ -33,8 +33,7 @@
     "dependencies": {
         "@egjs/hammerjs": "^2.0.17",
         "gsap": "3.3.3",
-        "lodash.defaultsdeep": "^4.6.1",
-        "objectFitPolyfill": "^2.3.0"
+        "lodash.defaultsdeep": "^4.6.1"
     },
     "devDependencies": {
         "@babel/core": "^7.10.3",

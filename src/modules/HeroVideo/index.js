@@ -10,7 +10,6 @@
 
 import { gsap } from 'gsap'
 import { CSSPlugin } from 'gsap/CSSPlugin'
-import objectFitPolyfill from 'objectFitPolyfill'
 import _defaultsDeep from 'lodash.defaultsdeep'
 import * as Events from '../../events'
 import prefersReducedMotion from '../../utils/prefersReducedMotion'
@@ -18,8 +17,6 @@ import imageIsLoaded from '../../utils/imageIsLoaded'
 import Dom from '../Dom'
 
 gsap.registerPlugin(CSSPlugin)
-// eslint-disable-next-line no-unused-vars
-const plugins = [objectFitPolyfill]
 
 const DEFAULT_OPTIONS = {
   el: '[data-hero-video]',
