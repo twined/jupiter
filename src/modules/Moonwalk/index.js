@@ -43,6 +43,11 @@ const DEFAULT_OPTIONS = {
   clearNestedSections: true,
 
   /**
+   * If page is linked with an anchor, remove moonwalk for the page
+   */
+  clearMoonwalkOnAnchors: true,
+
+  /**
    * Determines how early the IntersectionObserver triggers
    */
   rootMargin: '-10% 0%',
@@ -91,6 +96,14 @@ export default class Moonwalk {
   constructor (app, opts = {}) {
     this.app = app
     this.opts = _defaultsDeep(opts, DEFAULT_OPTIONS)
+
+    if (this.opts.clearMoonwalkOnAnchors) {
+      if (window.location.hash) {
+        this.removeAllWalks()
+        return
+      }
+    }
+
     if (this.opts.clearNestedSections) {
       document.querySelectorAll('[data-moonwalk-section] [data-moonwalk-section]').forEach(ms => ms.removeAttribute('data-moonwalk-section'))
     }
