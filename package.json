@@ -32,14 +32,14 @@
     },
     "dependencies": {
         "@egjs/hammerjs": "^2.0.17",
-        "gsap": "3.4.0",
+        "gsap": "3.4.2",
         "lodash.defaultsdeep": "^4.6.1"
     },
     "devDependencies": {
         "@babel/core": "^7.10.5",
         "@babel/preset-env": "^7.10.4",
         "babel-jest": "^26.1.0",
-        "eslint": "7.4.0",
+        "eslint": "7.5.0",
         "eslint-config-airbnb-base": "^14.2.0",
         "eslint-plugin-import": "^2.22.0",
         "eslint-plugin-node": "^11.1.0",
