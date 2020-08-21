@@ -24,6 +24,8 @@ const DEFAULT_OPTIONS = {
   interval: 4.2,
   /* the slide number we start with */
   initialSlideNumber: 0,
+  /* are the slider images lazyloaded? */
+  lazyImages: false,
   /* zIndexes for the slide mechanism */
   zIndex: {
     visible: 5,
@@ -137,7 +139,7 @@ export default class HeroSlider {
       const firstImg = this.slides[this._currentSlideIdx].querySelector('img')
 
       if (firstImg) {
-        imageIsLoaded(firstImg).then(() => {
+        imageIsLoaded(firstImg, this.opts.lazyImages).then(() => {
           this.opts.onFadeIn(this, callback)
         })
       }
