@@ -1,3 +1,11 @@
+#### 3.37.0
+
+- update GSAP, export ScrollTrigger
+- Application: add `app.section`
+- HeroSlider: add `lazyImages` config. If true, tries to lazyload first image before
+  setting slider as ready
+
+
 #### 3.36.0
 
 - Moonwalk: Fix space in class name when css tweening
