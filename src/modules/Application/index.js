@@ -133,6 +133,7 @@ export default class Application {
    */
   initialize () {
     this._emitBeforeInitializedEvent()
+    this.setSection()
     this.executeCallbacks(Events.APPLICATION_PRELUDIUM)
     this.setupDebug()
     this._emitInitializedEvent()
@@ -177,6 +178,13 @@ export default class Application {
       return
     }
     this.callbacks[type].forEach(cb => cb(this))
+  }
+
+  /**
+   * Set section
+   */
+  setSection () {
+    this.section = document.body.getAttribute('data-script')
   }
 
   /**
