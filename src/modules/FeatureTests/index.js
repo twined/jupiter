@@ -22,6 +22,12 @@ export default class FeatureTests {
       this.results.ios = false
     }
 
+    if (this.testWebview()) {
+      this.testFor('webview', true)
+    } else {
+      this.results.webview = false
+    }
+
     const testKeys = Object.keys(tests)
     const wantedTests = testKeys.filter(t => tests[t])
 
@@ -109,5 +115,9 @@ export default class FeatureTests {
 
   testIOS () {
     return navigator.userAgent.match(/iphone|ipod|ipad/i)
+  }
+
+  testWebview () {
+    return navigator.userAgent.match(/FBAN|FBAV|instagram|facebook|messenger/i)
   }
 }
