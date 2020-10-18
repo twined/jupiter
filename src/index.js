@@ -1,17 +1,8 @@
 import {
-  Back,
   CSSPlugin,
   Draggable,
-  Linear,
-  Power1,
-  Power2,
-  Power3,
-  Expo,
   ScrollToPlugin,
   ScrollTrigger,
-  Sine,
-  TweenLite,
-  TimelineLite,
   gsap
 } from 'gsap/all'
 
@@ -80,17 +71,8 @@ export {
   // Export some of the libs we use,
   // that can also be used in the main frontend.
   gsap,
-  Back,
   CSSPlugin,
   ScrollToPlugin,
   ScrollTrigger,
-  Hammer,
-  Linear,
-  Power1,
-  Power2,
-  Power3,
-  Expo,
-  Sine,
-  TweenLite,
-  TimelineLite
+  Hammer
 }
