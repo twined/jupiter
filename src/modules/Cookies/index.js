@@ -4,8 +4,11 @@ import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   onAccept: c => {
+    const oneYearFromNow = new Date()
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+
     const timeline = gsap.timeline()
-    c.setCookie('cookielaw_accepted', 1, null, '/')
+    c.setCookie('cookielaw_accepted', 1, oneYearFromNow, '/')
 
     timeline
       .to(c.cc, { duration: 0.35, y: '100%', ease: 'power3.in' }, '0')
