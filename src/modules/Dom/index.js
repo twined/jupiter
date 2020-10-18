@@ -32,6 +32,20 @@ class DOM {
     return []
   }
 
+  create (element, ...classes) {
+    const el = document.createElement(element)
+    this.addClass(el, ...classes)
+    return el
+  }
+
+  append (element) {
+    document.body.appendChild(element)
+  }
+
+  remove (element) {
+    element.remove()
+  }
+
   addClass (element, ...classes) {
     classes.forEach(className => {
       element.classList.add(className)
@@ -105,14 +119,30 @@ class DOM {
     return {
       top: rect.top + window.pageYOffset,
       left: rect.left + window.pageXOffset
-    };
+    }
   }
 
   position (el) {
     return {
       top: el.offsetTop,
       left: el.offsetLeft
-    };
+    }
+  }
+
+  /**
+   * Check if parts of `el` is in viewport
+   *
+   * @param {*} el
+   */
+  inViewport (el) {
+    const rect = el.getBoundingClientRect()
+    const windowHeight = (window.innerHeight || document.documentElement.clientHeight)
+    const windowWidth = (window.innerWidth || document.documentElement.clientWidth)
+
+    const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0)
+    const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0)
+
+    return (vertInView && horInView)
   }
 }
 
