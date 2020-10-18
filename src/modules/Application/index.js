@@ -87,6 +87,7 @@ export default class Application {
     this.fader = null
     this.callbacks = {}
 
+    this.SCROLL_LOCKED = false
     this.SCROLLBAR_WIDTH = null
     this.getScrollBarWidth()
 
@@ -195,20 +196,34 @@ export default class Application {
       || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0) > 0
   }
 
-  scrollLock () {
+  /**
+   * Locks body scroll
+   * `extraPaddedElements` can be a list of elements that also need padding, such as the header!
+   * @param {*} extraPaddedElements
+   */
+  scrollLock (extraPaddedElements = []) {
+    if (this.SCROLL_LOCKED) {
+      return
+    }
     const currentScrollbarWidth = this.getCurrentScrollBarWidth()
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_LOCKED, this)
+    this._scrollPaddedElements = [document.body, ...extraPaddedElements]
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = true
-    gsap.set(document.body, { overflow: 'hidden', paddingRight: currentScrollbarWidth })
+    gsap.set(document.body, { overflow: 'hidden' })
+    gsap.set(this._scrollPaddedElements, { paddingRight: currentScrollbarWidth })
     document.addEventListener('touchmove', this.scrollVoid, false)
   }
 
   scrollRelease () {
+    if (!this.SCROLL_LOCKED) {
+      return
+    }
     const ev = new window.CustomEvent(Events.APPLICATION_SCROLL_RELEASED, this)
     window.dispatchEvent(ev)
     this.SCROLL_LOCKED = false
-    gsap.set(document.body, { clearProps: 'overflow, paddingRight' })
+    gsap.set(document.body, { clearProps: 'overflow' })
+    gsap.set(this._scrollPaddedElements, { clearProps: 'paddingRight' })
     document.removeEventListener('touchmove', this.scrollVoid, false)
   }
 
@@ -274,7 +289,11 @@ export default class Application {
     }
   }
 
-  getIOSInnerHeight () {
+  getIOSCurrentInnerHeight () {
+    return window.innerHeight
+  }
+
+  getIOSInnerHeightMax () {
     if (!navigator.userAgent.match(/iphone|ipod|ipad/i)) {
       return window.innerHeight
     }
@@ -337,20 +356,38 @@ export default class Application {
     this.size.initialInnerWidth = window.innerWidth
     this.size.initialOuterWidth = window.outerWidth
 
-    const vh100 = this.featureTests.results.ios ? this.getIOSInnerHeight() : this.size.initialInnerHeight
-
     root.style.setProperty('--vp-initial-inner-h', `${this.size.initialInnerHeight}px`)
     root.style.setProperty('--vp-initial-outer-h', `${this.size.initialOuterHeight}px`)
     root.style.setProperty('--vp-initial-inner-w', `${this.size.initialInnerWidth}px`)
     root.style.setProperty('--vp-initial-outer-w', `${this.size.initialOuterWidth}px`)
-    root.style.setProperty('--vp-100vh', `${vh100}px`)
+    this.setvh100Max()
+    this.setvh100()
 
     this.size.container = Dom.getCSSVar('--container-padding')
-    this.size.vh100 = vh100
     this.size.width = window.innerWidth
     this.size.height = window.innerHeight
     this.position.top = window.pageYOffset
     this.position.left = window.pageXOffset
+  }
+
+  /**
+   * Inner height of mobiles may change when showing hiding bottom bar.
+   */
+  setvh100 () {
+    const root = document.querySelector(':root')
+    root.style.setProperty('--vp-100vh', `${window.innerHeight}px`)
+    root.style.setProperty('--vp-1vh', `${window.innerHeight * 0.01}px`)
+  }
+
+  /**
+   * Get the max 100vh for iOS
+   */
+  setvh100Max () {
+    const root = document.querySelector(':root')
+    const vh100 = this.featureTests.results.ios
+      ? this.getIOSInnerHeightMax() : this.size.initialInnerHeight
+    root.style.setProperty('--vp-100vh-max', `${vh100}px`)
+    this.size.vh100max = vh100
   }
 
   onBreakpointChanged () {
@@ -363,6 +400,7 @@ export default class Application {
   onResize (e) {
     this.size.width = window.innerWidth
     this.size.height = window.innerHeight
+    this.setvh100()
 
     const evt = new CustomEvent(Events.APPLICATION_RESIZE, e)
     window.dispatchEvent(evt)
