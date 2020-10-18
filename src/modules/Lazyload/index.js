@@ -3,6 +3,7 @@ import { IMAGE_LAZYLOADED, SECTION_LAZYLOADED } from '../../events'
 import dispatchElementEvent from '../../utils/dispatchElementEvent'
 import imagesAreLoaded from '../../utils/imagesAreLoaded'
 import Dom from '../Dom'
+import * as Events from '../../events'
 
 const DEFAULT_OPTIONS = {
   intersectionObserverConfig: {
@@ -21,6 +22,8 @@ export default class Lazyload {
   }
 
   initialize () {
+    // initialize all images that have data-sizes="auto" and set sizes="<actual width>px"
+    this.initializeAutoSizes()
     // look for lazyload sections. if we find, add an observer that triggers
     // lazyload for all images within.
     this.initializeSections()
@@ -47,8 +50,10 @@ export default class Lazyload {
       )
 
       this.lazyImages = document.querySelectorAll('[data-ll-image]')
-      this.lazyImages.forEach(img => {
+      this.lazyImages.forEach((img, idx) => {
         img.setAttribute('data-ll-blurred', '')
+        img.setAttribute('data-ll-idx', idx)
+        img.style.setProperty('--ll-idx', idx)
         this.imgObserver.observe(img)
       })
 
@@ -58,11 +63,30 @@ export default class Lazyload {
       )
 
       this.lazyPictures = document.querySelectorAll('[data-ll-srcset]')
-      this.lazyPictures.forEach(picture => {
-        picture.querySelectorAll('img').forEach(img => { img.setAttribute('data-ll-blurred', '') })
+      this.lazyPictures.forEach((picture, idx) => {
+        picture.querySelectorAll('img:not([data-ll-loaded])').forEach(img => {
+          img.setAttribute('data-ll-blurred', '')
+          img.setAttribute('data-ll-idx', idx)
+          img.style.setProperty('--ll-idx', idx)
+        })
         this.pictureObserver.observe(picture)
       })
     }
+  }
+
+  initializeAutoSizes () {
+    this.$autoSizesImages = Dom.all('[data-sizes="auto"]')
+    this.autoSizes()
+    window.addEventListener(Events.APPLICATION_RESIZE, () => this.autoSizes())
+  }
+
+  /**
+   * Set sizes attribute for all images with `data-sizes="auto"`
+   */
+  autoSizes () {
+    Array.from(this.$autoSizesImages).forEach(img => {
+      img.setAttribute('sizes', `${img.offsetWidth}px`)
+    })
   }
 
   initializeSections () {
@@ -84,10 +108,7 @@ export default class Lazyload {
             }
           })
         },
-        {
-          rootMargin: '350px 0px',
-          threshold: 0.0
-        })
+        this.opts.intersectionObserverConfig)
       }
 
       sections.forEach(section => {
@@ -126,14 +147,21 @@ export default class Lazyload {
   swapPicture (picture) {
     // gather all the source elements in picture
     const sources = picture.querySelectorAll('source')
+    let loadedSomething = false
 
     for (let s = 0; s < sources.length; s += 1) {
       const source = sources[s]
-
+      if (!source.hasAttribute('data-ll-loaded')) {
+        loadedSomething = true
+      }
       if (source.hasAttribute('srcset')) {
         source.setAttribute('srcset', source.dataset.srcset)
         source.setAttribute('data-ll-loaded', '')
       }
+    }
+
+    if (!loadedSomething) {
+      return
     }
 
     const img = picture.querySelector('img')
@@ -141,7 +169,11 @@ export default class Lazyload {
     img.addEventListener('load', () => {
       img.removeAttribute('data-ll-placeholder')
       img.removeAttribute('data-ll-blurred')
+      img.removeAttribute('data-ll-loading')
+      img.setAttribute('data-ll-loaded', '')
     }, false)
+
+    img.setAttribute('data-ll-loading', '')
 
     if (img.dataset.src) {
       img.setAttribute('src', img.dataset.src)
@@ -150,8 +182,6 @@ export default class Lazyload {
     if (img.dataset.srcset) {
       img.setAttribute('srcset', img.dataset.srcset)
     }
-
-    img.setAttribute('data-ll-loaded', '')
 
     if (this.app.featureTests.results.ie11) {
       if (window.picturefill) {
@@ -165,6 +195,7 @@ export default class Lazyload {
     if (img.complete) {
       img.removeAttribute('data-ll-placeholder')
       img.removeAttribute('data-ll-blurred')
+      img.removeAttribute('data-ll-loading')
       img.setAttribute('data-ll-loaded', '')
     }
   }
