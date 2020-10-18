@@ -1,3 +1,23 @@
+#### 3.38.0
+
+- Application: Prevent scrollLock running while already locked, since this would reset scrollbar
+  width padding compensation
+- Application: Add `extraPaddedElements` param to `scrollLock`. If for instance your nav needs
+  the same padding as the body element when compensating for scrollbar width.
+  `app.scrollLock(['header[data-nav] nav']);`
+- Cookies: Expire cookie law cookie one year in the future.
+- Dom: Add `Dom.inViewport(el)` to check if parts of `el` is currently visible
+- Dom: Add `Dom.create('div', ['my-class1', 'my-class2'])` convenience function
+- Dom: Add `Dom.remove(el)` convenience function for removing `el` from document
+- Dom: Add `Dom.append(el)` convenience function for appending `el` to `body`
+- Lazyload: Set `data-ll-loaded` on finished lazy loaded images.
+- Lazyload: Prevent repeat lazyloading already loaded image
+- Lazyload: Prevent repeat lazyloading already loaded image
+- Lazyload: Dynamically set `sizes` for images with `[data-sizes="auto"]`
+- Moonwalk: Add `container` param to constructor. For instance if we want to run Moonwalk
+  on a json loaded doc.
+
+
 #### 3.37.0
 
 - update GSAP, export ScrollTrigger
