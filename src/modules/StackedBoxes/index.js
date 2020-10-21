@@ -12,7 +12,6 @@ export default class StackedBoxes {
   }
 
   initialize () {
-    // TODO: ensure images are loaded?
     const boxes = document.querySelectorAll('[data-boxes-stacked]')
 
     const observer = new IntersectionObserver(entries => {
