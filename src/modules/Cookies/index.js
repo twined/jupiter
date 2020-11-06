@@ -11,7 +11,7 @@ const DEFAULT_OPTIONS = {
     c.setCookie('cookielaw_accepted', 1, oneYearFromNow, '/')
 
     timeline
-      .to(c.cc, { duration: 0.35, y: '100%', ease: 'power3.in' }, '0')
+      .to(c.cc, { duration: 0.35, y: '120%', ease: 'power3.in' }, '0')
       .to(c.inner, { duration: 0.3, opacity: 0, ease: 'power3.in' }, '0')
       .set(c.cc, { display: 'none' })
   },
@@ -26,7 +26,7 @@ const DEFAULT_OPTIONS = {
     timeline
       .fromTo(c.cc, {
         duration: 0.5,
-        y: '100%',
+        y: '120%',
         display: 'block'
       }, {
         duration: 0.5,
