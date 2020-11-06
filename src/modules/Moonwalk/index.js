@@ -541,7 +541,8 @@ export default class Moonwalk {
           } else if (alphaTween === true) {
             alphaTween = {
               duration,
-              ease: 'sine.in'
+              ease: 'sine.in',
+              delay: cfg.startDelay ? cfg.startDelay : 0
             }
           }
 
@@ -631,9 +632,9 @@ export default class Moonwalk {
       section.timeline.to(target, {
         duration: alphaTween.duration,
         opacity: 1,
-        ease: alphaTween.ease
-      },
-      '<')
+        ease: alphaTween.ease,
+        delay: alphaTween.delay ? alphaTween.delay : 0
+      }, '<')
     }
   }
 
