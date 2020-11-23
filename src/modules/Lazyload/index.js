@@ -154,7 +154,7 @@ export default class Lazyload {
       if (!source.hasAttribute('data-ll-loaded')) {
         loadedSomething = true
       }
-      if (source.hasAttribute('srcset')) {
+      if (source.hasAttribute('data-srcset')) {
         source.setAttribute('srcset', source.dataset.srcset)
         source.setAttribute('data-ll-loaded', '')
       }

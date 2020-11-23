@@ -1,3 +1,10 @@
+#### 3.39.0
+
+- Lightbox: Add support for srcset. Add `data-srcset` to your anchor tag with `data-lightbox`
+- FixedHeader: Remove unused intersect logic.
+- Lazyload: Fix setting `srcset` on `source` tags that have `data-srcset`
+
+
 #### 3.38.0
 
 - Application: Prevent scrollLock running while already locked, since this would reset scrollbar

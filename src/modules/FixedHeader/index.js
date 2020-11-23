@@ -302,25 +302,6 @@ export default class FixedHeader {
     }
   }
 
-  checkIntersects () {
-    if (this.opts.intersects) {
-      const headerBottom = this.el.offsetHeight
-      // check if we overlap any of the intersects?
-      this.intersectingElements.forEach(ie => {
-        const { top } = ie.getBoundingClientRect()
-        const { bottom } = ie.getBoundingClientRect()
-        if (bottom > 0 && top < headerBottom) {
-          console.log('intersects')
-        }
-        // height of header
-        // if (Dom.overlapsVertically(ie, this.el)) {
-        //   console.log('OMG')
-        //   this.opts.onIntersect(this, ie)
-        // }
-      })
-    }
-  }
-
   checkTop (force) {
     if (this.currentScrollY <= this.opts.offset) {
       if (force) {
@@ -378,7 +359,6 @@ export default class FixedHeader {
 
     this.checkSize(false)
     this.checkBg(false)
-    this.checkIntersects(false)
     this.checkTop(false)
     this.checkBot(false)
     this.checkPin(false, toleranceExceeded)
