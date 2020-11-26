@@ -81,11 +81,12 @@ export default class Lazyload {
   }
 
   /**
-   * Set sizes attribute for all images with `data-sizes="auto"`
+   * Set sizes attribute for all imgs with `data-sizes="auto"` and source within the <picture>
    */
   autoSizes () {
     Array.from(this.$autoSizesImages).forEach(img => {
       img.setAttribute('sizes', `${img.offsetWidth}px`)
+      Array.from(Dom.all(img.parentNode, 'source')).forEach(source => source.setAttribute('sizes', `${img.offsetWidth}px`))
     })
   }
 
