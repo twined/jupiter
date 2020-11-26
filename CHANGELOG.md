@@ -1,3 +1,8 @@
+#### 3.39.1
+
+- Lazyload: Also set `sizes` on `source` tags
+
+
 #### 3.39.0
 
 - Lightbox: Add support for srcset. Add `data-srcset` to your anchor tag with `data-lightbox`
