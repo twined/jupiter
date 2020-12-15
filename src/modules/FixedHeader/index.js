@@ -133,10 +133,6 @@ export default class FixedHeader {
     this.app = app
     this.mainOpts = _defaultsDeep(opts, DEFAULT_OPTIONS)
 
-    window.addEventListener(Events.APPLICATION_OUTLINE, () => {
-      this.mainOpts.onOutline(this)
-    })
-
     if (typeof this.mainOpts.el === 'string') {
       this.el = document.querySelector(this.mainOpts.el)
     } else {
@@ -171,6 +167,10 @@ export default class FixedHeader {
     if (this.opts.intersects) {
       this.intersectingElements = Dom.all('[data-intersect]')
     }
+
+    window.addEventListener(Events.APPLICATION_OUTLINE, () => {
+      this.opts.onOutline(this)
+    })
 
     this.initialize()
   }
