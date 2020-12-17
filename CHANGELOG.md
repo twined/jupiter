@@ -1,5 +1,6 @@
 #### 3.39.1
 
+- FixedHeader: Fix `onOutline` callback
 - Lazyload: Also set `sizes` on `source` tags
 
 
