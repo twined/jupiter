@@ -11,7 +11,9 @@ const DEFAULT_OPTIONS = {
     threshold: 0.0
   },
   useNativeLazyloadIfAvailable: true,
-  mode: 'default'
+  mode: 'default',
+  minSize: 40,
+  updateSizes: true
 }
 
 export default class Lazyload {
@@ -75,9 +77,11 @@ export default class Lazyload {
   }
 
   initializeAutoSizes () {
-    this.$autoSizesImages = Dom.all('[data-sizes="auto"]')
-    this.autoSizes()
-    window.addEventListener(Events.APPLICATION_RESIZE, () => this.autoSizes())
+    if (this.opts.updateSizes) {
+      this.$autoSizesImages = Dom.all('[data-sizes="auto"]')
+      this.autoSizes()
+      window.addEventListener(Events.APPLICATION_RESIZE, () => this.autoSizes())
+    }
   }
 
   /**
@@ -85,9 +89,22 @@ export default class Lazyload {
    */
   autoSizes () {
     Array.from(this.$autoSizesImages).forEach(img => {
-      img.setAttribute('sizes', `${img.offsetWidth}px`)
-      Array.from(Dom.all(img.parentNode, 'source')).forEach(source => source.setAttribute('sizes', `${img.offsetWidth}px`))
+      const width = this.getWidth(img)
+      img.setAttribute('sizes', `${width}px`)
+      Array.from(Dom.all(img.parentNode, 'source')).forEach(source => source.setAttribute('sizes', `${width}px`))
     })
+  }
+
+  getWidth (img) {
+    let width = img.offsetWidth
+    let parent = img.parentNode
+
+    while (width < this.opts.minSize && parent) {
+      width = parent.offsetWidth
+      parent = parent.parentNode
+    }
+
+    return width
   }
 
   initializeSections () {
@@ -167,13 +184,14 @@ export default class Lazyload {
 
     const img = picture.querySelector('img')
 
-    img.addEventListener('load', () => {
+    const onload = () => {
       img.removeAttribute('data-ll-placeholder')
       img.removeAttribute('data-ll-blurred')
       img.removeAttribute('data-ll-loading')
       img.setAttribute('data-ll-loaded', '')
-    }, false)
+    }
 
+    img.addEventListener('load', onload, false)
     img.setAttribute('data-ll-loading', '')
 
     if (img.dataset.src) {
@@ -190,14 +208,9 @@ export default class Lazyload {
       }
     }
 
-    dispatchElementEvent(img, IMAGE_LAZYLOADED)
-
     // safari sometimes caches, so force load
-    if (img.complete) {
-      img.removeAttribute('data-ll-placeholder')
-      img.removeAttribute('data-ll-blurred')
-      img.removeAttribute('data-ll-loading')
-      img.setAttribute('data-ll-loaded', '')
-    }
+    if (img.complete) { onload() }
+
+    dispatchElementEvent(img, IMAGE_LAZYLOADED)
   }
 }

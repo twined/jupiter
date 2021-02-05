@@ -1,4 +1,3 @@
-// import Headroom from 'headroom.js'
 import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 

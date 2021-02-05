@@ -407,6 +407,9 @@ export default class FixedHeader {
   }
 
   pin () {
+    if (this.preventPin) {
+      return
+    }
     this._pinned = true
     this.el.setAttribute('data-header-pinned', '')
     this.el.removeAttribute('data-header-unpinned')

@@ -14,7 +14,7 @@ import Breakpoints from './modules/Breakpoints'
 import Cookies from './modules/Cookies'
 import CoverOverlay from './modules/CoverOverlay'
 import Dom from './modules/Dom'
-
+import Dropdown from './modules/Dropdown'
 import * as Events from './events'
 import FixedHeader from './modules/FixedHeader'
 import FooterReveal from './modules/FooterReveal'
@@ -27,6 +27,7 @@ import Links from './modules/Links'
 import MobileMenu from './modules/MobileMenu'
 import Moonwalk from './modules/Moonwalk'
 import Popup from './modules/Popup'
+import ScrollSpy from './modules/ScrollSpy'
 import StackedBoxes from './modules/StackedBoxes'
 import StickyHeader from './modules/StickyHeader'
 import Typography from './modules/Typography'
@@ -44,6 +45,7 @@ export {
   CoverOverlay,
   Dom,
   Draggable,
+  Dropdown,
   Events,
   FixedHeader,
   FooterReveal,
@@ -56,6 +58,7 @@ export {
   MobileMenu,
   Moonwalk,
   Popup,
+  ScrollSpy,
   StackedBoxes,
   StickyHeader,
   Typography,

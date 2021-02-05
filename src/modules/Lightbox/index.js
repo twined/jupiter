@@ -339,7 +339,9 @@ export default class Lightbox {
     for (let x = 0; x < 3; x += 1) {
       if (this.imgs[index + x]) {
         this.imgs[index + x].src = this.sections[section][index + x].href
-        this.imgs[index + x].setAttribute('srcset', this.sections[section][index + x].srcset)
+        if (this.sections[section][index + x].srcset) {
+          this.imgs[index + x].setAttribute('srcset', this.sections[section][index + x].srcset)
+        }
       } else {
         break
       }
@@ -347,7 +349,9 @@ export default class Lightbox {
 
     this.nextImage = this.imgs[index]
     this.nextImage.src = this.sections[section][index].href
-    this.nextImage.setAttribute('srcset', this.sections[section][index].srcset)
+    if (this.sections[section][index].srcset) {
+      this.nextImage.setAttribute('srcset', this.sections[section][index].srcset)
+    }
 
     this.opts.onImageIn(this)
     this.timelines.image.call(() => {

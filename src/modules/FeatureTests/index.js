@@ -28,6 +28,11 @@ export default class FeatureTests {
       this.results.webview = false
     }
 
+    const browser = this.testBrowsers()
+    this.results.browser = browser
+    this.app.browser = browser
+    document.documentElement.setAttribute('data-browser', browser)
+
     const testKeys = Object.keys(tests)
     const wantedTests = testKeys.filter(t => tests[t])
 
@@ -115,6 +120,29 @@ export default class FeatureTests {
 
   testIOS () {
     return navigator.userAgent.match(/iphone|ipod|ipad/i)
+  }
+
+  testBrowsers () {
+    let browser = 'unknown'
+    let isChrome = false
+    let isSafari = false
+    if (navigator.userAgent.indexOf('Chrome') > -1) {
+      browser = 'chrome'
+      isChrome = true
+    }
+    if (navigator.userAgent.indexOf('MSIE') > -1) {
+      browser = 'ie'
+    }
+    if (navigator.userAgent.indexOf('Firefox') > -1) {
+      browser = 'firefox'
+    }
+    if (navigator.userAgent.indexOf('Safari') > -1) {
+      browser = 'safari'
+      isSafari = true
+    }
+    if ((isChrome) && (isSafari)) { browser = 'chrome' }
+
+    return browser
   }
 
   testWebview () {

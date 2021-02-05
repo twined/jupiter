@@ -32,6 +32,9 @@ const DEFAULT_OPTIONS = {
   bindScroll: true,
   bindResize: true,
 
+  // Big Sur + Safari 14 is now trying to display webp, but fails intermittently
+  disableWebpSafari: true,
+
   faderOpts: {
     fadeIn: (callback = () => {}) => {
       const fader = document.querySelector('#fader')
@@ -49,7 +52,6 @@ const DEFAULT_OPTIONS = {
     }
   }
 }
-
 export default class Application {
   constructor (opts = {}) {
     this.debugType = 1
@@ -80,6 +82,8 @@ export default class Application {
     } else {
       this.breakpoints = new Breakpoints(this, this.opts.breakpointConfig(this))
     }
+
+    this.hacks()
 
     this.setDims()
     this.fontLoader = new Fontloader(this)
@@ -227,15 +231,29 @@ export default class Application {
     document.removeEventListener('touchmove', this.scrollVoid, false)
   }
 
+  /**
+   *
+   * @param {*} target
+   * this can be an object too if you want to override scrollTo: `{y: "#someID", offsetY: 50}`
+   * @param {*} time
+   * @param {*} emitEvents
+   */
   scrollTo (target, time = 0.8, emitEvents = true) {
+    let scrollToData
     const forcedScrollEventStart = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_START)
     if (emitEvents) {
       window.dispatchEvent(forcedScrollEventStart)
     }
 
+    if (typeof target === 'object') {
+      scrollToData = target
+    } else {
+      scrollToData = { y: target, autoKill: false }
+    }
+
     gsap.to(window, {
       duration: time,
-      scrollTo: { y: target, autoKill: false },
+      scrollTo: scrollToData,
       onComplete: () => {
         const forcedScrollEventEnd = new window.CustomEvent(Events.APPLICATION_FORCED_SCROLL_END)
         if (emitEvents) {
@@ -286,6 +304,21 @@ export default class Application {
 
       // Removing temporary elements from the DOM
       outer.parentNode.removeChild(outer)
+    }
+  }
+
+  /**
+   * Ugly hacks
+   */
+  hacks () {
+    if (this.opts.disableWebpSafari) {
+      if (this.browser === 'safari') {
+        console.debug('==> disable webp')
+        const webps = Dom.all('source[type="image/webp"]')
+        for (let i = 0; i < webps.length; i += 1) {
+          webps[i].remove()
+        }
+      }
     }
   }
 
@@ -341,11 +374,13 @@ export default class Application {
 
   _emitReadyEvent () {
     window.dispatchEvent(this.readyEvent)
+    document.body.dataset.appReady = true
   }
 
   _emitRevealedEvent () {
     window.dispatchEvent(this.revealedEvent)
     this.executeCallbacks(Events.APPLICATION_REVEALED)
+    document.body.dataset.appRevealed = true
   }
 
   setDims () {

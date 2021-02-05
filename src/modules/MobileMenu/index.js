@@ -6,6 +6,7 @@ const DEFAULT_OPTIONS = {
   logoColor: '#000',
   logoPathSelector: 'svg path',
   contentSelector: 'section',
+  liSelector: 'li',
   hamburgerColor: '#000',
 
   onResize: null,
@@ -112,7 +113,7 @@ export default class MobileMenu {
     this.hamburger = this.menuButton ? this.menuButton.querySelector('.hamburger') : null
     this.hamburgerInner = this.menuButton ? this.menuButton.querySelector('.hamburger-inner') : null
     this.content = this.header.querySelectorAll(this.opts.contentSelector)
-    this.lis = this.header.querySelectorAll('li')
+    this.lis = this.header.querySelectorAll(this.opts.liSelector)
     this.nav = this.header.querySelector('nav')
 
     if (this.hamburger) {
