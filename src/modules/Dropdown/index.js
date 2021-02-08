@@ -72,8 +72,10 @@ export default class Dropdown {
     event.stopPropagation()
 
     if (this.open) {
+      delete this.elements.trigger.dataset.dropdownActive
       this.closeMenu()
     } else {
+      this.elements.trigger.dataset.dropdownActive = ''
       this.openMenu()
     }
   }
