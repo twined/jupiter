@@ -1,3 +1,13 @@
+#### 3.40.1
+
+- FixedHeader: Check props as preflight
+- FixedHeader: Set data-header-transitions after initial preflight
+
+#### 3.40.0
+
+- Dropdown: New module
+- Scrollspy: New module
+
 #### 3.39.1
 
 - FixedHeader: Fix `onOutline` callback
