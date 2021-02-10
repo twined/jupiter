@@ -211,6 +211,9 @@ export default class FixedHeader {
       passive: true
     })
     window.addEventListener(Events.APPLICATION_READY, this.unpinIfScrolled.bind(this))
+
+    this.preflight()
+
     window.addEventListener(this.mainOpts.on, this.enter.bind(this))
 
     this._bindMobileMenuListeners()
@@ -220,6 +223,16 @@ export default class FixedHeader {
     }
 
     this.opts.beforeEnter(this)
+  }
+
+  preflight () {
+    this.checkSize(true)
+    this.checkBg(true)
+    this.checkTop(true)
+
+    setTimeout(() => {
+      this.el.setAttribute('data-header-transitions', '')
+    }, 350)
   }
 
   lock () {
