@@ -24,6 +24,7 @@ import HeroVideo from './modules/HeroVideo'
 import Lazyload from './modules/Lazyload'
 import Lightbox from './modules/Lightbox'
 import Links from './modules/Links'
+import Marquee from './modules/Marquee'
 import MobileMenu from './modules/MobileMenu'
 import Moonwalk from './modules/Moonwalk'
 import Popup from './modules/Popup'
@@ -55,6 +56,7 @@ export {
   Lazyload,
   Lightbox,
   Links,
+  Marquee,
   MobileMenu,
   Moonwalk,
   Popup,
