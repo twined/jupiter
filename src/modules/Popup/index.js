@@ -4,13 +4,13 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 const DEFAULT_OPTIONS = {
   onClose: () => {},
 
-  tweenIn: (el, popup) => {
+  tweenIn: (trigger, target, popup) => {
     gsap.set(popup.backdrop, { display: 'block' })
     gsap.to(popup.backdrop, {
       duration: 0.3,
       opacity: 1,
       onComplete: () => {
-        gsap.fromTo(el, {
+        gsap.fromTo(target, {
           duration: 0.3,
           yPercent: -50,
           x: -5,
@@ -62,7 +62,7 @@ export default class Popup {
       trigger.addEventListener('click', event => {
         event.stopImmediatePropagation()
         event.preventDefault()
-        this.open(triggerTarget)
+        this.open(trigger, triggerTarget)
       })
     })
 
@@ -90,16 +90,16 @@ export default class Popup {
     this.backdrop = backdrop
   }
 
-  open (el) {
-    if (typeof el === 'string') {
-      el = document.querySelector(el)
+  open (trigger, target) {
+    if (typeof target === 'string') {
+      target = document.querySelector(target)
     }
 
-    if (!el) {
-      console.error(`JUPITER/POPUP >>> Element ${el} not found`)
+    if (!target) {
+      console.error(`JUPITER/POPUP >>> Element ${target} not found`)
     }
 
-    this.opts.tweenIn(el, this)
+    this.opts.tweenIn(trigger, target, this)
   }
 
   close () {
