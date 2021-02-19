@@ -78,14 +78,14 @@ const DEFAULT_OPTIONS = {
       /* How long each tween is */
       duration: 0.65,
       /* */
-      alphaTween: true,
+      alphaTween: false,
       /* The transitions that will be tweened */
       transition: {
         from: {
-          y: 20
+          opacity: 0
         },
         to: {
-          y: 0
+          opacity: 1
         }
       }
     }
@@ -195,36 +195,43 @@ export default class Moonwalk {
    */
   initializeSections (container = document) {
     const sections = container.querySelectorAll('[data-moonwalk-section]')
-    return Array.from(sections).map(section => {
-      this.parseChildren(section)
 
-      if (this.opts.uniqueIds) {
-        this.addIds(section)
-      }
+    if (container !== document && !sections.length && container.hasAttribute('data-moonwalk-section')) {
+      return [this.initializeSection(container)]
+    }
 
-      if (this.opts.addIndexes) {
-        this.addIndexes(section)
-      }
+    return Array.from(sections).map(section => this.initializeSection(section))
+  }
 
-      const timeline = gsap.timeline({
-        // autoRemoveChildren: true
-        smoothChildTiming: true
-      })
+  initializeSection (section) {
+    this.parseChildren(section)
 
-      return {
-        id: Math.random().toString(36).substring(7),
-        el: section,
-        name: section.getAttribute('data-moonwalk-section') || null,
-        timeline,
-        observer: null,
-        stage: {
-          name: section.getAttribute('data-moonwalk-stage') || null,
-          running: false,
-          firstTween: false
-        },
-        elements: []
-      }
+    if (this.opts.uniqueIds) {
+      this.addIds(section)
+    }
+
+    if (this.opts.addIndexes) {
+      this.addIndexes(section)
+    }
+
+    const timeline = gsap.timeline({
+      // autoRemoveChildren: true
+      smoothChildTiming: true
     })
+
+    return {
+      id: Math.random().toString(36).substring(7),
+      el: section,
+      name: section.getAttribute('data-moonwalk-section') || null,
+      timeline,
+      observer: null,
+      stage: {
+        name: section.getAttribute('data-moonwalk-stage') || null,
+        running: false,
+        firstTween: false
+      },
+      elements: []
+    }
   }
 
   /**
@@ -525,7 +532,8 @@ export default class Moonwalk {
           const {
             duration,
             transition,
-            interval
+            interval,
+            startDelay
           } = cfg
 
           let { alphaTween } = cfg
@@ -541,45 +549,42 @@ export default class Moonwalk {
           } else if (alphaTween === true) {
             alphaTween = {
               duration,
-              ease: 'sine.in',
-              delay: cfg.startDelay ? cfg.startDelay : 0
+              ease: 'sine.in'
             }
           }
 
           const tween = transition ? this.tweenJS : this.tweenCSS
 
-          if (entry.target.tagName === 'IMG') {
-            // ensure image is loaded before we tween
-            imageIsLoaded(entry.target).then(() => tween(
+          const tweenFn = () => {
+            tween(
               section,
               entry.target,
               duration,
               transition,
               overlap,
               alphaTween
-            ))
+            )
+          }
+
+          const wrappedTweenFn = () => {
+            if (startDelay) {
+              gsap.delayedCall(startDelay, tweenFn)
+            } else {
+              tweenFn()
+            }
+          }
+
+          if (entry.target.tagName === 'IMG') {
+            // ensure image is loaded before we tween
+            imageIsLoaded(entry.target).then(() => wrappedTweenFn())
           } else {
             const imagesInEntry = entry.target.querySelectorAll('img')
             if (imagesInEntry.length) {
               // entry has children elements that are images
-              imagesAreLoaded(imagesInEntry).then(() => tween(
-                section,
-                entry.target,
-                duration,
-                transition,
-                overlap,
-                alphaTween
-              ))
+              imagesAreLoaded(imagesInEntry).then(() => wrappedTweenFn())
             } else {
               // regular entry, just tween it
-              tween(
-                section,
-                entry.target,
-                duration,
-                transition,
-                overlap,
-                alphaTween
-              )
+              wrappedTweenFn()
             }
           }
           self.unobserve(entry.target)
