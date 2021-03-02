@@ -1,3 +1,7 @@
+#### 3.41.0
+
+- Marquee: New module
+
 #### 3.40.1
 
 - FixedHeader: Check props as preflight

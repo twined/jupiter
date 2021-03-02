@@ -1,6 +1,6 @@
 {
     "name": "@univers-agency/jupiter",
-    "version": "3.40.1",
+    "version": "3.41.0",
     "description": "Frontend helpers.",
     "author": "Univers/Twined",
     "license": "UNLICENSED",
@@ -37,10 +37,10 @@
         "lodash.defaultsdeep": "^4.6.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.12.17",
-        "@babel/preset-env": "^7.12.17",
+        "@babel/core": "^7.13.8",
+        "@babel/preset-env": "^7.13.9",
         "babel-jest": "^26.6.3",
-        "eslint": "7.20.0",
+        "eslint": "7.21.0",
         "eslint-config-airbnb-base": "^14.2.1",
         "eslint-plugin-import": "^2.22.1",
         "eslint-plugin-node": "^11.1.0",
