@@ -22,7 +22,7 @@ export default class Marquee {
   }
 
   initialize () {
-    // window.addEventListener('APPLICATION:RESIZE', this.updateMarquee.bind(this))
+    window.addEventListener('APPLICATION:RESIZE', this.updateMarquee.bind(this))
     this.updateMarquee()
     this.setupObserver()
     this.elements.$el.addEventListener('mouseenter', this.slowDown.bind(this))
