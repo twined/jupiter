@@ -46,7 +46,7 @@ export default class Breakpoints {
       }
 
       this.mediaQueries[key] = window.matchMedia(query)
-      this.mediaQueries[key].addListener(this.defaultListener)
+      this.mediaQueries[key].addListener(this.defaultListener.bind(this))
 
       if (Object.prototype.hasOwnProperty.call(this.opts.listeners, key)) {
         this.mediaQueries[key].addListener(this.opts.listeners[key])
@@ -59,6 +59,8 @@ export default class Breakpoints {
         this.opts.listeners[key](mq)
       }
     }
+
+    this.setCurrentBreakpoint()
   }
 
   getCurrentBreakpoint () {
@@ -70,8 +72,16 @@ export default class Breakpoints {
   }
 
   defaultListener (e) {
+    if (e.matches) {
+      this.setCurrentBreakpoint()
+    }
     const evt = new CustomEvent(Events.BREAKPOINT_CHANGE)
     window.dispatchEvent(evt)
+  }
+
+  setCurrentBreakpoint () {
+    const { key } = this.getCurrentBreakpoint()
+    this.app.breakpoint = key
   }
 
   _getVal (key) {
