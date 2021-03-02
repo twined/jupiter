@@ -1,3 +1,7 @@
+#### 3.41.1
+
+- Marquee: Update marquee dimensions on resize
+
 #### 3.41.0
 
 - Marquee: New module
