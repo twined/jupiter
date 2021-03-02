@@ -14,6 +14,7 @@ const DEFAULT_OPTIONS = {
    *  responsive: app => { return (app.breakpoint === 'iphone') }
    */
   responsive: () => true,
+  onOpen: () => {},
   onClose: () => {},
 
   tweenIn: (trigger, target, popup) => {
@@ -112,11 +113,12 @@ export default class Popup {
     if (!target) {
       console.error(`JUPITER/POPUP >>> Element ${target} not found`)
     }
-
+    this.opts.onOpen(trigger, target, this)
     this.opts.tweenIn(trigger, target, this)
   }
 
   close () {
+    this.opts.onClose(this)
     this.opts.tweenOut(this)
   }
 }

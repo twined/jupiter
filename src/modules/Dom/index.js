@@ -4,6 +4,11 @@ class DOM {
     this.html = document.documentElement
   }
 
+  new (arg) {
+    const doc = new DOMParser().parseFromString(arg.trim(), 'text/html')
+    return Array.from(doc.body.childNodes)
+  }
+
   find (arg1, arg2) {
     if (typeof arg1 === 'string' && typeof arg2 === 'object') {
       throw new Error('Dom.find: Wrong syntax, use -> Dom.find(node, selector)')
