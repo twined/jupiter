@@ -1,3 +1,7 @@
+#### 3.41.2
+
+- Marquee: Play when in viewport initially. Fixes resize bug.
+
 #### 3.41.1
 
 - Marquee: Update marquee dimensions on resize
