@@ -2,6 +2,18 @@ import { gsap } from 'gsap'
 import _defaultsDeep from 'lodash.defaultsdeep'
 
 const DEFAULT_OPTIONS = {
+
+  /**
+   * responsive
+   *
+   * Runs to check if popup should be shown on this breakpoint.
+   * Passes app object to callback
+   *
+   * Example:
+   *
+   *  responsive: app => { return (app.breakpoint === 'iphone') }
+   */
+  responsive: () => true,
   onClose: () => {},
 
   tweenIn: (trigger, target, popup) => {
@@ -60,9 +72,11 @@ export default class Popup {
     Array.from(triggers).forEach(trigger => {
       const triggerTarget = trigger.getAttribute('data-popup-trigger')
       trigger.addEventListener('click', event => {
-        event.stopImmediatePropagation()
-        event.preventDefault()
-        this.open(trigger, triggerTarget)
+        if (this.opts.responsive(this.app)) {
+          event.stopImmediatePropagation()
+          event.preventDefault()
+          this.open(trigger, triggerTarget)
+        }
       })
     })
 
