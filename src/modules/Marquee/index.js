@@ -38,6 +38,10 @@ export default class Marquee {
     const $allHolders = Dom.all(this.elements.$el, '[data-marquee-holder]')
     gsap.set(this.elements.$marquee, { width: holderWidth * $allHolders.length })
     this.initializeTween()
+
+    if (Dom.inViewport(this.elements.$el)) {
+      this.play()
+    }
   }
 
   clearHolders () {
