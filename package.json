@@ -1,15 +1,15 @@
 {
-    "name": "@univers-agency/jupiter",
+    "name": "@brandocms/jupiter",
     "version": "3.41.2",
     "description": "Frontend helpers.",
     "author": "Univers/Twined",
     "license": "UNLICENSED",
     "repository": {
         "type": "git",
-        "url": "git+https://univers-agency@github.com/univers-agency/jupiter.git"
+        "url": "git+https://brandocms@github.com/brandocms/jupiter.git"
     },
     "bugs": {
-        "url": "https://github.com/univers-agency/jupiter/issues"
+        "url": "https://github.com/brandocms/jupiter/issues"
     },
     "main": "src/index.js",
     "module": "src/index.js",
@@ -17,7 +17,7 @@
     "files": [
         "src"
     ],
-    "homepage": "https://github.com/univers-agency/jupiter#readme",
+    "homepage": "https://github.com/brandocms/jupiter#readme",
     "sideEffects": false,
     "scripts": {
         "lint": "eslint src/*.js",
