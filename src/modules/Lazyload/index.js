@@ -91,7 +91,9 @@ export default class Lazyload {
     Array.from(this.$autoSizesImages).forEach(img => {
       const width = this.getWidth(img)
       img.setAttribute('sizes', `${width}px`)
-      Array.from(Dom.all(img.parentNode, 'source')).forEach(source => source.setAttribute('sizes', `${width}px`))
+      if (img.parentNode) {
+        Array.from(Dom.all(img.parentNode, 'source')).forEach(source => source.setAttribute('sizes', `${width}px`))
+      }
     })
   }
 
@@ -115,12 +117,12 @@ export default class Lazyload {
         return new IntersectionObserver((entries, self) => {
           entries.forEach(entry => {
             if (entry.isIntersecting || entry.intersectionRatio > 0) {
+              imagesAreLoaded(imagesInSection, true).then(() => {
+                dispatchElementEvent(section, SECTION_LAZYLOADED)
+              })
               children.forEach(picture => {
                 this.swapPicture(picture)
                 this.pictureObserver.unobserve(picture)
-              })
-              imagesAreLoaded(imagesInSection, true).then(() => {
-                dispatchElementEvent(section, SECTION_LAZYLOADED)
               })
               self.unobserve(section)
             }
