@@ -1,3 +1,9 @@
+#### 3.41.3
+
+- CoverOverlay: Check that iframe exists
+- Lazyload: Ensure parent node exists before setting sizes
+- General: Switch package scope to brandocms
+
 #### 3.41.2
 
 - Marquee: Play when in viewport initially. Fixes resize bug.
