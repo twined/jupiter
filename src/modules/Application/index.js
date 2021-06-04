@@ -58,6 +58,7 @@ export default class Application {
     this.debugOverlay = null
     this.userAgent = navigator.userAgent
     this._lastWindowHeight = 0
+    this.breakpoint = null
 
     this.size = {
       width: 0,
