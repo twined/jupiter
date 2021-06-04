@@ -1,3 +1,8 @@
+#### 3.42.0
+
+- FixedHeader: Try to fix scroll jank with content-visibility
+- General: Better checking for existing elements before proceeding
+
 #### 3.41.3
 
 - CoverOverlay: Check that iframe exists
