@@ -159,6 +159,8 @@ export default class FixedHeader {
     this._isResizing = false
     this._hiding = false // if we're in the process of hiding the bar
     this.lastKnownScrollY = 0
+    this.lastKnownScrollHeight = 0
+    this.currentScrollHeight = 0
     this.currentScrollY = 0
     this.mobileMenuOpen = false
     this.timer = null
@@ -178,7 +180,9 @@ export default class FixedHeader {
   initialize () {
     // bind to canvas scroll
     this.lastKnownScrollY = this.getScrollY()
+    this.lastKnownScrollHeight = document.body.scrollHeight
     this.currentScrollY = this.lastKnownScrollY
+    this.currentScrollHeight = this.lastKnownScrollHeight
 
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
@@ -364,9 +368,18 @@ export default class FixedHeader {
 
   redraw () {
     this.currentScrollY = this.getScrollY()
+    this.currentScrollHeight = document.body.scrollHeight
     const toleranceExceeded = this.toleranceExceeded()
 
     if (this.isOutOfBounds()) { // Ignore bouncy scrolling in OSX
+      return
+    }
+
+    /* content-visibility: auto may CHANGE the scrollheight of the document
+    as we roll down/up. Try to avoid false positives here */
+    if (this.currentScrollHeight !== this.lastKnownScrollHeight && !this._firstLoad) {
+      this.lastKnownScrollY = this.currentScrollY
+      this.lastKnownScrollHeight = this.currentScrollHeight
       return
     }
 
@@ -377,6 +390,7 @@ export default class FixedHeader {
     this.checkPin(false, toleranceExceeded)
 
     this.lastKnownScrollY = this.currentScrollY
+    this.lastKnownScrollHeight = this.currentScrollHeight
 
     this._firstLoad = false
   }
