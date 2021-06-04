@@ -66,7 +66,6 @@ export default class Cookies {
     this.btn = document.querySelector('.dismiss-cookielaw')
 
     if (!this.btn) {
-      console.error('Cookies: No `.dismiss-cookielaw` button found.')
       return
     }
 
