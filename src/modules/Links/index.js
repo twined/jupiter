@@ -19,21 +19,34 @@ const DEFAULT_OPTIONS = {
     const main = document.querySelector('main')
     const fader = document.querySelector('#fader')
 
-    fader.style.display = 'block'
-
-    gsap.to(main, {
-      duration: 0.8,
-      y: 25,
-      ease: 'power3.out'
-    })
-
-    gsap.to(fader, {
-      duration: 0.2,
-      opacity: 1,
-      onComplete: () => {
-        window.location = href
-      }
-    })
+    if (fader) {
+      gsap.set(fader, { display: 'block', opacity: 0 })
+      gsap.to(main, {
+        duration: 0.8,
+        y: 25,
+        ease: 'power3.out'
+      })
+      gsap.to(fader, {
+        duration: 0.2,
+        opacity: 1,
+        onComplete: () => {
+          window.location = href
+        }
+      })
+    } else {
+      gsap.to(main, {
+        duration: 0.8,
+        y: 25,
+        ease: 'power3.out'
+      })
+      gsap.to(main, {
+        duration: 0.2,
+        opacity: 0,
+        onComplete: () => {
+          window.location = href
+        }
+      })
+    }
   }
 }
 
