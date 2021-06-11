@@ -379,9 +379,11 @@ export default class Application {
   }
 
   _emitRevealedEvent () {
-    window.dispatchEvent(this.revealedEvent)
-    this.executeCallbacks(Events.APPLICATION_REVEALED)
-    document.body.dataset.appRevealed = true
+    if (!document.body.hasAttribute('data-app-revealed')) {
+      document.body.dataset.appRevealed = true
+      window.dispatchEvent(this.revealedEvent)
+      this.executeCallbacks(Events.APPLICATION_REVEALED)
+    }
   }
 
   setDims () {
