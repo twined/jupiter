@@ -3,7 +3,8 @@ import _defaultsDeep from 'lodash.defaultsdeep'
 import Dom from '../Dom'
 
 const DEFAULT_OPTIONS = {
-  speed: 25
+  speed: 25,
+  extraHeight: 0
 }
 
 export default class Marquee {
@@ -154,7 +155,7 @@ export default class Marquee {
   }
 
   setHeight () {
-    const height = this.elements.$item.offsetHeight
+    const height = this.elements.$item.offsetHeight + this.opts.extraHeight
     gsap.set(this.elements.$el, { height })
   }
 
