@@ -92,6 +92,8 @@ const DEFAULT_EVENTS = {
 const DEFAULT_OPTIONS = {
   el: 'header[data-nav]',
   on: Events.APPLICATION_REVEALED,
+  unpinOnForcedScrollStart: true,
+  pinOnForcedScrollEnd: true,
 
   default: {
     unPinOnResize: true,
@@ -183,6 +185,7 @@ export default class FixedHeader {
     this.lastKnownScrollHeight = document.body.scrollHeight
     this.currentScrollY = this.lastKnownScrollY
     this.currentScrollHeight = this.lastKnownScrollHeight
+    this.pageIsScrolledOnReady = false
 
     if (typeof this.opts.offsetBg === 'string') {
       // get offset of element, with height of header subtracted
@@ -208,8 +211,14 @@ export default class FixedHeader {
       this.opts.offsetSmall = this.opts.offsetSmall(this) - 1
     }
 
-    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
-    window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
+    if (this.mainOpts.unpinOnForcedScrollStart) {
+      window.addEventListener(Events.APPLICATION_FORCED_SCROLL_START, this.unpin.bind(this), false)
+    }
+
+    if (this.mainOpts.pinOnForcedScrollEnd) {
+      window.addEventListener(Events.APPLICATION_FORCED_SCROLL_END, this.pin.bind(this), false)
+    }
+
     window.addEventListener(Events.APPLICATION_SCROLL, this.update.bind(this), {
       capture: false,
       passive: true
@@ -256,7 +265,8 @@ export default class FixedHeader {
 
   unpinIfScrolled () {
     if (this.isScrolled()) {
-      // page is scrolled on ready -- unpin
+      // page is scrolled on ready -- ensure we unpin
+      this.pageIsScrolledOnReady = true
       this.unpin()
     }
   }
